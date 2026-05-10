@@ -13,7 +13,7 @@ export const POINTS = {
 }
 
 export function getLevelFromPoints(points: number): number {
-  const level = LEVEL_THRESHOLDS.findLast((t) => points >= t.min)
+  const level = [...LEVEL_THRESHOLDS].reverse().find((t) => points >= t.min)
   return level?.level ?? 1
 }
 
