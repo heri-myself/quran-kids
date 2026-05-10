@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  parent
+  child
+  admin
+}
+
+enum Category {
+  sahabat_nabi
+  kisah_quran
+  akhlaq
+}
+
+enum Difficulty {
+  easy
+  medium
+  hard
+}
+
+enum SubscriptionPlan {
+  monthly
+  yearly
+}
+
+enum SubscriptionStatus {
+  active
+  expired
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(parent)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  profiles     Profile[]
+  subscription Subscription?
+}
+
+model Profile {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  avatar          String    @default("avatar_1")
+  age             Int?
+  role            Role      @default(child)
+  parentId        String?
+  parent          Profile?  @relation("ParentChild", fields: [parentId], references: [id])
+  children        Profile[] @relation("ParentChild")
+  gamification    Gamification?
+  readingProgress ReadingProgress[]
+  userBadges      UserBadge[]
+  createdAt       DateTime  @default(now())
+}
+
+model Story {
+  id              String            @id @default(cuid())
+  title           String
+  slug            String            @unique
+  category        Category
+  difficultyLevel Difficulty        @default(easy)
+  isPremium       Boolean           @default(false)
+  coverImageUrl   String?
+  totalPages      Int               @default(0)
+  isPublished     Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  pages           StoryPage[]
+  readingProgress ReadingProgress[]
+}
+
+model StoryPage {
+  id              String   @id @default(cuid())
+  storyId         String
+  story           Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  pageNumber      Int
+  textArabic      String?
+  textLatin       String?
+  textTranslation String
+  illustrationUrl String?
+  audioUrl        String?
+  durationSeconds Int?
+  createdAt       DateTime @default(now())
+
+  @@unique([storyId, pageNumber])
+}
+
+model Gamification {
+  id            String    @id @default(cuid())
+  profileId     String    @unique
+  profile       Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  totalPoints   Int       @default(0)
+  currentLevel  Int       @default(1)
+  currentStreak Int       @default(0)
+  lastReadAt    DateTime?
+  updatedAt     DateTime  @updatedAt
+}
+
+model Badge {
+  id               String      @id @default(cuid())
+  name             String      @unique
+  description      String
+  iconUrl          String?
+  requirementType  String
+  requirementValue Int
+  userBadges       UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+  earnedAt  DateTime @default(now())
+
+  @@unique([profileId, badgeId])
+}
+
+model ReadingProgress {
+  id          String    @id @default(cuid())
+  profileId   String
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  storyId     String
+  story       Story     @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  lastPage    Int       @default(1)
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([profileId, storyId])
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  userId    String             @unique
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      SubscriptionPlan
+  status    SubscriptionStatus @default(active)
+  startedAt DateTime           @default(now())
+  expiresAt DateTime
+  createdAt DateTime           @default(now())
+}
