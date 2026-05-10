@@ -34,6 +34,12 @@ enum SubscriptionStatus {
   expired
 }
 
+enum BadgeRequirementType {
+  stories_completed
+  streak_days
+  points
+}
+
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
@@ -60,6 +66,9 @@ model Profile {
   readingProgress ReadingProgress[]
   userBadges      UserBadge[]
   createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
 }
 
 model Story {
@@ -73,8 +82,12 @@ model Story {
   totalPages      Int               @default(0)
   isPublished     Boolean           @default(false)
   createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
   pages           StoryPage[]
   readingProgress ReadingProgress[]
+
+  @@index([isPublished, category])
+  @@index([isPublished, isPremium])
 }
 
 model StoryPage {
@@ -109,7 +122,7 @@ model Badge {
   name             String      @unique
   description      String
   iconUrl          String?
-  requirementType  String
+  requirementType  BadgeRequirementType
   requirementValue Int
   userBadges       UserBadge[]
 }
