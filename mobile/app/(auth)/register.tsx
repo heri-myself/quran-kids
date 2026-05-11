@@ -52,7 +52,10 @@ export default function RegisterScreen() {
 
             <TouchableOpacity
               className="bg-emerald-500 rounded-xl py-4 items-center"
-              onPress={() => register.mutate({ email, password })}
+              onPress={() => {
+                if (!email.trim() || password.length < 8) return
+                register.mutate({ email: email.trim(), password })
+              }}
               disabled={register.isPending}
               accessibilityLabel="Daftar"
             >

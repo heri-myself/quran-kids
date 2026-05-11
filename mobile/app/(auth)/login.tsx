@@ -53,7 +53,10 @@ export default function LoginScreen() {
 
             <TouchableOpacity
               className="bg-emerald-500 rounded-xl py-4 items-center"
-              onPress={() => login.mutate({ email, password })}
+              onPress={() => {
+                if (!email.trim() || !password) return
+                login.mutate({ email: email.trim(), password })
+              }}
               disabled={login.isPending}
               accessibilityLabel="Masuk"
             >
