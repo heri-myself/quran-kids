@@ -50,9 +50,17 @@ export function StoryForm() {
     setValue('slug', slug)
   }
 
+  const titleField = register('title', {
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => onTitleChange(e),
+  })
+
   async function onSubmit(data: StoryValues) {
-    const story = await createStory.mutateAsync(data)
-    router.push(`/dashboard/stories/${story.id}`)
+    try {
+      const story = await createStory.mutateAsync(data)
+      router.push(`/dashboard/stories/${story.id}`)
+    } catch {
+      // error surfaced via createStory.isError
+    }
   }
 
   return (
@@ -66,20 +74,24 @@ export function StoryForm() {
             <Label htmlFor="title">Judul Kisah</Label>
             <Input
               id="title"
-              {...register('title')}
-              onChange={(e) => {
-                register('title').onChange(e)
-                onTitleChange(e)
-              }}
+              {...titleField}
               placeholder="Kisah Abu Bakar Ash-Shiddiq"
+              aria-invalid={!!errors.title}
+              aria-describedby={errors.title ? 'title-error' : undefined}
             />
-            {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
+            {errors.title && <p id="title-error" role="alert" className="text-sm text-red-500">{errors.title.message}</p>}
           </div>
 
           <div className="space-y-1">
             <Label htmlFor="slug">Slug URL</Label>
-            <Input id="slug" {...register('slug')} placeholder="kisah-abu-bakar-ash-shiddiq" />
-            {errors.slug && <p className="text-sm text-red-500">{errors.slug.message}</p>}
+            <Input
+              id="slug"
+              {...register('slug')}
+              placeholder="kisah-abu-bakar-ash-shiddiq"
+              aria-invalid={!!errors.slug}
+              aria-describedby={errors.slug ? 'slug-error' : undefined}
+            />
+            {errors.slug && <p id="slug-error" role="alert" className="text-sm text-red-500">{errors.slug.message}</p>}
           </div>
 
           <div className="space-y-1">
