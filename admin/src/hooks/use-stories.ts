@@ -44,8 +44,8 @@ export function useCreateStory() {
     mutationFn: (data: {
       title: string
       slug: string
-      category: string
-      difficultyLevel: string
+      category: Story['category']
+      difficultyLevel: Story['difficultyLevel']
       isPremium: boolean
     }) => api.post<Story>('/admin/stories', data),
     onSuccess: () => {

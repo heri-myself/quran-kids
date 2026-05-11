@@ -1,9 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { useAllAdminStories, useDeleteStory, usePublishStory } from '@/hooks/use-stories'
 import { BookOpen, Eye, Trash2, Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -24,6 +36,8 @@ export function StoryList() {
   const { data, isLoading, isError } = useAllAdminStories()
   const deleteStory = useDeleteStory()
   const publishStory = usePublishStory()
+  const [publishingId, setPublishingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   if (isLoading) return <p className="text-slate-500">Memuat kisah...</p>
   if (isError) return <p className="text-red-500">Gagal memuat daftar kisah.</p>
@@ -78,27 +92,51 @@ export function StoryList() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => publishStory.mutate(story.id)}
-                  disabled={publishStory.isPending}
+                  onClick={() => {
+                    setPublishingId(story.id)
+                    publishStory.mutate(story.id, { onSettled: () => setPublishingId(null) })
+                  }}
+                  disabled={publishingId === story.id}
                   aria-label={`Publish ${story.title}`}
                 >
                   <Globe className="w-4 h-4" aria-hidden="true" />
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (confirm(`Hapus kisah "${story.title}"?`)) {
-                    deleteStory.mutate(story.id)
+              <AlertDialog>
+                <AlertDialogTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={deletingId === story.id}
+                      className="text-red-500 hover:text-red-700"
+                      aria-label={`Hapus ${story.title}`}
+                    >
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
+                    </Button>
                   }
-                }}
-                disabled={deleteStory.isPending}
-                className="text-red-500 hover:text-red-700"
-                aria-label={`Hapus ${story.title}`}
-              >
-                <Trash2 className="w-4 h-4" aria-hidden="true" />
-              </Button>
+                />
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Hapus kisah?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Kisah &quot;{story.title}&quot; akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        setDeletingId(story.id)
+                        deleteStory.mutate(story.id, { onSettled: () => setDeletingId(null) })
+                      }}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Hapus
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </CardContent>
         </Card>
