@@ -31,11 +31,11 @@ export interface StoriesResponse {
   limit: number
 }
 
-export function getStoriesApi(params?: { category?: string; page?: number }): Promise<StoriesResponse> {
+export function getStoriesApi(params?: { category?: string; page?: number; limit?: number }): Promise<StoriesResponse> {
   const query = new URLSearchParams()
   if (params?.category) query.set('category', params.category)
   if (params?.page) query.set('page', String(params.page))
-  query.set('limit', '20')
+  query.set('limit', String(params?.limit ?? 20))
   return api.get<StoriesResponse>(`/stories?${query.toString()}`)
 }
 

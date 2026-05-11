@@ -15,7 +15,11 @@ interface StoryCardProps {
 }
 
 export function StoryCard({ story, onPress }: StoryCardProps) {
-  const coverUrl = story.coverImageUrl ? `${BASE_URL}${story.coverImageUrl}` : null
+  const coverUrl = story.coverImageUrl
+    ? story.coverImageUrl.startsWith('http')
+      ? story.coverImageUrl
+      : `${BASE_URL}${story.coverImageUrl}`
+    : null
 
   return (
     <TouchableOpacity

@@ -16,10 +16,10 @@ export default function HomeScreen() {
   const router = useRouter()
   const { activeProfile } = useProfileStore()
   const { data: gamificationData } = useGamification(activeProfile?.id)
-  const { data: storiesData, isLoading } = useStories()
+  const { data: storiesData, isLoading, isError } = useStories({ limit: 4 })
 
   const gamification = gamificationData?.gamification
-  const stories = storiesData?.data?.slice(0, 4) ?? []
+  const stories = storiesData?.data ?? []
 
   return (
     <ScrollView
@@ -68,6 +68,10 @@ export default function HomeScreen() {
         <Text className="font-bold text-slate-800 text-lg">Kisah Pilihan</Text>
         {isLoading ? (
           <ActivityIndicator color="#10b981" />
+        ) : isError ? (
+          <Text className="text-slate-400 text-sm text-center py-4">Gagal memuat kisah.</Text>
+        ) : stories.length === 0 ? (
+          <Text className="text-slate-400 text-sm text-center py-4">Belum ada kisah tersedia.</Text>
         ) : (
           <View className="gap-3">
             {stories.map((story) => (
