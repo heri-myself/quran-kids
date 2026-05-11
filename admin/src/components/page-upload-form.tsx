@@ -55,7 +55,7 @@ export function PageUploadForm({
 
     try {
       await uploadPage.mutateAsync(form)
-      reset({ pageNumber: nextPageNumber + 1 })
+      reset({ pageNumber: data.pageNumber + 1 })
       setIllustrationFile(null)
       setAudioFile(null)
     } catch {

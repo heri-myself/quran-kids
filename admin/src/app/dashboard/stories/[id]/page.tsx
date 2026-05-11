@@ -18,8 +18,11 @@ export default function StoryDetailPage({ params }: { params: Promise<{ id: stri
   const { data: pages = [] } = useStoryPages(story?.slug ?? '')
   const publishStory = usePublishStory()
 
-  if (!story) {
+  if (!storiesData) {
     return <p className="text-slate-500">Memuat kisah...</p>
+  }
+  if (!story) {
+    return <p className="text-red-500">Kisah tidak ditemukan.</p>
   }
 
   return (
