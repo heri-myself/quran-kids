@@ -10,7 +10,7 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ profile, onPress, size = 'lg' }: ProfileCardProps) {
-  const avatarIndex = profile.id.charCodeAt(0) % AVATARS.length
+  const avatarIndex = [...profile.id].reduce((acc, c) => acc + c.charCodeAt(0), 0) % AVATARS.length
   const emoji = profile.avatar ?? AVATARS[avatarIndex]
   const isLg = size === 'lg'
 

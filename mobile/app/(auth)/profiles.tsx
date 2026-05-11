@@ -28,10 +28,15 @@ export default function ProfilesScreen() {
   async function handleAddProfile() {
     const age = parseInt(newAge, 10)
     if (!newName.trim() || !age || age < 1 || age > 18) return
-    await createProfile.mutateAsync({ name: newName.trim(), age, role: 'child' })
-    setShowAdd(false)
-    setNewName('')
-    setNewAge('')
+    try {
+      await createProfile.mutateAsync({ name: newName.trim(), age, role: 'child' })
+      setShowAdd(false)
+      setNewName('')
+      setNewAge('')
+      createProfile.reset()
+    } catch {
+      // error displayed via createProfile.isError
+    }
   }
 
   if (isLoading) {
@@ -108,7 +113,7 @@ export default function ProfilesScreen() {
               )}
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => { setShowAdd(false); setNewName(''); setNewAge('') }}
+              onPress={() => { setShowAdd(false); setNewName(''); setNewAge(''); createProfile.reset() }}
               className="items-center py-2"
             >
               <Text className="text-slate-500">Batal</Text>
