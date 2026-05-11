@@ -56,7 +56,7 @@ export default function ParentDashboardScreen() {
             <View>
               <Text className="font-semibold text-slate-800">Langganan</Text>
               <Text className={`text-sm ${isActive ? 'text-emerald-600' : 'text-amber-600'}`}>
-                {isActive ? `Premium aktif sampai ${subscription?.expiresAt.split('T')[0]}` : 'Akun Gratis'}
+                {isActive ? `Premium aktif sampai ${subscription?.expiresAt?.split('T')[0]}` : 'Akun Gratis'}
               </Text>
             </View>
             {!isActive && (

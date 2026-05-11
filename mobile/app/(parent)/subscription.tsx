@@ -54,7 +54,7 @@ export default function SubscriptionScreen() {
             <Text className="text-3xl mb-2">✅</Text>
             <Text className="font-bold text-emerald-700 text-lg">Premium Aktif</Text>
             <Text className="text-slate-500 text-sm mt-1">
-              Berlaku hingga {subscription?.expiresAt.split('T')[0]}
+              Berlaku hingga {subscription?.expiresAt?.split('T')[0]}
             </Text>
           </View>
         ) : (

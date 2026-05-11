@@ -17,8 +17,10 @@ export default function ManageProfilesScreen() {
   const childProfiles = profiles.filter((p) => p.role === 'child')
 
   async function handleAdd() {
-    if (!newName || !newAge) return
-    await createProfile.mutateAsync({ name: newName, age: Number(newAge), role: 'child' })
+    if (!newName.trim() || !newAge.trim()) return
+    const age = Number(newAge)
+    if (isNaN(age) || age < 1) return
+    await createProfile.mutateAsync({ name: newName.trim(), age, role: 'child' })
     setShowAdd(false)
     setNewName('')
     setNewAge('')
