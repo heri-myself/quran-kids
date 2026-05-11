@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useStories } from '../../../hooks/use-stories'
 import { StoryCard } from '../../../components/StoryCard'
@@ -14,9 +14,8 @@ const CATEGORIES = [
 export default function StoryListScreen() {
   const router = useRouter()
   const params = useLocalSearchParams<{ category?: string }>()
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(
-    params.category,
-  )
+  const initialCategory = Array.isArray(params.category) ? params.category[0] : params.category
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>(initialCategory)
 
   const { data, isLoading, isError } = useStories(
     selectedCategory ? { category: selectedCategory } : undefined,
@@ -65,10 +64,10 @@ export default function StoryListScreen() {
             <ActivityIndicator color="#10b981" size="large" />
           </View>
         )}
-        {isError && (
+        {isError && stories.length === 0 && (
           <Text className="text-red-500 text-center py-8">Gagal memuat kisah.</Text>
         )}
-        {!isLoading && stories.length === 0 && (
+        {!isLoading && !isError && stories.length === 0 && (
           <Text className="text-slate-400 text-center py-12">Belum ada kisah di kategori ini.</Text>
         )}
         {stories.map((story) => (
