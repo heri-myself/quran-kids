@@ -17,7 +17,7 @@ describe('getLevelInfo', () => {
 })
 
 describe('getProgressToNextLevel', () => {
-  it('returns 0 at start of level', () => {
+  it('returns 0 at start of level 1', () => {
     expect(getProgressToNextLevel(0)).toBe(0)
   })
 

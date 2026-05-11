@@ -13,14 +13,16 @@ export interface LevelInfo {
 
 export const LEVELS: LevelInfo[] = [
   { level: 1, name: 'Santri Baru', minPoints: 0, maxPoints: 200 },
-  { level: 2, name: 'Pencari Ilmu', minPoints: 201, maxPoints: 500 },
-  { level: 3, name: 'Hafizh Muda', minPoints: 501, maxPoints: 1000 },
-  { level: 4, name: 'Sahabat Sejati', minPoints: 1001, maxPoints: 2000 },
-  { level: 5, name: 'Ulama Cilik', minPoints: 2001, maxPoints: Infinity },
+  { level: 2, name: 'Pencari Ilmu', minPoints: 200, maxPoints: 500 },
+  { level: 3, name: 'Hafizh Muda', minPoints: 500, maxPoints: 1000 },
+  { level: 4, name: 'Sahabat Sejati', minPoints: 1000, maxPoints: 2000 },
+  { level: 5, name: 'Ulama Cilik', minPoints: 2000, maxPoints: Infinity },
 ]
 
 export function getLevelInfo(points: number): LevelInfo {
-  return LEVELS.find((l) => points >= l.minPoints && points <= l.maxPoints) ?? LEVELS[0]
+  // Use exclusive upper bound (< maxPoints), except the last level
+  const level = [...LEVELS].reverse().find((l) => points >= l.minPoints)
+  return level ?? LEVELS[0]
 }
 
 export function getProgressToNextLevel(points: number): number {
