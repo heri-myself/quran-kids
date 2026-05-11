@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
@@ -12,7 +12,11 @@ export default function StoryPreviewPage({ params }: { params: Promise<{ id: str
   const [currentPage, setCurrentPage] = useState(0)
   const { data: storiesData } = useAllAdminStories()
   const story = storiesData?.data.find((s) => s.id === id)
-  const { data: pages = [] } = useStoryPages(story?.slug ?? '')
+  const { data: pages = [] } = useStoryPages(story?.slug ?? undefined)
+
+  useEffect(() => {
+    setCurrentPage(0)
+  }, [id])
 
   if (!storiesData) return <p className="text-slate-500">Memuat...</p>
   if (!story) return <p className="text-red-500">Kisah tidak ditemukan.</p>

@@ -16,7 +16,7 @@ export type StoryPage = {
   createdAt: string
 }
 
-export function useStoryPages(slug: string) {
+export function useStoryPages(slug: string | undefined) {
   return useQuery({
     queryKey: ['story-pages', slug],
     queryFn: () => api.get<StoryPage[]>(`/stories/${slug}/pages`),
