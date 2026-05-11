@@ -34,14 +34,14 @@ export function Sidebar() {
                 : 'text-slate-600 hover:bg-slate-50',
             )}
           >
-            <item.icon className="w-4 h-4" />
+            <item.icon className="w-4 h-4" aria-hidden={true} />
             {item.label}
           </Link>
         ))}
       </nav>
       <div className="p-3 border-t">
         <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={logout}>
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4 h-4" aria-hidden={true} />
           Keluar
         </Button>
       </div>

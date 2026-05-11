@@ -3,7 +3,7 @@ import Cookies from 'js-cookie'
 const TOKEN_KEY = 'qk_admin_token'
 
 export function setToken(token: string) {
-  Cookies.set(TOKEN_KEY, token, { expires: 7, sameSite: 'strict' })
+  Cookies.set(TOKEN_KEY, token, { expires: 7, sameSite: 'strict', secure: true })
 }
 
 export function getToken(): string | undefined {
