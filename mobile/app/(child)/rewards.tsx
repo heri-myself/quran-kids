@@ -33,12 +33,20 @@ function StreakCalendar({ streak }: { streak: number }) {
 
 export default function RewardsScreen() {
   const { activeProfile } = useProfileStore()
-  const { data, isLoading } = useGamification(activeProfile?.id)
+  const { data, isLoading, isError } = useGamification(activeProfile?.id)
 
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-amber-50">
         <ActivityIndicator color="#10b981" size="large" />
+      </View>
+    )
+  }
+
+  if (isError) {
+    return (
+      <View className="flex-1 items-center justify-center bg-amber-50">
+        <Text className="text-red-500 text-center px-6">Gagal memuat data hadiah. Silakan coba lagi.</Text>
       </View>
     )
   }
