@@ -22,6 +22,14 @@ export default function StoryReaderScreen() {
   const { data: pages = [], isLoading: pagesLoading } = useStoryPages(slug)
   const postProgress = usePostProgress()
 
+  if (!slug) {
+    return (
+      <View className="flex-1 items-center justify-center bg-amber-50">
+        <Text className="text-slate-500">Kisah tidak ditemukan.</Text>
+      </View>
+    )
+  }
+
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
   const [completed, setCompleted] = useState(false)
   const confettiAnim = useRef(new Animated.Value(0)).current
@@ -160,7 +168,7 @@ export default function StoryReaderScreen() {
       <View className="px-6 pb-8 pt-3">
         <TouchableOpacity
           onPress={goToNextPage}
-          disabled={postProgress.isPending}
+          disabled={postProgress.isPending || !activeProfile}
           className="bg-emerald-500 rounded-2xl py-4 items-center"
         >
           {postProgress.isPending ? (
