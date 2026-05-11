@@ -21,8 +21,10 @@ export async function storeTokens(accessToken: string, refreshToken?: string) {
 }
 
 export async function clearTokens() {
-  await SecureStore.deleteItemAsync(TOKEN_KEY)
-  await SecureStore.deleteItemAsync(REFRESH_KEY)
+  await Promise.all([
+    SecureStore.deleteItemAsync(TOKEN_KEY),
+    SecureStore.deleteItemAsync(REFRESH_KEY),
+  ])
 }
 
 export async function apiRequest<T>(
@@ -42,7 +44,7 @@ export async function apiRequest<T>(
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }))
-    throw new ApiError(res.status, body.error ?? res.statusText)
+    throw new ApiError(res.status, body.error ?? body.message ?? body.detail ?? res.statusText)
   }
 
   if (res.status === 204) return undefined as T
