@@ -21,7 +21,7 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginValues>({ resolver: zodResolver(loginSchema) })
 
   return (
@@ -30,23 +30,23 @@ export function LoginForm() {
         <CardTitle>Quran Kids Admin</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit((data) => login.mutate(data))} className="space-y-4">
+        <form onSubmit={handleSubmit((data) => { login.reset(); login.mutate(data) })} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register('email')} />
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+            <Input id="email" type="email" aria-describedby={errors.email ? 'email-error' : undefined} {...register('email')} />
+            {errors.email && <p id="email-error" className="text-sm text-red-500">{errors.email.message}</p>}
           </div>
           <div className="space-y-1">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" {...register('password')} />
-            {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+            <Input id="password" type="password" aria-describedby={errors.password ? 'password-error' : undefined} {...register('password')} />
+            {errors.password && <p id="password-error" className="text-sm text-red-500">{errors.password.message}</p>}
           </div>
           {login.isError && (
             <p className="text-sm text-red-500">
               {login.error instanceof Error ? login.error.message : 'Login gagal'}
             </p>
           )}
-          <Button type="submit" className="w-full" disabled={isSubmitting || login.isPending}>
+          <Button type="submit" className="w-full" disabled={login.isPending}>
             {login.isPending ? 'Masuk...' : 'Masuk'}
           </Button>
         </form>

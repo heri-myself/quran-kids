@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { setToken, clearToken } from '@/lib/auth'
@@ -25,8 +26,8 @@ export function useLogin() {
 
 export function useLogout() {
   const router = useRouter()
-  return () => {
+  return useCallback(() => {
     clearToken()
     router.push('/login')
-  }
+  }, [router])
 }
