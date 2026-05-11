@@ -13,14 +13,15 @@ import { Eye, Globe, ArrowLeft } from 'lucide-react'
 export default function StoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [publishingId, setPublishingId] = useState<string | null>(null)
-  const { data: storiesData } = useAllAdminStories()
+  const { data: storiesData, isError } = useAllAdminStories()
   const story = storiesData?.data.find((s) => s.id === id)
-  const { data: pages = [] } = useStoryPages(story?.slug ?? '')
+  const { data: pages = [] } = useStoryPages(story?.slug)
   const publishStory = usePublishStory()
 
   if (!storiesData) {
     return <p className="text-slate-500">Memuat kisah...</p>
   }
+  if (isError) return <p className="text-red-500">Gagal memuat data. Coba refresh.</p>
   if (!story) {
     return <p className="text-red-500">Kisah tidak ditemukan.</p>
   }
