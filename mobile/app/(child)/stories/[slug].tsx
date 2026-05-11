@@ -22,6 +22,10 @@ export default function StoryReaderScreen() {
   const { data: pages = [], isLoading: pagesLoading } = useStoryPages(slug)
   const postProgress = usePostProgress()
 
+  const [currentPageIndex, setCurrentPageIndex] = useState(0)
+  const [completed, setCompleted] = useState(false)
+  const confettiAnim = useRef(new Animated.Value(0)).current
+
   if (!slug) {
     return (
       <View className="flex-1 items-center justify-center bg-amber-50">
@@ -29,10 +33,6 @@ export default function StoryReaderScreen() {
       </View>
     )
   }
-
-  const [currentPageIndex, setCurrentPageIndex] = useState(0)
-  const [completed, setCompleted] = useState(false)
-  const confettiAnim = useRef(new Animated.Value(0)).current
 
   const currentPage = pages[currentPageIndex]
   const isLastPage = currentPageIndex === pages.length - 1
