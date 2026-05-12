@@ -47,11 +47,11 @@ function AyatCard({ verse }: { verse: Verse }) {
       </View>
 
       <View style={{
-        flexDirection: 'row', flexWrap: 'wrap',
-        justifyContent: 'flex-end', gap: 6,
+        flexDirection: 'row-reverse', flexWrap: 'wrap',
+        justifyContent: 'flex-start', gap: 6,
         marginBottom: 14,
       }}>
-        {[...verse.words].reverse().map(word => (
+        {verse.words.map(word => (
           <WordBox key={word.id} word={word} />
         ))}
       </View>
