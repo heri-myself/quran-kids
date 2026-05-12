@@ -65,6 +65,7 @@ model Profile {
   gamification    Gamification?
   readingProgress ReadingProgress[]
   userBadges      UserBadge[]
+  tilawahSessions TilawahSession[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -150,6 +151,29 @@ model ReadingProgress {
   updatedAt   DateTime  @updatedAt
 
   @@unique([profileId, storyId])
+}
+
+model TilawahSession {
+  id           String               @id @default(cuid())
+  profileId    String
+  chapterId    Int
+  totalScore   Int
+  stars        Int
+  pointsEarned Int
+  createdAt    DateTime             @default(now())
+  profile      Profile              @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  verses       TilawahVerseResult[]
+}
+
+model TilawahVerseResult {
+  id           String         @id @default(cuid())
+  sessionId    String
+  verseNumber  Int
+  score        Int
+  wordAccuracy Int
+  tajweedScore Int
+  feedback     Json
+  session      TilawahSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {
