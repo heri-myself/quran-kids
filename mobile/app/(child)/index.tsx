@@ -17,7 +17,7 @@ const FEATURES = [
   },
   {
     id: 'hadist',
-    label: 'Hadist',
+    label: 'Hadits',
     subtitle: 'Hadits Pilihan',
     emoji: '📜',
     bg: '#FFF4E6',
