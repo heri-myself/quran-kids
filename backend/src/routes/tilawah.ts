@@ -28,7 +28,7 @@ function calcPoints(score: number, stars: number): number {
 
 const tilawahRoutes: FastifyPluginAsync = async (app) => {
   // POST /tilawah/evaluate — evaluasi satu ayat
-  app.post('/tilawah/evaluate', { preHandler: [authenticate] }, async (request, reply) => {
+  app.post('/evaluate', { preHandler: [authenticate] }, async (request, reply) => {
     const body = evaluateSchema.safeParse(request.body)
     if (!body.success) return reply.code(400).send({ error: body.error.flatten() })
 
@@ -72,7 +72,7 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
   })
 
   // POST /tilawah/session — simpan hasil akhir sesi ke DB + beri poin
-  app.post('/tilawah/session', { preHandler: [authenticate] }, async (request, reply) => {
+  app.post('/session', { preHandler: [authenticate] }, async (request, reply) => {
     const schema = z.object({
       profileId: z.string(),
       chapterId: z.number().int().min(1).max(114),
