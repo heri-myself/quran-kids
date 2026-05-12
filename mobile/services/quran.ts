@@ -1,8 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage'
-
-const QURAN_API = 'https://api.quran.com/api/v4'
-const CACHE_CHAPTERS = 'qk_chapters'
-const CACHE_SURAH_PREFIX = 'qk_surah_'
+import chaptersData from '../assets/quran/chapters.json'
+import versesData from '../assets/quran/verses.json'
 
 export interface Chapter {
   id: number
@@ -35,29 +32,10 @@ export interface Verse {
   translations: VerseTranslation[]
 }
 
-async function fetchWithCache<T>(cacheKey: string, url: string): Promise<T> {
-  const cached = await AsyncStorage.getItem(cacheKey)
-  if (cached) return JSON.parse(cached) as T
-
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Quran API error: ${res.status}`)
-  const data = await res.json()
-  await AsyncStorage.setItem(cacheKey, JSON.stringify(data))
-  return data as T
+export function getChapters(): Chapter[] {
+  return chaptersData as unknown as Chapter[]
 }
 
-export async function getChapters(): Promise<Chapter[]> {
-  const data = await fetchWithCache<{ chapters: Chapter[] }>(
-    CACHE_CHAPTERS,
-    `${QURAN_API}/chapters?language=id`,
-  )
-  return data.chapters
-}
-
-export async function getSurahVerses(chapterId: number): Promise<Verse[]> {
-  const data = await fetchWithCache<{ verses: Verse[] }>(
-    `${CACHE_SURAH_PREFIX}${chapterId}`,
-    `${QURAN_API}/verses/by_chapter/${chapterId}?words=true&translations=33&fields=text_uthmani&per_page=300&word_fields=text_uthmani,translation`,
-  )
-  return data.verses
+export function getSurahVerses(chapterId: number): Verse[] {
+  return ((versesData as any)[String(chapterId)] ?? []) as Verse[]
 }

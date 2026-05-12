@@ -11,7 +11,7 @@ function WordBox({ word }: { word: Word }) {
       borderWidth: 1, borderColor: '#DDD8FF',
       borderRadius: 8, padding: 8, minWidth: 60,
     }}>
-      <Text style={{ fontSize: 20, color: '#1A1A2E', lineHeight: 28 }}>
+      <Text style={{ fontSize: 20, color: '#1A1A2E', lineHeight: 28, fontFamily: 'ScheherazadeNew-Regular' }}>
         {word.text_uthmani}
       </Text>
       <Text style={{ fontSize: 9, color: '#B0B0C8', textAlign: 'center', marginTop: 3 }}>
@@ -129,7 +129,7 @@ export default function QuranReaderScreen() {
               marginBottom: 8,
               borderBottomWidth: 1, borderBottomColor: '#EEEEFF',
             }}>
-              <Text style={{ fontSize: 22, color: '#1A1A2E' }}>
+              <Text style={{ fontSize: 22, color: '#1A1A2E', fontFamily: 'ScheherazadeNew-Regular' }}>
                 بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
               </Text>
               <Text style={{ fontSize: 11, color: '#B0B0C8', marginTop: 6 }}>

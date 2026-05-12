@@ -16,22 +16,14 @@ import Animated, {
   withTiming,
   withSequence,
 } from 'react-native-reanimated'
-import { useQuery } from '@tanstack/react-query'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
+import { getSurahVerses } from '../../../services/quran'
 
 interface Verse {
   verse_number: number
   text_uthmani: string
   translations: { text: string }[]
   words: { text_uthmani: string; position: number }[]
-}
-
-async function fetchVerses(chapterId: string): Promise<Verse[]> {
-  const res = await fetch(
-    `https://api.quran.com/api/v4/verses/by_chapter/${chapterId}?language=id&translations=33&fields=text_uthmani&words=true&word_fields=text_uthmani&per_page=286`
-  )
-  const data = await res.json()
-  return data.verses
 }
 
 function WaveformBar({ index, isActive }: { index: number; isActive: boolean }) {
@@ -60,11 +52,8 @@ export default function TilawahLatihanScreen() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [verseResults, setVerseResults] = useState<VerseResult[]>([])
 
-  const { data: verses = [], isLoading } = useQuery({
-    queryKey: ['tilawah-verses', id],
-    queryFn: () => fetchVerses(String(id)),
-    staleTime: 0,
-  })
+  const verses = getSurahVerses(Number(id)) as Verse[]
+  const isLoading = false
 
   const { recordingState, currentEval, error, startRecording, stopAndEvaluate, reset } =
     useTilawah(Number(id))
@@ -276,13 +265,14 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  arabicWord: { fontSize: 28, lineHeight: 50 },
+  arabicWord: { fontSize: 30, lineHeight: 56, fontFamily: 'ScheherazadeNew-Regular' },
   arabicFull: {
-    fontSize: 28,
+    fontSize: 30,
     color: '#FFFFFF',
     textAlign: 'right',
-    lineHeight: 50,
+    lineHeight: 56,
     writingDirection: 'rtl',
+    fontFamily: 'ScheherazadeNew-Regular',
   },
   translation: { color: '#94A3B8', fontSize: 13, fontStyle: 'italic', lineHeight: 20 },
   feedbackCard: {
