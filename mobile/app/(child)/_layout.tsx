@@ -62,6 +62,16 @@ export default function ChildLayout() {
         }}
       />
       <Tabs.Screen
+        name="quran/index"
+        options={{
+          tabBarLabel: 'Al-Quran',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon iconFill="quran-fill" iconLine="quran-line" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen name="quran/[id]" options={{ href: null }} />
+      <Tabs.Screen
         name="rewards"
         options={{
           tabBarLabel: 'Hadiah',
