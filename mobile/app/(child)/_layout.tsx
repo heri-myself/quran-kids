@@ -80,6 +80,8 @@ export default function ChildLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="hadits/index" options={{ href: null }} />
+      <Tabs.Screen name="hadits/[id]" options={{ href: null }} />
       <Tabs.Screen name="stories/[slug]" options={{ href: null }} />
     </Tabs>
   )

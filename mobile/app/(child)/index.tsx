@@ -18,11 +18,11 @@ const FEATURES = [
   {
     id: 'hadist',
     label: 'Hadist',
-    subtitle: 'Segera Hadir',
+    subtitle: 'Hadits Pilihan',
     emoji: '📜',
     bg: '#FFF4E6',
     accent: '#F59E0B',
-    route: null,
+    route: '/(child)/hadits/' as const,
   },
   {
     id: 'kisah',
@@ -67,7 +67,7 @@ export default function HomeScreen() {
           <View>
             <Text style={{ color: '#D4D0FF', fontSize: 14, marginBottom: 2 }}>Assalamu'alaikum 👋</Text>
             <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800' }}>
-              {activeProfile?.name ?? 'Kawan'}!
+              {activeProfile?.name ?? 'Anak Shaleh, Shalehah!'}
             </Text>
             <Text style={{ color: '#BDB8FF', fontSize: 13, marginTop: 4 }}>
               Mau belajar apa hari ini?
@@ -154,17 +154,6 @@ export default function HomeScreen() {
               <Text style={{ fontSize: 10, color: feat.accent + 'AA', marginTop: 3, textAlign: 'center' }}>
                 {feat.subtitle}
               </Text>
-              {!feat.route && (
-                <View style={{
-                  backgroundColor: '#F59E0B22',
-                  borderRadius: 8,
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  marginTop: 6,
-                }}>
-                  <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '700' }}>Segera</Text>
-                </View>
-              )}
             </TouchableOpacity>
           ))}
         </View>
