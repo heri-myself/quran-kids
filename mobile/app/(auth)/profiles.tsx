@@ -62,6 +62,14 @@ export default function ProfilesScreen() {
           alignItems: 'center',
         }}
       >
+        {router.canGoBack() && (
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ position: 'absolute', top: 56, left: 20, padding: 8 }}
+          >
+            <RIcon name="arrow-left" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
         <Text style={{ fontSize: 32 }}>👶</Text>
         <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '800', marginTop: 8 }}>
           Siapa yang mau belajar?

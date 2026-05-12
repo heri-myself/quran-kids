@@ -60,7 +60,7 @@ const progressRoutes: FastifyPluginAsync = async (app) => {
     return reply.send(progress)
   })
 
-  app.get('/gamification/:profileId', { preHandler: [authenticate] }, async (request, reply) => {
+  app.get('/gamification/:profileId', async (request, reply) => {
     const { profileId } = request.params as { profileId: string }
     const gamification = await prisma.gamification.findUnique({
       where: { profileId },

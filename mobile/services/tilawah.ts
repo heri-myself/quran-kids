@@ -1,4 +1,6 @@
-const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.1.16:3001') + '/api'
+import { getStoredToken } from './api'
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.1.22:3001'
 
 export interface WordResult {
   word: string
@@ -45,31 +47,33 @@ export async function evaluateVerse(
 ): Promise<EvaluateResponse> {
   const res = await fetch(`${API_URL}/tilawah/evaluate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({ chapterId, verseNumber, expectedText, audioBase64 }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error((err as any).message ?? `Evaluasi gagal (${res.status})`)
+    throw new Error((err as any).error ?? (err as any).message ?? `Evaluasi gagal (${res.status})`)
   }
   return res.json()
 }
 
 export async function saveSession(
-  token: string,
   payload: SaveSessionPayload
 ): Promise<SaveSessionResponse> {
+  const token = await getStoredToken()
   const res = await fetch(`${API_URL}/tilawah/session`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error((err as any).message ?? `Gagal menyimpan sesi (${res.status})`)
+    throw new Error((err as any).error ?? (err as any).message ?? `Gagal menyimpan sesi (${res.status})`)
   }
   return res.json()
 }

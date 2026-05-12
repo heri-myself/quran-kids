@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import LottieView from 'lottie-react-native'
 import { useProfileStore } from '../../../stores/profile-store'
-import { getStoredToken } from '../../../services/api'
 import { saveSession } from '../../../services/tilawah'
 import { VerseResult } from '../../../hooks/use-tilawah'
 
@@ -25,7 +24,6 @@ export default function TilawahResultScreen() {
   }>()
 
   const { activeProfile } = useProfileStore()
-  const [token, setToken] = useState<string | null>(null)
 
   const starsRef = useRef<LottieView>(null)
   const confettiRef = useRef<LottieView>(null)
@@ -35,11 +33,6 @@ export default function TilawahResultScreen() {
   const pointsEarned = Number(params.pointsEarned ?? 10)
   const verseResults: VerseResult[] = JSON.parse(params.verseResults ?? '[]')
 
-  // Load token once on mount
-  useEffect(() => {
-    getStoredToken().then((t) => setToken(t))
-  }, [])
-
   // Play animations on mount
   useEffect(() => {
     starsRef.current?.play()
@@ -48,11 +41,11 @@ export default function TilawahResultScreen() {
     }
   }, [])
 
-  // Save session once token is available
+  // Save session on mount
   useEffect(() => {
-    if (!token || !activeProfile?.id) return
+    if (!activeProfile?.id) return
 
-    saveSession(token, {
+    saveSession({
       profileId: activeProfile.id,
       chapterId: Number(params.chapterId),
       totalScore,
@@ -66,7 +59,7 @@ export default function TilawahResultScreen() {
         feedback: v.feedback,
       })),
     }).catch(console.error)
-  }, [token])
+  }, [])
 
   const starEmojis = Array.from({ length: 3 }, (_, i) => (i < stars ? '⭐' : '☆'))
 

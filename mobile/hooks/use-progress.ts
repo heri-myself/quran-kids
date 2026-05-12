@@ -6,6 +6,7 @@ export function useGamification(profileId: string | undefined) {
     queryKey: ['gamification', profileId],
     queryFn: () => getGamificationApi(profileId!),
     enabled: !!profileId,
+    retry: false,
   })
 }
 

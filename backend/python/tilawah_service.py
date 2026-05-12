@@ -3,12 +3,10 @@ import tempfile
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import soundfile as sf
 import numpy as np
 
 app = FastAPI()
 
-# Load model sekali saat startup (lazy load agar cepat start)
 _model = None
 _processor = None
 
@@ -24,26 +22,55 @@ def get_model():
     return _model, _processor
 
 
+def load_audio_bytes(audio_bytes: bytes) -> np.ndarray:
+    """Decode audio bytes (m4a/wav/aac/any) to float32 numpy array at 16kHz mono."""
+    import av
+
+    with tempfile.NamedTemporaryFile(suffix='.audio', delete=False) as f:
+        f.write(audio_bytes)
+        temp_path = f.name
+
+    try:
+        container = av.open(temp_path)
+        samples = []
+        resampler = av.AudioResampler(format='fltp', layout='mono', rate=16000)
+        for frame in container.decode(audio=0):
+            for out_frame in resampler.resample(frame):
+                samples.append(out_frame.to_ndarray()[0])
+        container.close()
+
+        if not samples:
+            raise ValueError("No audio frames decoded")
+
+        audio_array = np.concatenate(samples).astype(np.float32)
+        return audio_array
+    finally:
+        try:
+            os.unlink(temp_path)
+        except Exception:
+            pass
+
+
 class EvaluateRequest(BaseModel):
-    audio_base64: str      # audio m4a/wav dikodekan base64
-    expected_text: str     # teks arab ayat dari quran.com (text_uthmani)
+    audio_base64: str
+    expected_text: str
     verse_number: int
     chapter_id: int
 
 
 class WordResult(BaseModel):
     word: str
-    status: str            # "correct" | "wrong" | "missing"
-    position: int
+    correct: bool
+    expected: str
 
 
 class EvaluateResponse(BaseModel):
     transcription: str
     word_results: list[WordResult]
-    word_accuracy: int     # 0-100
-    tajweed_score: int     # 0-100
-    score: int             # 0-100 total
-    feedback: list[str]    # pesan feedback bahasa Indonesia
+    word_accuracy: int
+    tajweed_score: int
+    score: int
+    feedback: list[str]
 
 
 @app.get("/health")
@@ -53,54 +80,42 @@ def health():
 
 @app.post("/evaluate", response_model=EvaluateResponse)
 def evaluate(req: EvaluateRequest):
-    # 1. Decode audio
     try:
         audio_bytes = base64.b64decode(req.audio_base64)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid base64 audio")
 
-    # 2. Simpan ke temp file dan load sebagai array
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
-        f.write(audio_bytes)
-        temp_path = f.name
-
     try:
-        audio_array, sample_rate = sf.read(temp_path)
-        if audio_array.ndim > 1:
-            audio_array = audio_array.mean(axis=1)  # stereo → mono
-        # Resample ke 16kHz jika perlu
-        if sample_rate != 16000:
-            import torchaudio
-            import torch
-            waveform = torch.tensor(audio_array).float().unsqueeze(0)
-            resampler = torchaudio.transforms.Resample(sample_rate, 16000)
-            audio_array = resampler(waveform).squeeze().numpy()
+        audio_array = load_audio_bytes(audio_bytes)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Cannot read audio: {e}")
-    finally:
-        os.unlink(temp_path)
 
-    # 3. Transkripsi dengan Whisper
     model, processor = get_model()
     import torch
     inputs = processor(audio_array, sampling_rate=16000, return_tensors="pt")
     with torch.no_grad():
-        predicted_ids = model.generate(inputs["input_features"], language="ar")
+        predicted_ids = model.generate(inputs["input_features"])
     transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0].strip()
 
-    # 4. Analisis dengan tajweed engine
     from tajweed_engine import compare_texts, analyze_tajweed
 
-    word_results, word_accuracy = compare_texts(req.expected_text, transcription)
+    raw_word_results, word_accuracy = compare_texts(req.expected_text, transcription)
     tajweed_score, tajweed_feedback = analyze_tajweed(req.expected_text, len(audio_array) / 16000)
 
-    # 5. Hitung skor total
-    completeness = 100 if not any(w.status == "missing" for w in word_results) else 70
+    word_results = [
+        WordResult(
+            word=w.word,
+            correct=(w.status == "correct"),
+            expected=w.word,
+        )
+        for w in raw_word_results
+    ]
+
+    completeness = 100 if not any(w.status == "missing" for w in raw_word_results) else 70
     score = int(word_accuracy * 0.6 + tajweed_score * 0.2 + completeness * 0.2)
 
-    # 6. Feedback bahasa Indonesia
     feedback = []
-    wrong_words = [w for w in word_results if w.status == "wrong"]
+    wrong_words = [w for w in raw_word_results if w.status == "wrong"]
     if wrong_words:
         feedback.append(f"Ada {len(wrong_words)} kata yang perlu diperbaiki pengucapannya.")
     feedback.extend(tajweed_feedback)

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react'
 import { Audio } from 'expo-av'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 import { evaluateVerse, EvaluateResponse } from '../services/tilawah'
 
 export type RecordingState = 'idle' | 'recording' | 'analyzing' | 'done' | 'error'

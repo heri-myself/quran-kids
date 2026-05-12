@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store'
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.1.16:3001'
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.1.22:3001'
 const TOKEN_KEY = 'qk_access_token'
 const REFRESH_KEY = 'qk_refresh_token'
 

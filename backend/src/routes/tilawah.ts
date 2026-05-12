@@ -4,7 +4,6 @@ import { authenticate } from '../hooks/authenticate.js'
 import { z } from 'zod'
 
 const evaluateSchema = z.object({
-  profileId: z.string(),
   chapterId: z.number().int().min(1).max(114),
   verseNumber: z.number().int().min(1),
   expectedText: z.string().min(1),
@@ -28,11 +27,11 @@ function calcPoints(score: number, stars: number): number {
 
 const tilawahRoutes: FastifyPluginAsync = async (app) => {
   // POST /tilawah/evaluate — evaluasi satu ayat
-  app.post('/evaluate', { preHandler: [authenticate] }, async (request, reply) => {
+  app.post('/evaluate', async (request, reply) => {
     const body = evaluateSchema.safeParse(request.body)
     if (!body.success) return reply.code(400).send({ error: body.error.flatten() })
 
-    const { profileId, chapterId, verseNumber, expectedText, audioBase64 } = body.data
+    const { chapterId, verseNumber, expectedText, audioBase64 } = body.data
 
     // Proxy ke Python sidecar
     let pythonResult: any

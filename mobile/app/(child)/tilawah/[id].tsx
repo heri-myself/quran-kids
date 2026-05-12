@@ -28,7 +28,7 @@ interface Verse {
 
 async function fetchVerses(chapterId: string): Promise<Verse[]> {
   const res = await fetch(
-    `https://api.quran.com/api/v4/verses/by_chapter/${chapterId}?language=id&translations=33&word_fields=text_uthmani&per_page=286`
+    `https://api.quran.com/api/v4/verses/by_chapter/${chapterId}?language=id&translations=33&fields=text_uthmani&words=true&word_fields=text_uthmani&per_page=286`
   )
   const data = await res.json()
   return data.verses
@@ -63,7 +63,7 @@ export default function TilawahLatihanScreen() {
   const { data: verses = [], isLoading } = useQuery({
     queryKey: ['tilawah-verses', id],
     queryFn: () => fetchVerses(String(id)),
-    staleTime: Infinity,
+    staleTime: 0,
   })
 
   const { recordingState, currentEval, error, startRecording, stopAndEvaluate, reset } =
@@ -152,7 +152,7 @@ export default function TilawahLatihanScreen() {
           </View>
 
           <View style={styles.arabicRow}>
-            {isDone && currentEval ? (
+            {isDone && currentEval && words.length > 0 ? (
               words.map((w, i) => {
                 const wordResult = currentEval.wordResults?.[i]
                 const isCorrect = !wordResult || wordResult.correct !== false
@@ -276,13 +276,13 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
-  arabicWord: { fontSize: 26, fontFamily: 'serif', lineHeight: 44 },
+  arabicWord: { fontSize: 28, lineHeight: 50 },
   arabicFull: {
-    fontSize: 26,
-    fontFamily: 'serif',
+    fontSize: 28,
     color: '#FFFFFF',
     textAlign: 'right',
-    lineHeight: 44,
+    lineHeight: 50,
+    writingDirection: 'rtl',
   },
   translation: { color: '#94A3B8', fontSize: 13, fontStyle: 'italic', lineHeight: 20 },
   feedbackCard: {
