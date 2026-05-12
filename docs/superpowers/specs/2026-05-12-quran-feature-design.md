@@ -95,7 +95,7 @@ Setiap surah di-cache saat pertama kali dibuka. Surah yang belum pernah dibuka m
 
 **Dimodifikasi:**
 - `mobile/app/(child)/_layout.tsx` — tambah tab Al-Quran (4 tab total)
-- `mobile/components/RIcon.tsx` — tambah icon `quran-fill` dan `quran-line`
+- `mobile/components/RIcon.tsx` — tambah icon `quran-fill` dan `quran-line` (SVG path dari Remix Icon `book-open-fill` dan `book-open-line`)
 
 ---
 

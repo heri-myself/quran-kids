@@ -7,28 +7,85 @@ import { Link } from 'expo-router'
 import { useRegister } from '../../hooks/use-auth'
 
 export default function RegisterScreen() {
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const register = useRegister()
 
+  const inputStyle = {
+    borderWidth: 1.5,
+    borderColor: '#E8E8F0',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    marginBottom: 12,
+    color: '#1A1A2E' as const,
+    fontSize: 15,
+    backgroundColor: '#FAFAFE',
+  }
+
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-amber-50"
+      style={{ flex: 1, backgroundColor: '#F4F4FF' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        <View className="flex-1 justify-center px-6 py-12">
-          <View className="items-center mb-10">
-            <Text className="text-5xl">📖</Text>
-            <Text className="text-3xl font-bold text-emerald-700 mt-2">Quran Kids</Text>
+        <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 48 }}>
+          {/* Logo */}
+          <View style={{ alignItems: 'center', marginBottom: 40 }}>
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 24,
+                backgroundColor: '#7C6FF1',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+                shadowColor: '#7C6FF1',
+                shadowOpacity: 0.4,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 8,
+              }}
+            >
+              <Text style={{ fontSize: 36 }}>📖</Text>
+            </View>
+            <Text style={{ fontSize: 28, fontWeight: '800', color: '#1A1A2E' }}>Quran Kids</Text>
+            <Text style={{ color: '#6B6B8A', marginTop: 4, fontSize: 14 }}>
+              Daftar dan mulai perjalananmu!
+            </Text>
           </View>
 
-          <View className="bg-white rounded-2xl p-6 shadow-sm">
-            <Text className="text-xl font-bold text-slate-800 mb-4">Daftar Akun</Text>
+          {/* Form */}
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 24,
+              padding: 24,
+              shadowColor: '#7C6FF1',
+              shadowOpacity: 0.1,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 6,
+            }}
+          >
+            <Text style={{ fontSize: 20, fontWeight: '800', color: '#1A1A2E', marginBottom: 20 }}>
+              Daftar Akun
+            </Text>
 
             <TextInput
-              className="border border-slate-200 rounded-xl px-4 py-3 mb-3 text-slate-800 text-base"
+              style={inputStyle}
+              placeholder="Nama lengkap"
+              placeholderTextColor="#B0B0C8"
+              value={name}
+              onChangeText={setName}
+              autoComplete="name"
+            />
+            <TextInput
+              style={inputStyle}
               placeholder="Email"
+              placeholderTextColor="#B0B0C8"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -36,8 +93,9 @@ export default function RegisterScreen() {
               autoComplete="email"
             />
             <TextInput
-              className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-800 text-base"
+              style={{ ...inputStyle, marginBottom: 16 }}
               placeholder="Password (min. 8 karakter)"
+              placeholderTextColor="#B0B0C8"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -45,16 +103,26 @@ export default function RegisterScreen() {
             />
 
             {register.isError && (
-              <Text className="text-red-500 text-sm mb-3">
+              <Text style={{ color: '#EF4444', fontSize: 13, marginBottom: 12 }}>
                 {register.error instanceof Error ? register.error.message : 'Pendaftaran gagal'}
               </Text>
             )}
 
             <TouchableOpacity
-              className="bg-emerald-500 rounded-xl py-4 items-center"
+              style={{
+                backgroundColor: '#7C6FF1',
+                borderRadius: 14,
+                paddingVertical: 15,
+                alignItems: 'center',
+                shadowColor: '#7C6FF1',
+                shadowOpacity: 0.35,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: 6,
+              }}
               onPress={() => {
-                if (!email.trim() || password.length < 8) return
-                register.mutate({ email: email.trim(), password })
+                if (!name.trim() || !email.trim() || password.length < 8) return
+                register.mutate({ name: name.trim(), email: email.trim(), password })
               }}
               disabled={register.isPending}
               accessibilityLabel="Daftar"
@@ -62,15 +130,15 @@ export default function RegisterScreen() {
               {register.isPending ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-bold text-base">Daftar</Text>
+                <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Daftar</Text>
               )}
             </TouchableOpacity>
 
             <Link href="/(auth)/login" asChild>
-              <TouchableOpacity className="mt-4 items-center py-2">
-                <Text className="text-slate-500">
+              <TouchableOpacity style={{ marginTop: 16, alignItems: 'center', paddingVertical: 8 }}>
+                <Text style={{ color: '#6B6B8A', fontSize: 14 }}>
                   Sudah punya akun?{' '}
-                  <Text className="text-emerald-600 font-semibold">Masuk</Text>
+                  <Text style={{ color: '#7C6FF1', fontWeight: '700' }}>Masuk</Text>
                 </Text>
               </TouchableOpacity>
             </Link>

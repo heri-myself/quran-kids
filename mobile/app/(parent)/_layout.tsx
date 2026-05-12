@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Stack } from 'expo-router'
 import { View, Text, TextInput, TouchableOpacity } from 'react-native'
+import { RIcon } from '../../components/RIcon'
 
 const PARENT_PIN = '1234'
 
@@ -22,13 +23,48 @@ export default function ParentLayout() {
 
   if (!unlocked) {
     return (
-      <View className="flex-1 items-center justify-center bg-slate-800 px-8">
-        <Text className="text-4xl mb-4">🔒</Text>
-        <Text className="text-white text-xl font-bold mb-2">Mode Orang Tua</Text>
-        <Text className="text-slate-400 text-sm mb-8">Masukkan PIN 4 digit</Text>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#1A1A2E',
+          paddingHorizontal: 32,
+        }}
+      >
+        <View
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: 22,
+            backgroundColor: 'rgba(124,111,241,0.2)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 20,
+          }}
+        >
+          <RIcon name="lock-line" size={36} color="#7C6FF1" />
+        </View>
+        <Text style={{ color: '#FFFFFF', fontSize: 22, fontWeight: '800', marginBottom: 6 }}>
+          Mode Orang Tua
+        </Text>
+        <Text style={{ color: '#6B6B8A', fontSize: 14, marginBottom: 32 }}>
+          Masukkan PIN 4 digit
+        </Text>
 
         <TextInput
-          className="bg-slate-700 text-white text-center text-3xl tracking-widest w-40 py-3 rounded-xl"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            color: '#FFFFFF',
+            textAlign: 'center',
+            fontSize: 28,
+            letterSpacing: 12,
+            width: 160,
+            paddingVertical: 14,
+            borderRadius: 16,
+            borderWidth: 1.5,
+            borderColor: error ? '#EF4444' : 'rgba(124,111,241,0.4)',
+          }}
           value={pinInput}
           onChangeText={(v) => {
             setPinInput(v)
@@ -41,7 +77,9 @@ export default function ParentLayout() {
         />
 
         {error && (
-          <Text className="text-red-400 mt-3">PIN salah. Coba lagi.</Text>
+          <Text style={{ color: '#EF4444', marginTop: 12, fontSize: 14 }}>
+            PIN salah. Coba lagi.
+          </Text>
         )}
       </View>
     )

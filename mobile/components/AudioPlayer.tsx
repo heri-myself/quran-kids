@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { TouchableOpacity, Text, View, ActivityIndicator } from 'react-native'
 import { Audio } from 'expo-av'
+import { RIcon } from './RIcon'
 
 interface AudioPlayerProps {
   audioUrl: string | null
@@ -17,7 +18,6 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
     }
   }, [sound])
 
-  // Unload when URL changes (page change)
   useEffect(() => {
     sound?.unloadAsync()
     setSound(null)
@@ -64,14 +64,34 @@ export function AudioPlayer({ audioUrl }: AudioPlayerProps) {
   return (
     <TouchableOpacity
       onPress={togglePlay}
-      className="flex-row items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-2"
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        backgroundColor: '#EEF0FF',
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        alignSelf: 'flex-start',
+      }}
     >
-      {isLoading ? (
-        <ActivityIndicator size="small" color="#10b981" />
-      ) : (
-        <Text className="text-xl">{isPlaying ? '⏸️' : '▶️'}</Text>
-      )}
-      <Text className="text-emerald-700 text-sm font-medium">
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: '#7C6FF1',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#FFFFFF" />
+        ) : (
+          <RIcon name={isPlaying ? 'pause-fill' : 'play-fill'} size={16} color="#FFFFFF" />
+        )}
+      </View>
+      <Text style={{ color: '#5B52D4', fontSize: 14, fontWeight: '600' }}>
         {isPlaying ? 'Pause' : 'Dengarkan'}
       </Text>
     </TouchableOpacity>

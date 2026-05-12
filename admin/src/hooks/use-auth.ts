@@ -15,10 +15,13 @@ export function useLogin() {
   const router = useRouter()
 
   return useMutation({
-    mutationFn: (data: { email: string; password: string }) =>
-      api.post<LoginResponse>('/auth/login', data),
+    mutationFn: (data: { email: string; password: string; remember: boolean }) =>
+      api.post<LoginResponse>('/auth/login', { email: data.email, password: data.password }).then((res) => ({
+        ...res,
+        remember: data.remember,
+      })),
     onSuccess: (data) => {
-      setToken(data.accessToken)
+      setToken(data.accessToken, data.remember)
       router.push('/dashboard')
     },
   })

@@ -22,11 +22,11 @@ export function useRegister() {
   const router = useRouter()
 
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      registerApi(email, password),
+    mutationFn: ({ email, password, name }: { email: string; password: string; name: string }) =>
+      registerApi(email, password, name),
     onSuccess: async (data) => {
       await setAuth(data.user, data.accessToken, data.refreshToken)
-      router.replace('/(auth)/profiles')
+      router.replace('/(child)')
     },
   })
 }

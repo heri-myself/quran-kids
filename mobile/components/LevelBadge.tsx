@@ -11,27 +11,42 @@ export function LevelBadge({ points, streak }: LevelBadgeProps) {
   const progress = getProgressToNextLevel(points)
 
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm">
-      <View className="flex-row justify-between items-center mb-2">
+    <View
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 16,
+        shadowColor: '#7C6FF1',
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+      }}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <View>
-          <Text className="text-xs text-slate-400 uppercase tracking-wide">
+          <Text style={{ fontSize: 11, color: '#6B6B8A', textTransform: 'uppercase', letterSpacing: 1 }}>
             Level {levelInfo.level}
           </Text>
-          <Text className="font-bold text-slate-800 text-base">{levelInfo.name}</Text>
+          <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 16 }}>{levelInfo.name}</Text>
         </View>
-        <View className="flex-row items-center gap-1">
-          <Text className="text-lg">🔥</Text>
-          <Text className="font-bold text-orange-500 text-base">{streak}</Text>
-          <Text className="text-xs text-slate-400"> hari</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={{ fontSize: 18 }}>🔥</Text>
+          <Text style={{ fontWeight: '800', color: '#FF6B6B', fontSize: 18 }}>{streak}</Text>
+          <Text style={{ fontSize: 12, color: '#6B6B8A' }}>hari</Text>
         </View>
       </View>
-      <View className="bg-slate-100 rounded-full h-2 overflow-hidden">
+      <View style={{ backgroundColor: '#EEF0FF', borderRadius: 8, height: 8, overflow: 'hidden' }}>
         <View
-          className="bg-emerald-500 rounded-full h-2"
-          style={{ width: `${Math.round(progress * 100)}%` }}
+          style={{
+            backgroundColor: '#7C6FF1',
+            borderRadius: 8,
+            height: 8,
+            width: `${Math.round(progress * 100)}%`,
+          }}
         />
       </View>
-      <Text className="text-xs text-slate-400 mt-1">{points} poin</Text>
+      <Text style={{ fontSize: 12, color: '#6B6B8A', marginTop: 6 }}>{points} poin</Text>
     </View>
   )
 }

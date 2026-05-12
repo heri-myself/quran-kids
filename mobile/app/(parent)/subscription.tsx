@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity, ActivityIndicator, Linking } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSubscription, useCreateCheckout } from '../../hooks/use-subscription'
+import { RIcon } from '../../components/RIcon'
 
 const PLANS = [
   {
@@ -9,6 +10,7 @@ const PLANS = [
     price: 'Rp 29.000',
     period: '/bulan',
     highlight: false,
+    features: ['Akses semua kisah', 'Mode offline', 'Tanpa iklan'],
   },
   {
     plan: 'yearly' as const,
@@ -17,6 +19,7 @@ const PLANS = [
     period: '/tahun',
     highlight: true,
     saving: 'Hemat 30%',
+    features: ['Akses semua kisah', 'Mode offline', 'Tanpa iklan', 'Konten eksklusif'],
   },
 ]
 
@@ -37,72 +40,154 @@ export default function SubscriptionScreen() {
   }
 
   return (
-    <View className="flex-1 bg-slate-50">
-      <View className="bg-violet-700 px-6 pt-14 pb-8 flex-row items-center gap-3 rounded-b-3xl">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text className="text-white text-xl">←</Text>
+    <View style={{ flex: 1, backgroundColor: '#F4F4FF' }}>
+      {/* Header */}
+      <View
+        style={{
+          backgroundColor: '#7C6FF1',
+          paddingHorizontal: 24,
+          paddingTop: 56,
+          paddingBottom: 28,
+          borderBottomLeftRadius: 28,
+          borderBottomRightRadius: 28,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 14,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <RIcon name="arrow-left" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <View>
-          <Text className="text-white text-xl font-bold">Langganan Premium</Text>
-          <Text className="text-violet-200 text-sm">Akses semua kisah tanpa batas</Text>
+          <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: '800' }}>
+            Langganan Premium ✨
+          </Text>
+          <Text style={{ color: '#BDB8FF', fontSize: 13, marginTop: 2 }}>
+            Akses semua kisah tanpa batas
+          </Text>
         </View>
       </View>
 
-      <View className="px-4 gap-4 mt-6">
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 24, gap: 14 }}
+        showsVerticalScrollIndicator={false}
+      >
         {isActive ? (
-          <View className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 items-center">
-            <Text className="text-3xl mb-2">✅</Text>
-            <Text className="font-bold text-emerald-700 text-lg">Premium Aktif</Text>
-            <Text className="text-slate-500 text-sm mt-1">
+          <View
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: 20,
+              padding: 24,
+              alignItems: 'center',
+              shadowColor: '#7C6FF1',
+              shadowOpacity: 0.08,
+              shadowRadius: 10,
+              shadowOffset: { width: 0, height: 3 },
+              elevation: 3,
+            }}
+          >
+            <View
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: '#E8F5E9',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 12,
+              }}
+            >
+              <RIcon name="check-line" size={30} color="#388E3C" />
+            </View>
+            <Text style={{ fontWeight: '800', color: '#1A1A2E', fontSize: 20, marginBottom: 6 }}>
+              Premium Aktif
+            </Text>
+            <Text style={{ color: '#6B6B8A', fontSize: 14 }}>
               Berlaku hingga {subscription?.expiresAt?.split('T')[0]}
             </Text>
           </View>
         ) : (
           <>
-            <Text className="font-bold text-slate-800 text-lg">Pilih Paket</Text>
+            <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 17 }}>Pilih Paket</Text>
             {PLANS.map((p) => (
               <TouchableOpacity
                 key={p.plan}
                 onPress={() => handleSubscribe(p.plan)}
                 disabled={checkout.isPending}
-                className={`rounded-2xl p-5 ${
-                  p.highlight
-                    ? 'bg-violet-600 shadow-lg'
-                    : 'bg-white border border-slate-200'
-                }`}
+                style={{
+                  borderRadius: 20,
+                  padding: 20,
+                  backgroundColor: p.highlight ? '#7C6FF1' : '#FFFFFF',
+                  shadowColor: p.highlight ? '#7C6FF1' : '#000',
+                  shadowOpacity: p.highlight ? 0.3 : 0.06,
+                  shadowRadius: p.highlight ? 14 : 8,
+                  shadowOffset: { width: 0, height: p.highlight ? 6 : 2 },
+                  elevation: p.highlight ? 8 : 2,
+                }}
               >
-                <View className="flex-row justify-between items-center">
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
                   <View>
-                    <Text className={`font-bold text-lg ${p.highlight ? 'text-white' : 'text-slate-800'}`}>
+                    <Text style={{ fontWeight: '800', fontSize: 18, color: p.highlight ? '#FFFFFF' : '#1A1A2E' }}>
                       {p.label}
                     </Text>
                     {p.saving && (
-                      <View className="bg-amber-400 self-start px-2 py-0.5 rounded-full mt-1">
-                        <Text className="text-white text-xs font-bold">{p.saving}</Text>
+                      <View
+                        style={{
+                          backgroundColor: '#FFD166',
+                          alignSelf: 'flex-start',
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          borderRadius: 20,
+                          marginTop: 4,
+                        }}
+                      >
+                        <Text style={{ color: '#1A1A2E', fontSize: 11, fontWeight: '700' }}>
+                          {p.saving}
+                        </Text>
                       </View>
                     )}
                   </View>
-                  <View className="items-end">
-                    <Text className={`text-2xl font-bold ${p.highlight ? 'text-white' : 'text-slate-800'}`}>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 24, fontWeight: '800', color: p.highlight ? '#FFFFFF' : '#1A1A2E' }}>
                       {p.price}
                     </Text>
-                    <Text className={`text-sm ${p.highlight ? 'text-violet-200' : 'text-slate-400'}`}>
+                    <Text style={{ fontSize: 12, color: p.highlight ? '#BDB8FF' : '#6B6B8A' }}>
                       {p.period}
                     </Text>
                   </View>
                 </View>
+
+                <View style={{ gap: 6 }}>
+                  {p.features.map((f) => (
+                    <View key={f} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <RIcon name="check-line" size={14} color={p.highlight ? '#BDB8FF' : '#7C6FF1'} />
+                      <Text style={{ fontSize: 13, color: p.highlight ? '#D4D0FF' : '#6B6B8A' }}>{f}</Text>
+                    </View>
+                  ))}
+                </View>
+
                 {checkout.isPending && (
-                  <ActivityIndicator color={p.highlight ? 'white' : '#7c3aed'} className="mt-2" />
+                  <ActivityIndicator color={p.highlight ? 'white' : '#7C6FF1'} style={{ marginTop: 12 }} />
                 )}
               </TouchableOpacity>
             ))}
 
-            <Text className="text-xs text-slate-400 text-center">
+            <Text style={{ fontSize: 12, color: '#B0B0C8', textAlign: 'center', marginTop: 4 }}>
               Pembayaran via Midtrans · QRIS · Transfer Bank · E-Wallet
             </Text>
           </>
         )}
-      </View>
+      </ScrollView>
     </View>
   )
 }

@@ -2,9 +2,9 @@ import Cookies from 'js-cookie'
 
 const TOKEN_KEY = 'qk_admin_token'
 
-export function setToken(token: string) {
+export function setToken(token: string, remember = false) {
   Cookies.set(TOKEN_KEY, token, {
-    expires: 7,
+    expires: remember ? 30 : undefined, // 30 hari jika remember, session cookie jika tidak
     sameSite: 'strict',
     secure: process.env.NODE_ENV === 'production',
   })

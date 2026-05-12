@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
 import { Story } from '../services/stories'
+import { RIcon } from './RIcon'
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:3000'
 
@@ -7,6 +8,12 @@ const CATEGORY_LABELS: Record<Story['category'], string> = {
   sahabat_nabi: 'Sahabat Nabi',
   kisah_quran: 'Kisah Al-Quran',
   akhlaq: 'Akhlaq',
+}
+
+const CATEGORY_COLORS: Record<Story['category'], { bg: string; text: string }> = {
+  sahabat_nabi: { bg: '#FFF3E0', text: '#F57C00' },
+  kisah_quran: { bg: '#E8F5E9', text: '#388E3C' },
+  akhlaq: { bg: '#F3E5F5', text: '#7B1FA2' },
 }
 
 interface StoryCardProps {
@@ -21,36 +28,67 @@ export function StoryCard({ story, onPress }: StoryCardProps) {
       : `${BASE_URL}${story.coverImageUrl}`
     : null
 
+  const catColor = CATEGORY_COLORS[story.category]
+
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm flex-row"
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        overflow: 'hidden',
+        flexDirection: 'row',
+        shadowColor: '#7C6FF1',
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+      }}
       accessibilityLabel={`Baca kisah ${story.title}`}
     >
-      <View className="w-20 h-20 bg-emerald-100 items-center justify-center flex-shrink-0">
+      {/* Cover */}
+      <View
+        style={{
+          width: 90,
+          height: 90,
+          backgroundColor: '#EEF0FF',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
         {coverUrl ? (
-          <Image
-            source={{ uri: coverUrl }}
-            style={{ width: 80, height: 80 }}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: coverUrl }} style={{ width: 90, height: 90 }} resizeMode="cover" />
         ) : (
-          <Text className="text-3xl">📖</Text>
+          <Text style={{ fontSize: 36 }}>📖</Text>
         )}
       </View>
-      <View className="flex-1 px-3 py-2 justify-center">
-        <View className="flex-row items-center gap-2 mb-1">
+
+      {/* Info */}
+      <View style={{ flex: 1, paddingHorizontal: 14, paddingVertical: 12, justifyContent: 'center', gap: 4 }}>
+        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+          <View style={{ backgroundColor: catColor.bg, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
+            <Text style={{ color: catColor.text, fontSize: 10, fontWeight: '600' }}>
+              {CATEGORY_LABELS[story.category]}
+            </Text>
+          </View>
           {story.isPremium && (
-            <View className="bg-violet-100 px-2 py-0.5 rounded-full">
-              <Text className="text-violet-700 text-xs font-semibold">PREMIUM</Text>
+            <View style={{ backgroundColor: '#EEF0FF', borderRadius: 20, paddingHorizontal: 8, paddingVertical: 2 }}>
+              <Text style={{ color: '#7C6FF1', fontSize: 10, fontWeight: '700' }}>✨ PREMIUM</Text>
             </View>
           )}
-          <Text className="text-xs text-slate-400">{CATEGORY_LABELS[story.category]}</Text>
         </View>
-        <Text className="font-semibold text-slate-800" numberOfLines={2}>
+        <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 14 }} numberOfLines={2}>
           {story.title}
         </Text>
-        <Text className="text-xs text-slate-400 mt-1">{story.totalPages} halaman</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ fontSize: 11, color: '#6B6B8A' }}>📄 {story.totalPages} halaman</Text>
+          <View style={{ flexDirection: 'row', gap: 1 }}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              <RIcon key={s} name={s <= 4 ? 'star-fill' : 'star-line'} size={11} color="#FFB830" />
+            ))}
+          </View>
+        </View>
       </View>
     </TouchableOpacity>
   )

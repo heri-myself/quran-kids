@@ -5,10 +5,10 @@ import { useStories } from '../../../hooks/use-stories'
 import { StoryCard } from '../../../components/StoryCard'
 
 const CATEGORIES = [
-  { value: undefined, label: 'Semua' },
-  { value: 'sahabat_nabi', label: 'Sahabat Nabi' },
-  { value: 'kisah_quran', label: 'Al-Quran' },
-  { value: 'akhlaq', label: 'Akhlaq' },
+  { value: undefined, label: 'Semua', emoji: '✨' },
+  { value: 'sahabat_nabi', label: 'Sahabat Nabi', emoji: '⭐' },
+  { value: 'kisah_quran', label: 'Al-Quran', emoji: '📜' },
+  { value: 'akhlaq', label: 'Akhlaq', emoji: '💜' },
 ]
 
 export default function StoryListScreen() {
@@ -24,51 +24,83 @@ export default function StoryListScreen() {
   const stories = data?.data ?? []
 
   return (
-    <View className="flex-1 bg-amber-50">
+    <View style={{ flex: 1, backgroundColor: '#F4F4FF' }}>
       {/* Header */}
-      <View className="bg-emerald-500 px-6 pt-14 pb-6">
-        <Text className="text-white text-2xl font-bold">Daftar Kisah</Text>
+      <View
+        style={{
+          backgroundColor: '#7C6FF1',
+          paddingHorizontal: 24,
+          paddingTop: 56,
+          paddingBottom: 24,
+          borderBottomLeftRadius: 28,
+          borderBottomRightRadius: 28,
+        }}
+      >
+        <Text style={{ color: '#D4D0FF', fontSize: 13, marginBottom: 4 }}>Perpustakaan</Text>
+        <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800' }}>Daftar Kisah 📚</Text>
       </View>
 
       {/* Category Filter */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerClassName="px-4 py-3 gap-2"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 14, gap: 8 }}
       >
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat.label}
-            onPress={() => setSelectedCategory(cat.value)}
-            className={`px-4 py-2 rounded-full ${
-              selectedCategory === cat.value
-                ? 'bg-emerald-500'
-                : 'bg-white border border-slate-200'
-            }`}
-          >
-            <Text
-              className={`text-sm font-medium ${
-                selectedCategory === cat.value ? 'text-white' : 'text-slate-600'
-              }`}
+        {CATEGORIES.map((cat) => {
+          const active = selectedCategory === cat.value
+          return (
+            <TouchableOpacity
+              key={cat.label}
+              onPress={() => setSelectedCategory(cat.value)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 20,
+                backgroundColor: active ? '#7C6FF1' : '#FFFFFF',
+                shadowColor: '#7C6FF1',
+                shadowOpacity: active ? 0.25 : 0.06,
+                shadowRadius: 6,
+                shadowOffset: { width: 0, height: 2 },
+                elevation: active ? 4 : 1,
+              }}
             >
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text style={{ fontSize: 14 }}>{cat.emoji}</Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: active ? '#FFFFFF' : '#6B6B8A',
+                }}
+              >
+                {cat.label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
       </ScrollView>
 
       {/* Story List */}
-      <ScrollView contentContainerClassName="px-4 pb-8 gap-3">
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32, gap: 12 }}
+        showsVerticalScrollIndicator={false}
+      >
         {isLoading && (
-          <View className="py-12 items-center">
-            <ActivityIndicator color="#10b981" size="large" />
+          <View style={{ paddingVertical: 48, alignItems: 'center' }}>
+            <ActivityIndicator color="#7C6FF1" size="large" />
           </View>
         )}
         {isError && stories.length === 0 && (
-          <Text className="text-red-500 text-center py-8">Gagal memuat kisah.</Text>
+          <Text style={{ color: '#EF4444', textAlign: 'center', paddingVertical: 32 }}>
+            Gagal memuat kisah.
+          </Text>
         )}
         {!isLoading && !isError && stories.length === 0 && (
-          <Text className="text-slate-400 text-center py-12">Belum ada kisah di kategori ini.</Text>
+          <Text style={{ color: '#94A3B8', textAlign: 'center', paddingVertical: 48 }}>
+            Belum ada kisah di kategori ini.
+          </Text>
         )}
         {stories.map((story) => (
           <StoryCard

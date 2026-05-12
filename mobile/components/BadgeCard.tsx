@@ -17,22 +17,34 @@ export function BadgeCard({ badge, earned }: BadgeCardProps) {
 
   return (
     <View
-      className={`items-center p-3 rounded-2xl ${
-        earned ? 'bg-amber-50 border border-amber-200' : 'bg-slate-50 border border-slate-100'
-      }`}
-      style={{ width: '30%' }}
+      style={{
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 16,
+        backgroundColor: earned ? '#EEF0FF' : '#F6F6FA',
+        borderWidth: 1.5,
+        borderColor: earned ? '#A89DF5' : '#E8E8F0',
+        width: '30%',
+        opacity: earned ? 1 : 0.5,
+      }}
     >
-      <Text className={`text-3xl ${earned ? '' : 'opacity-30'}`}>{emoji}</Text>
+      <Text style={{ fontSize: 28 }}>{emoji}</Text>
       <Text
-        className={`text-xs font-semibold text-center mt-1 ${
-          earned ? 'text-slate-700' : 'text-slate-400'
-        }`}
+        style={{
+          fontSize: 11,
+          fontWeight: '600',
+          textAlign: 'center',
+          marginTop: 6,
+          color: earned ? '#5B52D4' : '#6B6B8A',
+        }}
         numberOfLines={2}
       >
         {badge.name}
       </Text>
       {earned && badge.earnedAt && (
-        <Text className="text-xs text-amber-500 mt-0.5">✓ Dapat!</Text>
+        <Text style={{ fontSize: 10, color: '#7C6FF1', marginTop: 2, fontWeight: '700' }}>
+          ✓ Dapat!
+        </Text>
       )}
     </View>
   )

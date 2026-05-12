@@ -3,13 +3,36 @@ import { useRouter } from 'expo-router'
 import { useProfileStore } from '../../stores/profile-store'
 import { useGamification } from '../../hooks/use-progress'
 import { useStories } from '../../hooks/use-stories'
-import { LevelBadge } from '../../components/LevelBadge'
 import { StoryCard } from '../../components/StoryCard'
 
-const CATEGORIES = [
-  { value: 'sahabat_nabi', label: 'Sahabat Nabi', emoji: '⭐' },
-  { value: 'kisah_quran', label: 'Al-Quran', emoji: '📜' },
-  { value: 'akhlaq', label: 'Akhlaq', emoji: '💚' },
+const FEATURES = [
+  {
+    id: 'quran',
+    label: 'Al-Quran',
+    subtitle: '114 Surah',
+    emoji: '📖',
+    bg: '#EEF0FF',
+    accent: '#7C6FF1',
+    route: '/(child)/quran/' as const,
+  },
+  {
+    id: 'hadist',
+    label: 'Hadist',
+    subtitle: 'Segera Hadir',
+    emoji: '📜',
+    bg: '#FFF4E6',
+    accent: '#F59E0B',
+    route: null,
+  },
+  {
+    id: 'kisah',
+    label: 'Kisah Teladan',
+    subtitle: 'Kisah Islami',
+    emoji: '⭐',
+    bg: '#F0FFF4',
+    accent: '#10B981',
+    route: '/(child)/stories/' as const,
+  },
 ]
 
 export default function HomeScreen() {
@@ -20,60 +43,154 @@ export default function HomeScreen() {
 
   const gamification = gamificationData?.gamification
   const stories = storiesData?.data ?? []
+  const points = gamification?.totalPoints ?? 0
+  const streak = gamification?.currentStreak ?? 0
 
   return (
     <ScrollView
-      className="flex-1 bg-amber-50"
+      style={{ flex: 1, backgroundColor: '#F4F4FF' }}
       contentContainerStyle={{ paddingBottom: 32 }}
+      showsVerticalScrollIndicator={false}
     >
       {/* Header */}
-      <View className="bg-emerald-500 px-6 pt-14 pb-8 rounded-b-3xl">
-        <Text className="text-emerald-100 text-sm">Assalamu'alaikum,</Text>
-        <Text className="text-white text-2xl font-bold">
-          {activeProfile?.name ?? 'Kawan'} 👋
-        </Text>
+      <View
+        style={{
+          backgroundColor: '#7C6FF1',
+          paddingHorizontal: 24,
+          paddingTop: 56,
+          paddingBottom: 48,
+          borderBottomLeftRadius: 32,
+          borderBottomRightRadius: 32,
+        }}
+      >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View>
+            <Text style={{ color: '#D4D0FF', fontSize: 14, marginBottom: 2 }}>Assalamu'alaikum 👋</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800' }}>
+              {activeProfile?.name ?? 'Kawan'}!
+            </Text>
+            <Text style={{ color: '#BDB8FF', fontSize: 13, marginTop: 4 }}>
+              Mau belajar apa hari ini?
+            </Text>
+          </View>
+          <View
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              borderRadius: 16,
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 20 }}>🔥</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>{streak}</Text>
+            <Text style={{ color: '#D4D0FF', fontSize: 10 }}>streak</Text>
+          </View>
+        </View>
+
+        {/* Points bar */}
+        <View
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.15)',
+            borderRadius: 12,
+            padding: 12,
+            marginTop: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+          }}
+        >
+          <Text style={{ fontSize: 20 }}>⭐</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: '#FFFFFF', fontWeight: '600', fontSize: 13 }}>
+              {points} Poin
+            </Text>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: 4, height: 6, marginTop: 4 }}>
+              <View
+                style={{
+                  backgroundColor: '#FFD166',
+                  borderRadius: 4,
+                  height: 6,
+                  width: `${Math.min((points % 200) / 2, 100)}%`,
+                }}
+              />
+            </View>
+          </View>
+          <Text style={{ color: '#D4D0FF', fontSize: 11 }}>Level {Math.floor(points / 200) + 1}</Text>
+        </View>
       </View>
 
-      <View className="px-4 -mt-4 gap-4">
-        {/* Level Badge */}
-        {gamification && (
-          <LevelBadge
-            points={gamification.totalPoints}
-            streak={gamification.currentStreak}
-          />
-        )}
-
-        {/* Categories */}
-        <Text className="font-bold text-slate-800 text-lg mt-2">Kategori Kisah</Text>
-        <View className="flex-row gap-3">
-          {CATEGORIES.map((cat) => (
+      <View style={{ paddingHorizontal: 20, marginTop: -20 }}>
+        {/* Feature Menu */}
+        <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 17, marginBottom: 14 }}>
+          Pilih Fitur 🌙
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
+          {FEATURES.map((feat) => (
             <TouchableOpacity
-              key={cat.value}
-              onPress={() =>
-                router.push({
-                  pathname: '/(child)/stories/',
-                  params: { category: cat.value },
-                })
-              }
-              className="flex-1 bg-white rounded-2xl p-3 items-center shadow-sm"
-              accessibilityLabel={`Lihat kisah ${cat.label}`}
+              key={feat.id}
+              onPress={() => feat.route && router.push(feat.route)}
+              activeOpacity={feat.route ? 0.7 : 1}
+              style={{
+                flex: 1,
+                backgroundColor: feat.bg,
+                borderRadius: 20,
+                padding: 16,
+                alignItems: 'center',
+                borderWidth: 1.5,
+                borderColor: feat.route ? feat.accent + '33' : '#E5E7EB',
+                opacity: feat.route ? 1 : 0.6,
+                shadowColor: feat.accent,
+                shadowOpacity: 0.12,
+                shadowRadius: 8,
+                shadowOffset: { width: 0, height: 3 },
+                elevation: feat.route ? 3 : 0,
+              }}
             >
-              <Text className="text-2xl">{cat.emoji}</Text>
-              <Text className="text-xs text-slate-600 mt-1 text-center">{cat.label}</Text>
+              <Text style={{ fontSize: 32, marginBottom: 8 }}>{feat.emoji}</Text>
+              <Text style={{ fontSize: 13, color: feat.accent, fontWeight: '800', textAlign: 'center' }}>
+                {feat.label}
+              </Text>
+              <Text style={{ fontSize: 10, color: feat.accent + 'AA', marginTop: 3, textAlign: 'center' }}>
+                {feat.subtitle}
+              </Text>
+              {!feat.route && (
+                <View style={{
+                  backgroundColor: '#F59E0B22',
+                  borderRadius: 8,
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  marginTop: 6,
+                }}>
+                  <Text style={{ fontSize: 9, color: '#F59E0B', fontWeight: '700' }}>Segera</Text>
+                </View>
+              )}
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Recent Stories */}
-        <Text className="font-bold text-slate-800 text-lg">Kisah Pilihan</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 17 }}>Kisah Pilihan 📖</Text>
+          <TouchableOpacity onPress={() => router.push('/(child)/stories/')}>
+            <Text style={{ color: '#7C6FF1', fontSize: 13, fontWeight: '600' }}>Lihat semua →</Text>
+          </TouchableOpacity>
+        </View>
+
         {isLoading ? (
-          <ActivityIndicator color="#10b981" />
+          <View style={{ paddingVertical: 32, alignItems: 'center' }}>
+            <ActivityIndicator color="#7C6FF1" size="large" />
+          </View>
         ) : isError ? (
-          <Text className="text-slate-400 text-sm text-center py-4">Gagal memuat kisah.</Text>
+          <Text style={{ color: '#94A3B8', textAlign: 'center', paddingVertical: 16 }}>
+            Gagal memuat kisah.
+          </Text>
         ) : stories.length === 0 ? (
-          <Text className="text-slate-400 text-sm text-center py-4">Belum ada kisah tersedia.</Text>
+          <Text style={{ color: '#94A3B8', textAlign: 'center', paddingVertical: 16 }}>
+            Belum ada kisah tersedia.
+          </Text>
         ) : (
-          <View className="gap-3">
+          <View style={{ gap: 12 }}>
             {stories.map((story) => (
               <StoryCard
                 key={story.id}
@@ -83,14 +200,6 @@ export default function HomeScreen() {
             ))}
           </View>
         )}
-
-        <TouchableOpacity
-          onPress={() => router.push('/(child)/stories/')}
-          className="items-center py-2"
-          accessibilityLabel="Lihat semua kisah"
-        >
-          <Text className="text-emerald-600 font-semibold">Lihat semua kisah →</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   )

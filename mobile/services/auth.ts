@@ -16,8 +16,8 @@ export function loginApi(email: string, password: string): Promise<AuthResponse>
   return api.post<AuthResponse>('/auth/login', { email, password })
 }
 
-export function registerApi(email: string, password: string): Promise<AuthResponse> {
-  return api.post<AuthResponse>('/auth/register', { email, password })
+export function registerApi(email: string, password: string, name: string): Promise<AuthResponse> {
+  return api.post<AuthResponse>('/auth/register', { email, password, name })
 }
 
 export function refreshApi(refreshToken: string): Promise<{ accessToken: string }> {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator,
   Animated, Dimensions,
@@ -9,6 +9,7 @@ import { usePostProgress } from '../../../hooks/use-progress'
 import { useProfileStore } from '../../../stores/profile-store'
 import { AudioPlayer } from '../../../components/AudioPlayer'
 import { ProgressBar } from '../../../components/ProgressBar'
+import { RIcon } from '../../../components/RIcon'
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:3000'
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -28,8 +29,8 @@ export default function StoryReaderScreen() {
 
   if (!slug) {
     return (
-      <View className="flex-1 items-center justify-center bg-amber-50">
-        <Text className="text-slate-500">Kisah tidak ditemukan.</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F4FF' }}>
+        <Text style={{ color: '#6B6B8A' }}>Kisah tidak ditemukan.</Text>
       </View>
     )
   }
@@ -39,8 +40,6 @@ export default function StoryReaderScreen() {
 
   async function goToNextPage() {
     if (!story || !activeProfile) return
-
-    // Record progress
     const nextPage = currentPageIndex + 1
     const isCompleted = isLastPage
 
@@ -65,37 +64,43 @@ export default function StoryReaderScreen() {
 
   if (storyLoading || pagesLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-amber-50">
-        <ActivityIndicator color="#10b981" size="large" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F4FF' }}>
+        <ActivityIndicator color="#7C6FF1" size="large" />
       </View>
     )
   }
 
   if (!story || pages.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center bg-amber-50">
-        <Text className="text-slate-500">Kisah tidak ditemukan.</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F4FF' }}>
+        <Text style={{ color: '#6B6B8A' }}>Kisah tidak ditemukan.</Text>
       </View>
     )
   }
 
   if (completed) {
     return (
-      <View className="flex-1 items-center justify-center bg-amber-50 px-6">
-        <Animated.View style={{ opacity: confettiAnim, transform: [{ scale: confettiAnim }] }}>
-          <Text className="text-8xl text-center">🎉</Text>
-          <Text className="text-2xl font-bold text-emerald-700 text-center mt-4">
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F4FF', paddingHorizontal: 24 }}>
+        <Animated.View style={{ opacity: confettiAnim, transform: [{ scale: confettiAnim }], alignItems: 'center' }}>
+          <Text style={{ fontSize: 80, textAlign: 'center' }}>🎉</Text>
+          <Text style={{ fontSize: 26, fontWeight: '800', color: '#7C6FF1', textAlign: 'center', marginTop: 16 }}>
             Selesai!
           </Text>
-          <Text className="text-slate-500 text-center mt-2">
+          <Text style={{ color: '#6B6B8A', textAlign: 'center', marginTop: 8, fontSize: 15 }}>
             Kamu mendapat 50 poin! Terus semangat belajar!
           </Text>
         </Animated.View>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="mt-8 bg-emerald-500 rounded-2xl px-8 py-4"
+          style={{
+            marginTop: 32,
+            backgroundColor: '#7C6FF1',
+            borderRadius: 20,
+            paddingHorizontal: 32,
+            paddingVertical: 16,
+          }}
         >
-          <Text className="text-white font-bold text-base">Kembali ke Beranda</Text>
+          <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>Kembali ke Beranda</Text>
         </TouchableOpacity>
       </View>
     )
@@ -110,71 +115,112 @@ export default function StoryReaderScreen() {
     : null
 
   return (
-    <View className="flex-1 bg-white">
-      {/* Top bar */}
-      <View className="flex-row items-center px-4 pt-12 pb-3 gap-3">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text className="text-2xl">←</Text>
-        </TouchableOpacity>
-        <ProgressBar current={currentPageIndex + 1} total={pages.length} />
-        <Text className="text-xs text-slate-400">
-          {currentPageIndex + 1}/{pages.length}
-        </Text>
-      </View>
-
-      <ScrollView className="flex-1">
-        {/* Illustration */}
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      {/* Illustration - full bleed */}
+      <View style={{ width: SCREEN_WIDTH, height: SCREEN_WIDTH * 0.65 }}>
         {illustrationUrl ? (
           <Image
             source={{ uri: illustrationUrl }}
-            className="w-full"
-            style={{ height: SCREEN_WIDTH * 0.6 }}
+            style={{ width: SCREEN_WIDTH, height: SCREEN_WIDTH * 0.65 }}
             resizeMode="cover"
           />
         ) : (
           <View
-            className="w-full bg-emerald-100 items-center justify-center"
-            style={{ height: SCREEN_WIDTH * 0.6 }}
+            style={{
+              width: SCREEN_WIDTH,
+              height: SCREEN_WIDTH * 0.65,
+              backgroundColor: '#EEF0FF',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <Text className="text-6xl">📖</Text>
+            <Text style={{ fontSize: 64 }}>📖</Text>
           </View>
         )}
 
-        {/* Text content */}
-        <View className="px-6 py-5 gap-4">
-          {/* Audio */}
-          <AudioPlayer audioUrl={audioUrl} />
-
-          {/* Arabic */}
-          {currentPage.textArabic && (
-            <Text className="text-right text-2xl leading-loose text-slate-800">
-              {currentPage.textArabic}
-            </Text>
-          )}
-
-          {/* Latin */}
-          {currentPage.textLatin && (
-            <Text className="text-slate-500 italic text-sm">{currentPage.textLatin}</Text>
-          )}
-
-          {/* Translation */}
-          <Text className="text-slate-700 text-base leading-7">
-            {currentPage.textTranslation}
+        {/* Overlay top bar */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingTop: 48,
+            paddingBottom: 12,
+            backgroundColor: 'rgba(0,0,0,0.25)',
+            gap: 12,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: 'rgba(255,255,255,0.3)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <RIcon name="arrow-left" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <ProgressBar current={currentPageIndex + 1} total={pages.length} />
+          </View>
+          <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '600' }}>
+            {currentPageIndex + 1}/{pages.length}
           </Text>
         </View>
+      </View>
+
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 24, gap: 16 }}>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#1A1A2E' }}>{story.title}</Text>
+
+        <AudioPlayer audioUrl={audioUrl} />
+
+        {currentPage.textArabic && (
+          <View style={{ backgroundColor: '#EEF0FF', borderRadius: 16, padding: 16 }}>
+            <Text style={{ textAlign: 'right', fontSize: 22, lineHeight: 40, color: '#1A1A2E' }}>
+              {currentPage.textArabic}
+            </Text>
+          </View>
+        )}
+
+        {currentPage.textLatin && (
+          <Text style={{ color: '#6B6B8A', fontStyle: 'italic', fontSize: 13 }}>
+            {currentPage.textLatin}
+          </Text>
+        )}
+
+        <Text style={{ color: '#1A1A2E', fontSize: 15, lineHeight: 26 }}>
+          {currentPage.textTranslation}
+        </Text>
       </ScrollView>
 
       {/* Next button */}
-      <View className="px-6 pb-8 pt-3">
+      <View style={{ paddingHorizontal: 24, paddingBottom: 32, paddingTop: 12 }}>
         <TouchableOpacity
           onPress={goToNextPage}
           disabled={postProgress.isPending || !activeProfile}
-          className="bg-emerald-500 rounded-2xl py-4 items-center"
+          style={{
+            backgroundColor: '#7C6FF1',
+            borderRadius: 20,
+            paddingVertical: 16,
+            alignItems: 'center',
+            shadowColor: '#7C6FF1',
+            shadowOpacity: 0.4,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 6,
+          }}
         >
           {postProgress.isPending ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-bold text-base">
+            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>
               {isLastPage ? '🎉 Selesai!' : 'Lanjut →'}
             </Text>
           )}

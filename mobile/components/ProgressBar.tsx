@@ -6,7 +6,7 @@ interface ProgressBarProps {
   color?: string
 }
 
-export function ProgressBar({ current, total, color = '#10b981' }: ProgressBarProps) {
+export function ProgressBar({ current, total, color = '#7C6FF1' }: ProgressBarProps) {
   const progress = total > 0 ? current / total : 0
   return (
     <View className="h-1.5 bg-slate-200 rounded-full flex-1">

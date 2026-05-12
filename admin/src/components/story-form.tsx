@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useCreateStory } from '@/hooks/use-stories'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const storySchema = z.object({
   title: z.string().min(1, 'Judul wajib diisi'),
@@ -35,11 +36,14 @@ export function StoryForm() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<StoryValues>({
     resolver: zodResolver(storySchema),
     defaultValues: { difficultyLevel: 'easy', isPremium: false, category: 'sahabat_nabi' },
   })
+
+  const isPremium = watch('isPremium')
 
   function onTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const slug = e.target.value
@@ -123,13 +127,12 @@ export function StoryForm() {
           </div>
 
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="isPremium"
-              {...register('isPremium')}
-              className="rounded"
+              checked={isPremium}
+              onCheckedChange={(checked) => setValue('isPremium', !!checked)}
             />
-            <Label htmlFor="isPremium">Konten Premium</Label>
+            <Label htmlFor="isPremium" className="cursor-pointer">Konten Premium</Label>
           </div>
 
           {createStory.isError && (

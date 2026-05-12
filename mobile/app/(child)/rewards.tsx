@@ -5,27 +5,45 @@ import { BadgeCard } from '../../components/BadgeCard'
 import { getLevelInfo, getProgressToNextLevel } from '../../constants/gamification'
 
 function StreakCalendar({ streak }: { streak: number }) {
-  const days = Array.from({ length: 7 }, (_, i) => ({
-    day: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][i],
-    active: i < streak,
-  }))
+  const days = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
 
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm">
-      <Text className="font-semibold text-slate-700 mb-3">Streak 7 Hari</Text>
-      <View className="flex-row justify-between">
-        {days.map((day) => (
-          <View key={day.day} className="items-center gap-1">
-            <Text className="text-xs text-slate-400">{day.day}</Text>
-            <View
-              className={`w-8 h-8 rounded-full items-center justify-center ${
-                day.active ? 'bg-orange-400' : 'bg-slate-100'
-              }`}
-            >
-              <Text className="text-sm">{day.active ? '🔥' : ''}</Text>
+    <View
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        padding: 16,
+        shadowColor: '#7C6FF1',
+        shadowOpacity: 0.08,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+      }}
+    >
+      <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 15, marginBottom: 12 }}>
+        Streak 7 Hari 🔥
+      </Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        {days.map((day, i) => {
+          const active = i < streak
+          return (
+            <View key={day} style={{ alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 11, color: '#6B6B8A' }}>{day}</Text>
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: active ? '#7C6FF1' : '#F0F0FA',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 16 }}>{active ? '🔥' : ''}</Text>
+              </View>
             </View>
-          </View>
-        ))}
+          )
+        })}
       </View>
     </View>
   )
@@ -37,16 +55,18 @@ export default function RewardsScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-amber-50">
-        <ActivityIndicator color="#10b981" size="large" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F4FF' }}>
+        <ActivityIndicator color="#7C6FF1" size="large" />
       </View>
     )
   }
 
   if (isError) {
     return (
-      <View className="flex-1 items-center justify-center bg-amber-50">
-        <Text className="text-red-500 text-center px-6">Gagal memuat data hadiah. Silakan coba lagi.</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4F4FF' }}>
+        <Text style={{ color: '#EF4444', textAlign: 'center', paddingHorizontal: 24 }}>
+          Gagal memuat data hadiah. Silakan coba lagi.
+        </Text>
       </View>
     )
   }
@@ -57,37 +77,65 @@ export default function RewardsScreen() {
   const points = gamification?.totalPoints ?? 0
   const levelInfo = getLevelInfo(points)
   const progress = getProgressToNextLevel(points)
-
   const earnedIds = new Set(earnedBadges.map((b) => b.id))
 
   return (
-    <ScrollView className="flex-1 bg-amber-50" contentContainerClassName="pb-10">
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#F4F4FF' }}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
-      <View className="bg-amber-400 px-6 pt-14 pb-8 rounded-b-3xl">
-        <Text className="text-white text-2xl font-bold">Hadiahku 🏆</Text>
+      <View
+        style={{
+          backgroundColor: '#7C6FF1',
+          paddingHorizontal: 24,
+          paddingTop: 56,
+          paddingBottom: 32,
+          borderBottomLeftRadius: 28,
+          borderBottomRightRadius: 28,
+        }}
+      >
+        <Text style={{ color: '#D4D0FF', fontSize: 13 }}>Pencapaianku</Text>
+        <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800', marginTop: 2 }}>Hadiahku 🏆</Text>
       </View>
 
-      <View className="px-4 gap-4 -mt-4">
+      <View style={{ paddingHorizontal: 20, marginTop: 20, gap: 16 }}>
         {/* Points & Level */}
-        <View className="bg-white rounded-2xl p-4 shadow-sm">
-          <View className="flex-row justify-between items-center mb-3">
+        <View
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: 20,
+            padding: 16,
+            shadowColor: '#7C6FF1',
+            shadowOpacity: 0.08,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 3 },
+            elevation: 3,
+          }}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <View>
-              <Text className="text-slate-400 text-xs">Level {levelInfo.level}</Text>
-              <Text className="text-xl font-bold text-slate-800">{levelInfo.name}</Text>
+              <Text style={{ color: '#6B6B8A', fontSize: 12 }}>Level {levelInfo.level}</Text>
+              <Text style={{ fontSize: 20, fontWeight: '800', color: '#1A1A2E' }}>{levelInfo.name}</Text>
             </View>
-            <View className="items-end">
-              <Text className="text-2xl font-bold text-emerald-600">{points}</Text>
-              <Text className="text-xs text-slate-400">poin</Text>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={{ fontSize: 28, fontWeight: '800', color: '#7C6FF1' }}>{points}</Text>
+              <Text style={{ fontSize: 12, color: '#6B6B8A' }}>poin</Text>
             </View>
           </View>
-          <View className="bg-slate-100 rounded-full h-3 mb-1">
+          <View style={{ backgroundColor: '#EEF0FF', borderRadius: 8, height: 10, marginBottom: 6 }}>
             <View
-              className="bg-emerald-500 rounded-full h-3"
-              style={{ width: `${Math.round(progress * 100)}%` }}
+              style={{
+                backgroundColor: '#7C6FF1',
+                borderRadius: 8,
+                height: 10,
+                width: `${Math.round(progress * 100)}%`,
+              }}
             />
           </View>
           {levelInfo.maxPoints !== Infinity && (
-            <Text className="text-xs text-slate-400">
+            <Text style={{ fontSize: 12, color: '#6B6B8A' }}>
               {points} / {levelInfo.maxPoints} poin ke level berikutnya
             </Text>
           )}
@@ -97,17 +145,13 @@ export default function RewardsScreen() {
         <StreakCalendar streak={Math.min(gamification?.currentStreak ?? 0, 7)} />
 
         {/* Badges */}
-        <Text className="font-bold text-slate-800 text-lg">Koleksi Badge</Text>
-        <View className="flex-row flex-wrap gap-3">
+        <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 17 }}>Koleksi Badge 🎖️</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {allBadges.map((badge) => (
-            <BadgeCard
-              key={badge.id}
-              badge={badge}
-              earned={earnedIds.has(badge.id)}
-            />
+            <BadgeCard key={badge.id} badge={badge} earned={earnedIds.has(badge.id)} />
           ))}
           {allBadges.length === 0 && (
-            <Text className="text-slate-400 text-sm">Belum ada badge tersedia.</Text>
+            <Text style={{ color: '#94A3B8', fontSize: 14 }}>Belum ada badge tersedia.</Text>
           )}
         </View>
       </View>
