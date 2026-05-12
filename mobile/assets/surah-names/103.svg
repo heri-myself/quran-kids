@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" width="300" height="80">
+  <rect width="300" height="80" fill="transparent"/>
+  <text
+    x="150" y="52"
+    font-family="'Scheherazade New', 'Amiri', 'Noto Naskh Arabic', serif"
+    font-size="36"
+    font-weight="700"
+    fill="#1a1a2e"
+    text-anchor="middle"
+    direction="rtl"
+    unicode-bidi="bidi-override"
+  >العصر</text>
+</svg>
