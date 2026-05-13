@@ -85,6 +85,12 @@ export function useTilawah(chapterId: number) {
     setRecordingState('idle')
     setCurrentEval(null)
     setError(null)
+  }, [])
+
+  const resetVerse = useCallback(() => {
+    setRecordingState('idle')
+    setCurrentEval(null)
+    setError(null)
     setRetryCount(0)
   }, [])
 
@@ -96,5 +102,6 @@ export function useTilawah(chapterId: number) {
     startRecording,
     stopAndEvaluate,
     reset,
+    resetVerse,
   }
 }

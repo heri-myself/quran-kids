@@ -233,7 +233,7 @@ export default function TilawahLatihanScreen() {
   const verses = getSurahVerses(Number(id)) as Verse[]
   const isLoading = false
 
-  const { recordingState, currentEval, error, retryCount, startRecording, stopAndEvaluate, reset } =
+  const { recordingState, currentEval, error, retryCount, startRecording, stopAndEvaluate, reset, resetVerse } =
     useTilawah(Number(id))
 
   const currentVerse = verses[currentIndex]
@@ -286,7 +286,7 @@ export default function TilawahLatihanScreen() {
       setCurrentIndex((i) => i + 1)
       setSheetDismissed(false)
       setAudioError(null)
-      reset()
+      resetVerse()
     }
   }
 
