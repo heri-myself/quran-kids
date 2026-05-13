@@ -33,6 +33,15 @@ const FEATURES = [
     accent: '#10B981',
     route: '/(child)/stories/' as const,
   },
+  {
+    id: 'kisah-nabi',
+    label: 'Kisah Nabi',
+    subtitle: '25 Nabi & Rasul',
+    emoji: '🕌',
+    bg: '#EEF0FF',
+    accent: '#2D1B69',
+    route: '/(child)/kisah-nabi/' as const,
+  },
 ]
 
 export default function HomeScreen() {

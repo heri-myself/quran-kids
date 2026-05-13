@@ -150,6 +150,8 @@ export default function ChildLayout() {
       <Tabs.Screen name="stories/[slug]" options={{ href: null }} />
       <Tabs.Screen name="tilawah/[id]" options={{ href: null }} />
       <Tabs.Screen name="tilawah/result" options={{ href: null }} />
+      <Tabs.Screen name="kisah-nabi/index" options={{ href: null }} />
+      <Tabs.Screen name="kisah-nabi/[id]" options={{ href: null }} />
     </Tabs>
   )
 }
