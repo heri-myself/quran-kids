@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from 'fastify'
 import { prisma } from '../lib/prisma.js'
 import { authenticate } from '../hooks/authenticate.js'
+import { getLevelFromPoints, isNewDay, isConsecutiveDay, POINTS as GAMIFICATION_POINTS } from '../lib/gamification.js'
 import { z } from 'zod'
 
 const evaluateSchema = z.object({
@@ -112,15 +113,28 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
       },
     })
 
-    // Tambah poin ke gamifikasi
+    // Tambah poin + update streak ke gamifikasi
     const gamification = await prisma.gamification.findUnique({ where: { profileId } })
     if (gamification) {
-      const newTotal = gamification.totalPoints + pointsEarned
+      let totalToAdd = pointsEarned
+      let newStreak = gamification.currentStreak
+
+      if (isNewDay(gamification.lastReadAt)) {
+        if (isConsecutiveDay(gamification.lastReadAt)) {
+          newStreak += 1
+          totalToAdd += GAMIFICATION_POINTS.DAILY_STREAK
+        } else {
+          newStreak = 1
+        }
+      }
+
+      const newTotal = gamification.totalPoints + totalToAdd
       await prisma.gamification.update({
         where: { profileId },
         data: {
           totalPoints: newTotal,
-          currentLevel: Math.floor(newTotal / 200) + 1,
+          currentLevel: getLevelFromPoints(newTotal),
+          currentStreak: newStreak,
           lastReadAt: new Date(),
         },
       })
