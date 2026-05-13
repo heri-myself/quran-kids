@@ -221,6 +221,15 @@ export default function TilawahLatihanScreen() {
   const [audioError, setAudioError] = useState<string | null>(null)
   const soundRef = useRef<any>(null)
 
+  useEffect(() => {
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync().catch(() => {})
+        soundRef.current = null
+      }
+    }
+  }, [])
+
   const verses = getSurahVerses(Number(id)) as Verse[]
   const isLoading = false
 
@@ -312,15 +321,19 @@ export default function TilawahLatihanScreen() {
         }
       })
     } catch (e: any) {
+      if (soundRef.current) {
+        await soundRef.current.unloadAsync().catch(() => {})
+        soundRef.current = null
+      }
       setAudioError(e.message ?? 'Audio tidak tersedia')
     } finally {
       setAudioLoading(false)
     }
   }
 
-  const dismissSheet = () => {
+  const dismissSheet = async () => {
     if (soundRef.current) {
-      soundRef.current.unloadAsync()
+      await soundRef.current.unloadAsync().catch(() => {})
       soundRef.current = null
     }
     setSheetDismissed(true)
@@ -444,7 +457,7 @@ export default function TilawahLatihanScreen() {
           )}
         </View>
       <AudioSampleSheet
-        visible={isDone && retryCount >= 3 && !sheetDismissed}
+        visible={isDone && retryCount >= 3 && !sheetDismissed && !!currentVerse}
         chapterId={String(id)}
         verseNumber={currentVerse?.verse_number ?? 1}
         onDismiss={dismissSheet}
