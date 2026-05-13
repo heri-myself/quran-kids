@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   Platform,
+  Modal,
 } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import Animated, {
@@ -16,6 +17,7 @@ import Animated, {
   withTiming,
   withSequence,
 } from 'react-native-reanimated'
+import { Audio } from 'expo-av'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
 import { getSurahVerses } from '../../../services/quran'
 
@@ -46,16 +48,183 @@ function WaveformBar({ index, isActive }: { index: number; isActive: boolean }) 
   return <Animated.View style={[styles.waveBar, style]} />
 }
 
+function AudioSampleSheet({
+  visible,
+  chapterId,
+  verseNumber,
+  onDismiss,
+  onPlay,
+  isLoading,
+  audioError,
+}: {
+  visible: boolean
+  chapterId: string
+  verseNumber: number
+  onDismiss: () => void
+  onPlay: () => void
+  isLoading: boolean
+  audioError: string | null
+}) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onDismiss}
+    >
+      <View style={sheetStyles.overlay}>
+        <View style={sheetStyles.sheet}>
+          <View style={sheetStyles.handle} />
+          <Text style={sheetStyles.title}>🎧 Mau dengar contoh bacaan?</Text>
+          <Text style={sheetStyles.subtitle}>
+            Sudah 3x mencoba. Yuk dengar dulu cara yang benar!
+          </Text>
+          <View style={sheetStyles.waveform}>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <View
+                key={i}
+                style={[sheetStyles.waveBar, { height: 8 + (i % 5) * 4 }]}
+              />
+            ))}
+            <Text style={sheetStyles.waveLabel}>
+              Surah {chapterId} : {verseNumber}
+            </Text>
+          </View>
+          {audioError && (
+            <Text style={sheetStyles.errorText}>{audioError}</Text>
+          )}
+          <View style={sheetStyles.actions}>
+            <TouchableOpacity style={sheetStyles.skipBtn} onPress={onDismiss}>
+              <Text style={sheetStyles.skipText}>Lewati</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[sheetStyles.playBtn, (isLoading || !!audioError) && { opacity: 0.6 }]}
+              onPress={onPlay}
+              disabled={isLoading || !!audioError}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={sheetStyles.playText}>▶ Dengar Contoh</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  )
+}
+
+const sheetStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#1E1B3A',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(124,111,241,0.3)',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  subtitle: {
+    color: '#8B8BAA',
+    fontSize: 13,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  waveform: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(124,111,241,0.1)',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  waveBar: {
+    width: 4,
+    backgroundColor: '#7C6FF1',
+    borderRadius: 2,
+  },
+  waveLabel: {
+    color: '#BDB8FF',
+    fontSize: 12,
+    marginLeft: 8,
+    flex: 1,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  skipBtn: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  skipText: {
+    color: '#BDB8FF',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  playBtn: {
+    flex: 2,
+    backgroundColor: '#7C6FF1',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    shadowColor: '#7C6FF1',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  playText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+})
+
 export default function TilawahLatihanScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [verseResults, setVerseResults] = useState<VerseResult[]>([])
+  const [sheetDismissed, setSheetDismissed] = useState(false)
+  const [audioLoading, setAudioLoading] = useState(false)
+  const [audioError, setAudioError] = useState<string | null>(null)
+  const soundRef = useRef<any>(null)
 
   const verses = getSurahVerses(Number(id)) as Verse[]
   const isLoading = false
 
-  const { recordingState, currentEval, error, startRecording, stopAndEvaluate, reset } =
+  const { recordingState, currentEval, error, retryCount, startRecording, stopAndEvaluate, reset } =
     useTilawah(Number(id))
 
   const currentVerse = verses[currentIndex]
@@ -106,8 +275,55 @@ export default function TilawahLatihanScreen() {
       })
     } else {
       setCurrentIndex((i) => i + 1)
+      setSheetDismissed(false)
+      setAudioError(null)
       reset()
     }
+  }
+
+  const playAudioSample = async () => {
+    if (!currentVerse) return
+    setAudioLoading(true)
+    setAudioError(null)
+    try {
+      if (soundRef.current) {
+        await soundRef.current.unloadAsync()
+        soundRef.current = null
+      }
+      const verseKey = `${id}:${currentVerse.verse_number}`
+      const res = await fetch(
+        `https://api.quran.com/api/v4/recitations/12/by_ayah/${verseKey}`
+      )
+      if (!res.ok) throw new Error('Gagal mengambil audio')
+      const data = await res.json()
+      const audioUrl = data?.audio_files?.[0]?.url
+      if (!audioUrl) throw new Error('URL audio tidak tersedia')
+
+      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, allowsRecordingIOS: false })
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: audioUrl },
+        { shouldPlay: true }
+      )
+      soundRef.current = sound
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.didJustFinish) {
+          setSheetDismissed(true)
+          soundRef.current = null
+        }
+      })
+    } catch (e: any) {
+      setAudioError(e.message ?? 'Audio tidak tersedia')
+    } finally {
+      setAudioLoading(false)
+    }
+  }
+
+  const dismissSheet = () => {
+    if (soundRef.current) {
+      soundRef.current.unloadAsync()
+      soundRef.current = null
+    }
+    setSheetDismissed(true)
   }
 
   if (isLoading || !currentVerse) {
@@ -227,6 +443,15 @@ export default function TilawahLatihanScreen() {
             </TouchableOpacity>
           )}
         </View>
+      <AudioSampleSheet
+        visible={isDone && retryCount >= 3 && !sheetDismissed}
+        chapterId={String(id)}
+        verseNumber={currentVerse?.verse_number ?? 1}
+        onDismiss={dismissSheet}
+        onPlay={playAudioSample}
+        isLoading={audioLoading}
+        audioError={audioError}
+      />
       </View>
     </View>
   )
