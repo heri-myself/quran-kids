@@ -31,6 +31,7 @@ export function useTilawah(chapterId: number) {
   const [recordingState, setRecordingState] = useState<RecordingState>('idle')
   const [currentEval, setCurrentEval] = useState<EvaluateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const recordingRef = useRef<Audio.Recording | null>(null)
 
   const startRecording = useCallback(async () => {
@@ -70,10 +71,12 @@ export function useTilawah(chapterId: number) {
       const result = await evaluateVerse(chapterId, verseNumber, expectedText, base64)
       setCurrentEval(result)
       setRecordingState('done')
+      setRetryCount(c => c + 1)
       return result
     } catch (e: any) {
       setError(e.message ?? 'Terjadi kesalahan analisis')
       setRecordingState('error')
+      setRetryCount(c => c + 1)
       return null
     }
   }, [chapterId])
@@ -82,12 +85,14 @@ export function useTilawah(chapterId: number) {
     setRecordingState('idle')
     setCurrentEval(null)
     setError(null)
+    setRetryCount(0)
   }, [])
 
   return {
     recordingState,
     currentEval,
     error,
+    retryCount,
     startRecording,
     stopAndEvaluate,
     reset,
