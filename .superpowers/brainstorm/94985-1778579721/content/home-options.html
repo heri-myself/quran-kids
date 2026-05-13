@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pilihan Home Screen</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 28px 20px 40px; }
+  h1 { color: #fff; font-size: 20px; text-align: center; margin-bottom: 6px; }
+  .sub { color: #777; font-size: 13px; text-align: center; margin-bottom: 28px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; max-width: 1100px; margin: 0 auto; }
+
+  /* Card wrapper */
+  .option-card { background: #181828; border: 2px solid #2a2a4a; border-radius: 20px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+  .option-card:hover { border-color: #4a4a8a; transform: translateY(-2px); }
+  .option-card.selected { border-color: #7C6FF1; box-shadow: 0 0 0 3px rgba(124,111,241,0.25); }
+  .card-label { display: flex; align-items: center; gap: 10px; padding: 14px 18px 10px; border-bottom: 1px solid #2a2a4a; }
+  .badge { width: 30px; height: 30px; border-radius: 50%; background: #7C6FF1; color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .card-title { color: #fff; font-size: 15px; font-weight: 700; }
+  .card-desc { color: #888; font-size: 11px; margin-top: 2px; }
+  .phone-wrap { padding: 18px; display: flex; justify-content: center; }
+  .selected-tick { text-align: center; padding: 8px; font-size: 13px; color: #7C6FF1; font-weight: 700; display: none; }
+  .option-card.selected .selected-tick { display: block; }
+
+  /* Phone */
+  .phone { width: 270px; background: #fff; border-radius: 36px; border: 3px solid #2a2a3a; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+  .notch { background: #111; height: 30px; display: flex; align-items: center; justify-content: center; }
+  .notch-bar { width: 80px; height: 14px; background: #222; border-radius: 10px; }
+  .phone-nav { background: #fff; border-top: 1px solid #eee; padding: 8px 0 6px; display: flex; justify-content: space-around; }
+  .ni { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .ni-dot { width: 20px; height: 20px; background: #e8e8e8; border-radius: 5px; }
+  .ni-dot.active { background: #7C6FF1; }
+  .ni-lbl { font-size: 9px; color: #bbb; }
+  .ni.active .ni-lbl { color: #7C6FF1; font-weight: 700; }
+
+  /* Header area */
+  .ph { background: #7C6FF1; padding: 14px 16px 32px; }
+  .ph-row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .ph-greet { color: #D4D0FF; font-size: 11px; margin-bottom: 2px; }
+  .ph-name { color: #fff; font-size: 18px; font-weight: 800; }
+  .ph-sub { color: #BDB8FF; font-size: 10px; margin-top: 2px; }
+  .streak-badge { background: rgba(255,255,255,0.2); border-radius: 12px; padding: 6px 10px; text-align: center; }
+  .streak-fire { font-size: 16px; }
+  .streak-num { color: #fff; font-weight: 800; font-size: 14px; }
+  .streak-lbl { color: #D4D0FF; font-size: 9px; }
+  .pts-bar { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 8px 10px; margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+  .pts-icon { font-size: 14px; }
+  .pts-text { flex: 1; }
+  .pts-val { color: #fff; font-size: 11px; font-weight: 600; }
+  .pts-track { background: rgba(255,255,255,0.3); border-radius: 3px; height: 5px; margin-top: 3px; }
+  .pts-fill { background: #FFD166; border-radius: 3px; height: 5px; width: 45%; }
+  .pts-level { color: #D4D0FF; font-size: 9px; }
+
+  /* Body */
+  .pbody { background: #F4F4FF; padding: 0 12px 12px; margin-top: -14px; }
+
+  /* Widget lanjut baca */
+  .widget-lanjut { background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 10px; box-shadow: 0 3px 12px rgba(124,111,241,0.1); }
+  .widget-title { font-size: 11px; font-weight: 700; color: #1A1A2E; margin-bottom: 8px; }
+  .widget-row { display: flex; gap: 8px; }
+  .widget-item { flex: 1; background: #F4F4FF; border-radius: 10px; padding: 8px; border: 1px solid #E0DFFF; }
+  .wi-label { font-size: 8px; color: #B0B0C8; margin-bottom: 3px; }
+  .wi-title { font-size: 10px; font-weight: 700; color: #7C6FF1; }
+  .wi-sub { font-size: 8px; color: #B0B0C8; }
+  .wi-btn { margin-top: 5px; background: #7C6FF1; border-radius: 6px; padding: 3px 0; text-align: center; }
+  .wi-btn span { font-size: 8px; color: #fff; font-weight: 700; }
+  .wi-icon { font-size: 14px; margin-bottom: 3px; }
+
+  /* Category */
+  .sec-title { font-size: 12px; font-weight: 700; color: #1A1A2E; margin: 8px 0 6px; }
+  .cat-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .cat-item { flex: 1; background: #EEF0FF; border-radius: 12px; padding: 8px 4px; text-align: center; }
+  .cat-icon { font-size: 16px; }
+  .cat-lbl { font-size: 8px; color: #5B52D4; font-weight: 600; margin-top: 4px; }
+
+  /* Surah rekomendasi */
+  .quran-sec { background: #fff; border-radius: 14px; padding: 10px 12px; margin-bottom: 10px; box-shadow: 0 3px 12px rgba(124,111,241,0.08); }
+  .qs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .qs-title { font-size: 11px; font-weight: 700; color: #1A1A2E; }
+  .qs-link { font-size: 9px; color: #7C6FF1; font-weight: 600; }
+  .surah-chip-row { display: flex; gap: 5px; flex-wrap: wrap; }
+  .surah-chip { background: #F4F4FF; border: 1px solid #DDD8FF; border-radius: 8px; padding: 5px 8px; text-align: center; }
+  .sc-ar { font-size: 13px; color: #1A1A2E; }
+  .sc-name { font-size: 8px; color: #7C6FF1; font-weight: 600; margin-top: 2px; }
+  .sc-ayat { font-size: 7px; color: #B0B0C8; }
+
+  /* Story item mini */
+  .story-item { background: #fff; border-radius: 10px; padding: 8px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; border: 1px solid #EEEEFF; }
+  .si-thumb { width: 36px; height: 36px; background: #EEF0FF; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .si-info { flex: 1; }
+  .si-title { font-size: 10px; font-weight: 700; color: #1A1A2E; }
+  .si-sub { font-size: 8px; color: #B0B0C8; margin-top: 1px; }
+  .si-arrow { color: #7C6FF1; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>Pilihan Tampilan Home Screen</h1>
+<p class="sub">Scroll untuk lihat semua · Klik untuk memilih</p>
+
+<div class="grid">
+
+  <!-- OPTION A: Widget Lanjut Baca -->
+  <div class="option-card" onclick="sel(this,'A')" id="oa">
+    <div class="card-label">
+      <div class="badge">A</div>
+      <div>
+        <div class="card-title">Widget "Lanjut Membaca"</div>
+        <div class="card-desc">Shortcut kisah + surah terakhir dibaca di atas</div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="notch"><div class="notch-bar"></div></div>
+        <div class="ph">
+          <div class="ph-row">
+            <div>
+              <div class="ph-greet">Assalamu'alaikum 👋</div>
+              <div class="ph-name">Ahmad!</div>
+              <div class="ph-sub">Yuk, lanjut belajar hari ini!</div>
+            </div>
+            <div class="streak-badge">
+              <div class="streak-fire">🔥</div>
+              <div class="streak-num">5</div>
+              <div class="streak-lbl">streak</div>
+            </div>
+          </div>
+          <div class="pts-bar">
+            <div class="pts-icon">⭐</div>
+            <div class="pts-text">
+              <div class="pts-val">320 Poin</div>
+              <div class="pts-track"><div class="pts-fill"></div></div>
+            </div>
+            <div class="pts-level">Level 2</div>
+          </div>
+        </div>
+        <div class="pbody">
+          <!-- Widget lanjut baca -->
+          <div class="widget-lanjut">
+            <div class="widget-title">📌 Lanjut Membaca</div>
+            <div class="widget-row">
+              <div class="widget-item">
+                <div class="wi-icon">📖</div>
+                <div class="wi-label">Kisah Terakhir</div>
+                <div class="wi-title">Abu Bakar As-Siddiq</div>
+                <div class="wi-sub">Halaman 3 / 5</div>
+                <div class="wi-btn"><span>Lanjut →</span></div>
+              </div>
+              <div class="widget-item">
+                <div class="wi-icon">📿</div>
+                <div class="wi-label">Surah Terakhir</div>
+                <div class="wi-title">Al-Ikhlas</div>
+                <div class="wi-sub">Surah 112 · 4 Ayat</div>
+                <div class="wi-btn"><span>Buka →</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kategori -->
+          <div class="sec-title">Jelajahi Kategori</div>
+          <div class="cat-row">
+            <div class="cat-item"><div class="cat-icon">⭐</div><div class="cat-lbl">Sahabat Nabi</div></div>
+            <div class="cat-item"><div class="cat-icon">📜</div><div class="cat-lbl">Al-Quran</div></div>
+            <div class="cat-item"><div class="cat-icon">💜</div><div class="cat-lbl">Akhlaq</div></div>
+          </div>
+
+          <!-- Kisah -->
+          <div class="sec-title">Kisah Pilihan 📖</div>
+          <div class="story-item">
+            <div class="si-thumb">🌙</div>
+            <div class="si-info"><div class="si-title">Umar bin Khattab</div><div class="si-sub">Sahabat Nabi · Mudah</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+          <div class="story-item">
+            <div class="si-thumb">✨</div>
+            <div class="si-info"><div class="si-title">Kisah Nabi Yusuf</div><div class="si-sub">Al-Quran · Menengah</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="ni active"><div class="ni-dot active"></div><span class="ni-lbl">Beranda</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Kisah</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Al-Quran</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Hadiah</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-tick">✓ Dipilih</div>
+  </div>
+
+  <!-- OPTION B: Section Surah Pilihan -->
+  <div class="option-card" onclick="sel(this,'B')" id="ob">
+    <div class="card-label">
+      <div class="badge">B</div>
+      <div>
+        <div class="card-title">Section "Surah Pendek Pilihan"</div>
+        <div class="card-desc">Rekomendasi surah di bawah kisah pilihan</div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="notch"><div class="notch-bar"></div></div>
+        <div class="ph">
+          <div class="ph-row">
+            <div>
+              <div class="ph-greet">Assalamu'alaikum 👋</div>
+              <div class="ph-name">Ahmad!</div>
+              <div class="ph-sub">Yuk, baca kisah hari ini!</div>
+            </div>
+            <div class="streak-badge">
+              <div class="streak-fire">🔥</div>
+              <div class="streak-num">5</div>
+              <div class="streak-lbl">streak</div>
+            </div>
+          </div>
+          <div class="pts-bar">
+            <div class="pts-icon">⭐</div>
+            <div class="pts-text">
+              <div class="pts-val">320 Poin</div>
+              <div class="pts-track"><div class="pts-fill"></div></div>
+            </div>
+            <div class="pts-level">Level 2</div>
+          </div>
+        </div>
+        <div class="pbody">
+          <!-- Kategori -->
+          <div class="sec-title">Jelajahi Kategori</div>
+          <div class="cat-row">
+            <div class="cat-item"><div class="cat-icon">⭐</div><div class="cat-lbl">Sahabat Nabi</div></div>
+            <div class="cat-item"><div class="cat-icon">📜</div><div class="cat-lbl">Al-Quran</div></div>
+            <div class="cat-item"><div class="cat-icon">💜</div><div class="cat-lbl">Akhlaq</div></div>
+          </div>
+
+          <!-- Kisah -->
+          <div class="sec-title">Kisah Pilihan 📖</div>
+          <div class="story-item">
+            <div class="si-thumb">🌙</div>
+            <div class="si-info"><div class="si-title">Umar bin Khattab</div><div class="si-sub">Sahabat Nabi · Mudah</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+
+          <!-- Surah Pendek -->
+          <div class="quran-sec">
+            <div class="qs-header">
+              <div class="qs-title">Surah Pendek 📿</div>
+              <div class="qs-link">Lihat semua →</div>
+            </div>
+            <div class="surah-chip-row">
+              <div class="surah-chip">
+                <div class="sc-ar">الإخلاص</div>
+                <div class="sc-name">Al-Ikhlas</div>
+                <div class="sc-ayat">4 Ayat</div>
+              </div>
+              <div class="surah-chip">
+                <div class="sc-ar">الفلق</div>
+                <div class="sc-name">Al-Falaq</div>
+                <div class="sc-ayat">5 Ayat</div>
+              </div>
+              <div class="surah-chip">
+                <div class="sc-ar">الناس</div>
+                <div class="sc-name">An-Nas</div>
+                <div class="sc-ayat">6 Ayat</div>
+              </div>
+              <div class="surah-chip">
+                <div class="sc-ar">الكوثر</div>
+                <div class="sc-name">Al-Kautsar</div>
+                <div class="sc-ayat">3 Ayat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="ni active"><div class="ni-dot active"></div><span class="ni-lbl">Beranda</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Kisah</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Al-Quran</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Hadiah</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-tick">✓ Dipilih</div>
+  </div>
+
+  <!-- OPTION C: Keduanya -->
+  <div class="option-card" onclick="sel(this,'C')" id="oc">
+    <div class="card-label">
+      <div class="badge">C</div>
+      <div>
+        <div class="card-title">Keduanya (A + B)</div>
+        <div class="card-desc">Widget lanjut baca + section surah pendek</div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="notch"><div class="notch-bar"></div></div>
+        <div class="ph">
+          <div class="ph-row">
+            <div>
+              <div class="ph-greet">Assalamu'alaikum 👋</div>
+              <div class="ph-name">Ahmad!</div>
+              <div class="ph-sub">Yuk, lanjut belajar hari ini!</div>
+            </div>
+            <div class="streak-badge">
+              <div class="streak-fire">🔥</div>
+              <div class="streak-num">5</div>
+              <div class="streak-lbl">streak</div>
+            </div>
+          </div>
+          <div class="pts-bar">
+            <div class="pts-icon">⭐</div>
+            <div class="pts-text">
+              <div class="pts-val">320 Poin</div>
+              <div class="pts-track"><div class="pts-fill"></div></div>
+            </div>
+            <div class="pts-level">Level 2</div>
+          </div>
+        </div>
+        <div class="pbody">
+          <!-- Widget lanjut baca -->
+          <div class="widget-lanjut">
+            <div class="widget-title">📌 Lanjut Membaca</div>
+            <div class="widget-row">
+              <div class="widget-item">
+                <div class="wi-icon">📖</div>
+                <div class="wi-label">Kisah Terakhir</div>
+                <div class="wi-title">Abu Bakar</div>
+                <div class="wi-sub">Hal. 3 / 5</div>
+                <div class="wi-btn"><span>Lanjut →</span></div>
+              </div>
+              <div class="widget-item">
+                <div class="wi-icon">📿</div>
+                <div class="wi-label">Surah Terakhir</div>
+                <div class="wi-title">Al-Ikhlas</div>
+                <div class="wi-sub">Surah 112</div>
+                <div class="wi-btn"><span>Buka →</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kategori -->
+          <div class="cat-row">
+            <div class="cat-item"><div class="cat-icon">⭐</div><div class="cat-lbl">Sahabat Nabi</div></div>
+            <div class="cat-item"><div class="cat-icon">📜</div><div class="cat-lbl">Al-Quran</div></div>
+            <div class="cat-item"><div class="cat-icon">💜</div><div class="cat-lbl">Akhlaq</div></div>
+          </div>
+
+          <!-- Surah Pendek -->
+          <div class="quran-sec">
+            <div class="qs-header">
+              <div class="qs-title">Surah Pendek 📿</div>
+              <div class="qs-link">Lihat semua →</div>
+            </div>
+            <div class="surah-chip-row">
+              <div class="surah-chip">
+                <div class="sc-ar">الإخلاص</div>
+                <div class="sc-name">Al-Ikhlas</div>
+                <div class="sc-ayat">4 Ayat</div>
+              </div>
+              <div class="surah-chip">
+                <div class="sc-ar">الفلق</div>
+                <div class="sc-name">Al-Falaq</div>
+                <div class="sc-ayat">5 Ayat</div>
+              </div>
+              <div class="surah-chip">
+                <div class="sc-ar">الناس</div>
+                <div class="sc-name">An-Nas</div>
+                <div class="sc-ayat">6 Ayat</div>
+              </div>
+              <div class="surah-chip">
+                <div class="sc-ar">الكوثر</div>
+                <div class="sc-name">Al-Kautsar</div>
+                <div class="sc-ayat">3 Ayat</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kisah -->
+          <div class="sec-title">Kisah Pilihan 📖</div>
+          <div class="story-item">
+            <div class="si-thumb">🌙</div>
+            <div class="si-info"><div class="si-title">Umar bin Khattab</div><div class="si-sub">Sahabat Nabi · Mudah</div></div>
+            <div class="si-arrow">›</div>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="ni active"><div class="ni-dot active"></div><span class="ni-lbl">Beranda</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Kisah</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Al-Quran</span></div>
+          <div class="ni"><div class="ni-dot"></div><span class="ni-lbl">Hadiah</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-tick">✓ Dipilih</div>
+  </div>
+
+</div>
+
+<p style="text-align:center;color:#555;font-size:13px;margin-top:28px;">Klik kartu untuk memilih · lalu beritahu di terminal</p>
+
+<script>
+function sel(el, choice) {
+  document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'))
+  el.classList.add('selected')
+  if (window.__companion) window.__companion.select(choice, el.querySelector('.card-title').textContent)
+}
+</script>
+</body>
+</html>

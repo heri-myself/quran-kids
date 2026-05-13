@@ -59,11 +59,11 @@ export default function HaditsDetailScreen() {
           borderColor: '#FDE68A',
         }}>
           <Text style={{
-            fontSize: 22,
-            fontFamily: 'serif',
+            fontSize: 26,
+            fontFamily: 'ScheherazadeNew-Regular',
             color: '#1A1A2E',
             textAlign: 'right',
-            lineHeight: 40,
+            lineHeight: 48,
             writingDirection: 'rtl',
           }}>
             {hadits.arabic}

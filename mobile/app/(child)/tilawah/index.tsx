@@ -166,5 +166,5 @@ const styles = StyleSheet.create({
   cardBadgeText: { color: '#7C6FF1', fontWeight: '700', fontSize: 13 },
   cardName: { fontSize: 14, fontWeight: '700', color: '#1A1A2E' },
   cardSub: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
-  cardArabic: { fontSize: 16, color: '#7C6FF1', fontFamily: 'serif' },
+  cardArabic: { fontSize: 18, color: '#7C6FF1', fontFamily: 'ScheherazadeNew-Regular' },
 })

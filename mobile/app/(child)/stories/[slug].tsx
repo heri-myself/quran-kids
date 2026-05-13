@@ -183,7 +183,7 @@ export default function StoryReaderScreen() {
 
         {currentPage.textArabic && (
           <View style={{ backgroundColor: '#EEF0FF', borderRadius: 16, padding: 16 }}>
-            <Text style={{ textAlign: 'right', fontSize: 22, lineHeight: 40, color: '#1A1A2E' }}>
+            <Text style={{ textAlign: 'right', fontSize: 26, lineHeight: 48, color: '#1A1A2E', fontFamily: 'ScheherazadeNew-Regular', writingDirection: 'rtl' }}>
               {currentPage.textArabic}
             </Text>
           </View>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pilihan Tampilan Al-Quran</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 32px 24px; }
+
+  h1 { color: #fff; font-size: 22px; text-align: center; margin-bottom: 6px; }
+  .sub { color: #888; font-size: 14px; text-align: center; margin-bottom: 32px; }
+
+  .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+
+  .option-card {
+    background: #1a1a2e;
+    border: 2px solid #2a2a4a;
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .option-card:hover { border-color: #4a4a8a; transform: translateY(-2px); }
+  .option-card.selected { border-color: #2d7a4f; box-shadow: 0 0 0 3px rgba(45,122,79,0.3); }
+
+  .option-label {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #2a2a4a;
+  }
+  .letter-badge {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #2d7a4f; color: #fff;
+    font-size: 14px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .option-title { color: #fff; font-size: 16px; font-weight: 700; }
+  .option-desc { color: #888; font-size: 12px; margin-top: 2px; }
+
+  /* Phone mockup */
+  .phone-wrap { padding: 20px; display: flex; justify-content: center; }
+  .phone {
+    width: 280px;
+    background: #fff;
+    border-radius: 36px;
+    border: 3px solid #333;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .phone-notch {
+    background: #111; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .phone-notch-bar { width: 80px; height: 14px; background: #222; border-radius: 10px; }
+  .phone-header { background: #2d7a4f; padding: 14px 16px 12px; }
+  .phone-header h3 { color: #fff; font-size: 16px; font-weight: 700; margin: 0; }
+  .phone-header p { color: rgba(255,255,255,0.65); font-size: 11px; margin: 3px 0 0; }
+  .phone-body { background: #f5f5f5; padding: 12px 14px; min-height: 380px; overflow: hidden; }
+  .phone-nav {
+    background: #fff; border-top: 1px solid #e5e5e5;
+    padding: 10px 0 6px;
+    display: flex; justify-content: space-around;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .nav-icon { width: 22px; height: 22px; background: #e8e8e8; border-radius: 5px; }
+  .nav-icon.active { background: #2d7a4f; }
+  .nav-label { font-size: 9px; color: #aaa; }
+  .nav-item.active .nav-label { color: #2d7a4f; font-weight: 700; }
+
+  /* --- Option A styles --- */
+  .last-read-chip {
+    background: #eaf4ee; border: 1px solid #b8dfc5; border-radius: 10px;
+    padding: 8px 12px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .lrc-label { font-size: 10px; color: #888; }
+  .lrc-val { font-size: 12px; color: #2d7a4f; font-weight: 700; }
+  .ql-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .ql-chip { font-size: 10px; border: 1px solid #2d7a4f; color: #2d7a4f; padding: 3px 8px; border-radius: 12px; }
+  .tabs { display: flex; border-bottom: 1px solid #e0e0e0; margin-bottom: 10px; }
+  .tab { font-size: 11px; padding: 5px 10px; color: #aaa; border-bottom: 2px solid transparent; }
+  .tab.active { color: #2d7a4f; border-bottom-color: #2d7a4f; font-weight: 700; }
+  .surah-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f0f0f0; }
+  .surah-circle {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1.5px solid #2d7a4f; color: #2d7a4f;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .surah-en { font-size: 12px; font-weight: 700; color: #2d7a4f; }
+  .surah-sub { font-size: 10px; color: #aaa; }
+  .surah-arabic-name { font-size: 18px; color: #1a1a2e; font-family: serif; margin-left: auto; }
+
+  /* --- Option B styles --- */
+  .ayat-card {
+    background: #fff; border-radius: 10px;
+    border: 1px solid #e8e8e8;
+    padding: 12px; margin-bottom: 10px;
+  }
+  .ayat-badge { font-size: 10px; color: #2d7a4f; font-weight: 700; margin-bottom: 8px; }
+  .arabic-text {
+    font-size: 22px; color: #1a1a2e; text-align: right;
+    direction: rtl; font-family: 'Scheherazade New', serif;
+    line-height: 1.8; margin-bottom: 6px;
+  }
+  .latin-text { font-size: 11px; color: #5a7a6a; font-style: italic; margin-bottom: 4px; line-height: 1.5; }
+  .trans-text { font-size: 11px; color: #555; line-height: 1.5; margin-bottom: 8px; }
+  .ayat-actions { display: flex; gap: 6px; }
+  .act-btn {
+    font-size: 10px; color: #2d7a4f;
+    border: 1px solid #2d7a4f; padding: 3px 10px;
+    border-radius: 12px; background: #fff;
+  }
+
+  /* --- Option C styles --- */
+  .wbw-card {
+    background: #fff; border-radius: 10px;
+    border: 1px solid #e8e8e8;
+    padding: 12px; margin-bottom: 10px;
+  }
+  .wbw-badge { font-size: 10px; color: #2d7a4f; font-weight: 700; margin-bottom: 8px; }
+  .words-grid {
+    display: flex; flex-wrap: wrap; justify-content: flex-end;
+    gap: 6px; direction: rtl; margin-bottom: 10px;
+  }
+  .word-box {
+    display: flex; flex-direction: column; align-items: center;
+    background: #f5f9f7; border: 1px solid #d8ede2;
+    border-radius: 8px; padding: 6px 8px; min-width: 52px;
+  }
+  .word-box.hl { background: #d1f0de; border-color: #2d7a4f; }
+  .word-arab { font-size: 17px; color: #1a1a2e; font-family: serif; }
+  .word-box.hl .word-arab { color: #1a5e35; }
+  .word-mean { font-size: 9px; color: #777; text-align: center; margin-top: 2px; }
+  .wbw-trans { font-size: 11px; color: #555; line-height: 1.5; margin-bottom: 8px; }
+  .wbw-actions { display: flex; gap: 6px; }
+  .wbw-btn {
+    font-size: 10px; color: #2d7a4f;
+    border: 1px solid #2d7a4f; padding: 3px 10px;
+    border-radius: 12px; background: #fff;
+  }
+
+  .selected-indicator {
+    text-align: center; padding: 10px;
+    font-size: 13px; color: #2d7a4f; font-weight: 700;
+    display: none;
+  }
+  .option-card.selected .selected-indicator { display: block; }
+
+  .footer { text-align: center; margin-top: 28px; color: #555; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>Pilih Tampilan Al-Quran</h1>
+<p class="sub">Klik salah satu opsi untuk memilih, lalu beritahu di terminal</p>
+
+<div class="options-grid">
+
+  <!-- OPTION A -->
+  <div class="option-card" onclick="selectOption(this, 'A')" id="opt-a">
+    <div class="option-label">
+      <div class="letter-badge">A</div>
+      <div>
+        <div class="option-title">Daftar Surah + Baca Ayat</div>
+        <div class="option-desc">Arab + Terjemahan saja · Paling sederhana</div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"><div class="phone-notch-bar"></div></div>
+        <div class="phone-header">
+          <h3>Al-Quran</h3>
+          <p>114 Surah</p>
+        </div>
+        <div class="phone-body">
+          <div class="last-read-chip">
+            <div>
+              <div class="lrc-label">Terakhir Dibaca</div>
+              <div class="lrc-val">AL-FATIHAH 1:1</div>
+            </div>
+            <span style="font-size:18px;">📖</span>
+          </div>
+          <div class="ql-row">
+            <span class="ql-chip">AL-MULK</span>
+            <span class="ql-chip">AL-KAHF</span>
+            <span class="ql-chip">YA SIN</span>
+          </div>
+          <div class="tabs">
+            <span class="tab active">Surah</span>
+            <span class="tab">Juz</span>
+            <span class="tab">Halaman</span>
+          </div>
+          <div class="surah-row">
+            <div class="surah-circle">1</div>
+            <div><div class="surah-en">Al-Fatihah</div><div class="surah-sub">Pembuka · 7 Ayat</div></div>
+            <div class="surah-arabic-name">الفاتحة</div>
+          </div>
+          <div class="surah-row">
+            <div class="surah-circle">2</div>
+            <div><div class="surah-en">Al-Baqarah</div><div class="surah-sub">Sapi Betina · 286 Ayat</div></div>
+            <div class="surah-arabic-name">البقرة</div>
+          </div>
+          <div class="surah-row">
+            <div class="surah-circle">3</div>
+            <div><div class="surah-en">Ali Imran</div><div class="surah-sub">Keluarga Imran · 200 Ayat</div></div>
+            <div class="surah-arabic-name">آل عمران</div>
+          </div>
+          <div class="surah-row">
+            <div class="surah-circle">4</div>
+            <div><div class="surah-en">An-Nisa</div><div class="surah-sub">Wanita · 176 Ayat</div></div>
+            <div class="surah-arabic-name">النساء</div>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Beranda</span></div>
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Kisah</span></div>
+          <div class="nav-item active"><div class="nav-icon active"></div><span class="nav-label">Al-Quran</span></div>
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Hadiah</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Dipilih</div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="option-card" onclick="selectOption(this, 'B')" id="opt-b">
+    <div class="option-label">
+      <div class="letter-badge">B</div>
+      <div>
+        <div class="option-title">Arab + Latin + Terjemahan per Ayat</div>
+        <div class="option-desc">Transliterasi + Audio · Cocok belajar membaca</div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"><div class="phone-notch-bar"></div></div>
+        <div class="phone-header">
+          <h3>Al-Ikhlas · Surah 112</h3>
+          <p>4 Ayat · Makkiyyah</p>
+        </div>
+        <div class="phone-body">
+          <div class="ayat-card">
+            <div class="ayat-badge">Ayat 1</div>
+            <div class="arabic-text">قُلْ هُوَ ٱللَّهُ أَحَدٌ</div>
+            <div class="latin-text">Qul huwa llāhu aḥad</div>
+            <div class="trans-text">Katakanlah: Dialah Allah, Yang Maha Esa.</div>
+            <div class="ayat-actions">
+              <span class="act-btn">▶ Audio</span>
+              <span class="act-btn">🔖 Tandai</span>
+            </div>
+          </div>
+          <div class="ayat-card">
+            <div class="ayat-badge">Ayat 2</div>
+            <div class="arabic-text">ٱللَّهُ ٱلصَّمَدُ</div>
+            <div class="latin-text">Allāhu ṣ-ṣamad</div>
+            <div class="trans-text">Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu.</div>
+            <div class="ayat-actions">
+              <span class="act-btn">▶ Audio</span>
+              <span class="act-btn">🔖 Tandai</span>
+            </div>
+          </div>
+          <div class="ayat-card">
+            <div class="ayat-badge">Ayat 3</div>
+            <div class="arabic-text">لَمْ يَلِدْ وَلَمْ يُولَدْ</div>
+            <div class="latin-text">Lam yalid wa lam yūlad</div>
+            <div class="trans-text">Dia tidak beranak dan tidak pula diperanakkan.</div>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Beranda</span></div>
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Kisah</span></div>
+          <div class="nav-item active"><div class="nav-icon active"></div><span class="nav-label">Al-Quran</span></div>
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Hadiah</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Dipilih</div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="option-card" onclick="selectOption(this, 'C')" id="opt-c">
+    <div class="option-label">
+      <div class="letter-badge">C</div>
+      <div>
+        <div class="option-title">Word-by-Word Lengkap</div>
+        <div class="option-desc">Per kata Arab + arti + Tafsir · Seperti referensi</div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"><div class="phone-notch-bar"></div></div>
+        <div class="phone-header">
+          <h3>Al-Ikhlas · Surah 112</h3>
+          <p>4 Ayat · Word by Word</p>
+        </div>
+        <div class="phone-body">
+          <div class="wbw-card">
+            <div class="wbw-badge">Ayat 1</div>
+            <div class="words-grid">
+              <div class="word-box"><span class="word-arab">أَحَدٌ</span><span class="word-mean">the One</span></div>
+              <div class="word-box hl"><span class="word-arab">ٱللَّهُ</span><span class="word-mean">(is) Allah</span></div>
+              <div class="word-box"><span class="word-arab">هُوَ</span><span class="word-mean">"He</span></div>
+              <div class="word-box"><span class="word-arab">قُلْ</span><span class="word-mean">Say</span></div>
+            </div>
+            <div class="wbw-trans">Katakanlah: Dialah Allah, Yang Maha Esa.</div>
+            <div class="wbw-actions">
+              <span class="wbw-btn">▶ Audio</span>
+              <span class="wbw-btn">📖 Tafsir</span>
+              <span class="wbw-btn">🔖 Tandai</span>
+            </div>
+          </div>
+          <div class="wbw-card">
+            <div class="wbw-badge">Ayat 2</div>
+            <div class="words-grid">
+              <div class="word-box"><span class="word-arab">ٱلصَّمَدُ</span><span class="word-mean">the Eternal</span></div>
+              <div class="word-box"><span class="word-arab">ٱللَّهُ</span><span class="word-mean">Allah</span></div>
+            </div>
+            <div class="wbw-trans">Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu.</div>
+            <div class="wbw-actions">
+              <span class="wbw-btn">▶ Audio</span>
+              <span class="wbw-btn">📖 Tafsir</span>
+            </div>
+          </div>
+        </div>
+        <div class="phone-nav">
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Beranda</span></div>
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Kisah</span></div>
+          <div class="nav-item active"><div class="nav-icon active"></div><span class="nav-label">Al-Quran</span></div>
+          <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Hadiah</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="selected-indicator">✓ Dipilih</div>
+  </div>
+
+</div>
+
+<p class="footer">Klik kartu untuk memilih · lalu beritahu di terminal</p>
+
+<script>
+  function selectOption(el, choice) {
+    document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    if (window.__companion) window.__companion.select(choice, el.querySelector('.option-title').textContent);
+  }
+</script>
+</body>
+</html>

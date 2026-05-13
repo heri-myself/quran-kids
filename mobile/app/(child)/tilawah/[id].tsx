@@ -118,7 +118,7 @@ function AudioSampleSheet({
 const sheetStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'transparent',
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -248,17 +248,23 @@ export default function TilawahLatihanScreen() {
       if (!currentVerse) return
       const result = await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
       if (result) {
-        setVerseResults((prev) => [
-          ...prev,
-          {
+        setVerseResults((prev) => {
+          const newEntry: VerseResult = {
             verseNumber: currentVerse.verse_number,
             score: result.score,
             wordAccuracy: result.wordAccuracy,
             tajweedScore: result.tajweedScore,
             feedback: result.feedback,
             evaluation: result,
-          },
-        ])
+          }
+          const existing = prev.findIndex((v) => v.verseNumber === currentVerse.verse_number)
+          if (existing >= 0) {
+            const updated = [...prev]
+            if (result.score > prev[existing].score) updated[existing] = newEntry
+            return updated
+          }
+          return [...prev, newEntry]
+        })
       }
     }
   }
@@ -305,8 +311,9 @@ export default function TilawahLatihanScreen() {
       )
       if (!res.ok) throw new Error('Gagal mengambil audio')
       const data = await res.json()
-      const audioUrl = data?.audio_files?.[0]?.url
-      if (!audioUrl) throw new Error('URL audio tidak tersedia')
+      const rawUrl = data?.audio_files?.[0]?.url
+      if (!rawUrl) throw new Error('URL audio tidak tersedia')
+      const audioUrl = rawUrl.startsWith('http') ? rawUrl : rawUrl.startsWith('//') ? `https:${rawUrl}` : `https://verses.quran.com${rawUrl}`
 
       await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, allowsRecordingIOS: false })
       const { sound } = await Audio.Sound.createAsync(
@@ -425,7 +432,7 @@ export default function TilawahLatihanScreen() {
 
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           {isDone && (
-            <TouchableOpacity style={styles.retryBtn} onPress={reset}>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => { reset(); startRecording() }}>
               <Text style={styles.retryBtnText}>Ulangi</Text>
             </TouchableOpacity>
           )}
@@ -456,8 +463,17 @@ export default function TilawahLatihanScreen() {
             </TouchableOpacity>
           )}
         </View>
+      {retryCount >= 3 && (
+        <TouchableOpacity
+          style={styles.hintBtn}
+          onPress={() => setSheetDismissed(false)}
+        >
+          <Text style={styles.hintBtnText}>🎧 Dengar Contoh Syeikh</Text>
+        </TouchableOpacity>
+      )}
+
       <AudioSampleSheet
-        visible={isDone && retryCount >= 3 && !sheetDismissed && !!currentVerse}
+        visible={retryCount >= 3 && !sheetDismissed && !!currentVerse}
         chapterId={String(id)}
         verseNumber={currentVerse?.verse_number ?? 1}
         onDismiss={dismissSheet}
@@ -546,6 +562,23 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   micBtnActive: { backgroundColor: '#EF4444' },
+  hintBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(124,111,241,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(124,111,241,0.4)',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+  },
+  hintBtnText: {
+    color: '#BDB8FF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   retryBtn: {
     paddingHorizontal: 20,
     paddingVertical: 12,

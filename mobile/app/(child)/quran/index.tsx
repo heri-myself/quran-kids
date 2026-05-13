@@ -173,7 +173,7 @@ function SurahRow({ chapter, onPress }: { chapter: Chapter; onPress: () => void 
       {SurahNameSvg ? (
         <SurahNameSvg width={72} height={28} />
       ) : (
-        <Text style={{ fontSize: 18, color: '#5B52D4' }}>
+        <Text style={{ fontSize: 20, color: '#5B52D4', fontFamily: 'ScheherazadeNew-Regular' }}>
           {chapter.name_arabic}
         </Text>
       )}

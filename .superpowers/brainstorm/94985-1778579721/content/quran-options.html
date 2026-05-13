@@ -1,0 +1,217 @@
+<h2>Pilih Tampilan Al-Quran</h2>
+<p class="subtitle">Klik salah satu untuk memilih. Scroll ke bawah untuk lihat semua opsi.</p>
+
+<style>
+  .phone-wrap { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin: 24px 0; }
+  .phone { width: 220px; background: #fff; border-radius: 32px; border: 2px solid #e0e0e0; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.12); font-family: sans-serif; }
+  .phone-status { background: #1a1a2e; height: 28px; display: flex; align-items: center; justify-content: center; }
+  .phone-status span { color: #fff; font-size: 10px; }
+  .phone-header { background: #2d7a4f; padding: 12px 14px 10px; }
+  .phone-header h3 { color: #fff; margin: 0; font-size: 14px; font-weight: 700; }
+  .phone-header p { color: rgba(255,255,255,0.7); margin: 2px 0 0; font-size: 10px; }
+  .phone-body { padding: 12px; background: #fafafa; min-height: 340px; }
+  .phone-nav { background: #fff; border-top: 1px solid #eee; padding: 8px 0 4px; display: flex; justify-content: space-around; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .nav-item span { font-size: 8px; color: #aaa; }
+  .nav-item.active span { color: #2d7a4f; font-weight: 700; }
+  .nav-dot { width: 18px; height: 18px; background: #eee; border-radius: 4px; }
+  .nav-dot.active { background: #2d7a4f; }
+
+  /* Surah list styles */
+  .surah-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; gap: 8px; }
+  .surah-num { width: 22px; height: 22px; border: 1px solid #2d7a4f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #2d7a4f; flex-shrink: 0; }
+  .surah-info { flex: 1; }
+  .surah-name { font-size: 11px; font-weight: 700; color: #2d7a4f; }
+  .surah-sub { font-size: 9px; color: #aaa; }
+  .surah-arabic { font-size: 14px; color: #333; }
+
+  /* Option B - ayat reader */
+  .ayat-block { margin-bottom: 10px; background: #fff; border-radius: 8px; padding: 8px; border: 1px solid #f0f0f0; }
+  .ayat-num { font-size: 9px; color: #2d7a4f; font-weight: 700; margin-bottom: 4px; }
+  .ayat-arabic { font-size: 15px; color: #1a1a2e; text-align: right; line-height: 1.8; font-family: serif; direction: rtl; }
+  .ayat-latin { font-size: 9px; color: #5a7a6a; font-style: italic; margin: 3px 0; line-height: 1.4; }
+  .ayat-trans { font-size: 9px; color: #666; line-height: 1.4; }
+  .ayat-actions { display: flex; gap: 8px; margin-top: 6px; }
+  .ayat-btn { font-size: 8px; color: #2d7a4f; border: 1px solid #2d7a4f; padding: 2px 6px; border-radius: 10px; }
+
+  /* Option C - word by word */
+  .words-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; margin: 4px 0; direction: rtl; }
+  .word-item { display: flex; flex-direction: column; align-items: center; padding: 3px 4px; border-radius: 6px; background: #f5f9f7; border: 1px solid #e0ede6; min-width: 36px; }
+  .word-arab { font-size: 13px; color: #1a1a2e; font-family: serif; }
+  .word-trans { font-size: 7px; color: #888; text-align: center; }
+  .word-item.highlight { background: #d4edda; border-color: #2d7a4f; }
+  .word-item.highlight .word-arab { color: #2d7a4f; }
+
+  /* tab bar option C */
+  .tab-row { display: flex; gap: 0; border-bottom: 1px solid #eee; margin-bottom: 8px; }
+  .tab-item { font-size: 9px; padding: 4px 8px; color: #aaa; border-bottom: 2px solid transparent; }
+  .tab-item.active { color: #2d7a4f; border-bottom-color: #2d7a4f; font-weight: 700; }
+
+  .badge-new { background: #2d7a4f; color: #fff; font-size: 7px; padding: 1px 4px; border-radius: 6px; margin-left: 4px; }
+  .last-read { background: #eaf4ee; border: 1px solid #c3e6cb; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .last-read-label { font-size: 8px; color: #888; }
+  .last-read-val { font-size: 9px; color: #2d7a4f; font-weight: 700; }
+  .quick-links { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+  .ql { font-size: 7px; border: 1px solid #2d7a4f; color: #2d7a4f; padding: 2px 5px; border-radius: 8px; }
+</style>
+
+<div class="phone-wrap">
+
+  <!-- Option A -->
+  <div class="option" data-choice="a" onclick="toggleSelect(this)" style="width:220px;padding:0;border-radius:32px;overflow:hidden;">
+    <div class="letter" style="position:absolute;margin:8px 0 0 8px;z-index:10;">A</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span></div>
+      <div class="phone-header">
+        <h3>Al-Quran <span style="font-size:10px;opacity:0.8">· Daftar Surah</span></h3>
+        <p>114 Surah</p>
+      </div>
+      <div class="phone-body" style="padding:8px 10px;">
+        <div class="last-read">
+          <div>
+            <div class="last-read-label">Terakhir Dibaca</div>
+            <div class="last-read-val">AL-FATIHAH 1:1</div>
+          </div>
+        </div>
+        <div class="quick-links">
+          <span class="ql">AL-MULK</span><span class="ql">AL-KAHF</span><span class="ql">YA SIN</span>
+        </div>
+        <div class="tab-row">
+          <span class="tab-item active">Surah</span>
+          <span class="tab-item">Juz</span>
+          <span class="tab-item">Halaman</span>
+        </div>
+        <div class="surah-item">
+          <div class="surah-num">1</div>
+          <div class="surah-info"><div class="surah-name">Al-Fatihah</div><div class="surah-sub">Pembuka · 7 Ayat</div></div>
+          <div class="surah-arabic">الفاتحة</div>
+        </div>
+        <div class="surah-item">
+          <div class="surah-num">2</div>
+          <div class="surah-info"><div class="surah-name">Al-Baqarah</div><div class="surah-sub">Sapi Betina · 286 Ayat</div></div>
+          <div class="surah-arabic">البقرة</div>
+        </div>
+        <div class="surah-item">
+          <div class="surah-num">3</div>
+          <div class="surah-info"><div class="surah-name">Ali Imran</div><div class="surah-sub">Keluarga Imran · 200 Ayat</div></div>
+          <div class="surah-arabic">آل عمران</div>
+        </div>
+        <div class="surah-item">
+          <div class="surah-num">4</div>
+          <div class="surah-info"><div class="surah-name">An-Nisa</div><div class="surah-sub">Wanita · 176 Ayat</div></div>
+          <div class="surah-arabic">النساء</div>
+        </div>
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><div class="nav-dot"></div><span>Beranda</span></div>
+        <div class="nav-item"><div class="nav-dot"></div><span>Kisah</span></div>
+        <div class="nav-item active"><div class="nav-dot active"></div><span>Al-Quran</span></div>
+        <div class="nav-item"><div class="nav-dot"></div><span>Hadiah</span></div>
+      </div>
+    </div>
+    <div class="content" style="padding:12px 16px;">
+      <h3>A — Daftar Surah + Ayat Sederhana</h3>
+      <p>Halaman daftar surah → buka surah → baca ayat Arab + terjemahan Indonesia. Tanpa breakdown per kata. Cepat dibangun, paling ringan.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="option" data-choice="b" onclick="toggleSelect(this)" style="width:220px;padding:0;border-radius:32px;overflow:hidden;">
+    <div class="letter" style="position:absolute;margin:8px 0 0 8px;z-index:10;">B</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span></div>
+      <div class="phone-header">
+        <h3>Al-Ikhlas <span style="font-size:10px;opacity:0.8">· 4 Ayat</span></h3>
+        <p>Al-Quran Surah 112</p>
+      </div>
+      <div class="phone-body" style="padding:8px 10px;">
+        <div class="ayat-block">
+          <div class="ayat-num">Ayat 1</div>
+          <div class="ayat-arabic">قُلْ هُوَ ٱللَّهُ أَحَدٌ</div>
+          <div class="ayat-latin">Qul huwa llāhu aḥad</div>
+          <div class="ayat-trans">Katakanlah: Dialah Allah, Yang Maha Esa.</div>
+          <div class="ayat-actions">
+            <span class="ayat-btn">▶ Audio</span>
+            <span class="ayat-btn">🔖 Tandai</span>
+          </div>
+        </div>
+        <div class="ayat-block">
+          <div class="ayat-num">Ayat 2</div>
+          <div class="ayat-arabic">ٱللَّهُ ٱلصَّمَدُ</div>
+          <div class="ayat-latin">Allāhu ṣ-ṣamad</div>
+          <div class="ayat-trans">Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu.</div>
+          <div class="ayat-actions">
+            <span class="ayat-btn">▶ Audio</span>
+            <span class="ayat-btn">🔖 Tandai</span>
+          </div>
+        </div>
+        <div class="ayat-block">
+          <div class="ayat-num">Ayat 3</div>
+          <div class="ayat-arabic">لَمْ يَلِدْ وَلَمْ يُولَدْ</div>
+          <div class="ayat-latin">Lam yalid wa lam yūlad</div>
+          <div class="ayat-trans">Dia tidak beranak dan tidak pula diperanakkan.</div>
+        </div>
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><div class="nav-dot"></div><span>Beranda</span></div>
+        <div class="nav-item"><div class="nav-dot"></div><span>Kisah</span></div>
+        <div class="nav-item active"><div class="nav-dot active"></div><span>Al-Quran</span></div>
+        <div class="nav-item"><div class="nav-dot"></div><span>Hadiah</span></div>
+      </div>
+    </div>
+    <div class="content" style="padding:12px 16px;">
+      <h3>B — Arab + Latin + Terjemahan per Ayat</h3>
+      <p>Setiap ayat tampil Arab + transliterasi latin + terjemahan + tombol audio. Cocok untuk anak-anak belajar membaca. Menengah kompleksitasnya.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="option" data-choice="c" onclick="toggleSelect(this)" style="width:220px;padding:0;border-radius:32px;overflow:hidden;">
+    <div class="letter" style="position:absolute;margin:8px 0 0 8px;z-index:10;">C</div>
+    <div class="phone">
+      <div class="phone-status"><span>9:41</span></div>
+      <div class="phone-header">
+        <h3>Al-Ikhlas <span style="font-size:10px;opacity:0.8">· 4 Ayat</span></h3>
+        <p>Al-Quran Surah 112 · Word by Word</p>
+      </div>
+      <div class="phone-body" style="padding:8px 10px;">
+        <div class="ayat-block">
+          <div class="ayat-num">Ayat 1</div>
+          <div class="words-row">
+            <div class="word-item"><span class="word-arab">أَحَدٌ</span><span class="word-trans">the One</span></div>
+            <div class="word-item highlight"><span class="word-arab">ٱللَّهُ</span><span class="word-trans">(is) Allah</span></div>
+            <div class="word-item"><span class="word-arab">هُوَ</span><span class="word-trans">"He</span></div>
+            <div class="word-item"><span class="word-arab">قُلْ</span><span class="word-trans">Say</span></div>
+          </div>
+          <div class="ayat-trans" style="margin-top:5px;">Katakanlah: Dialah Allah, Yang Maha Esa.</div>
+          <div class="ayat-actions">
+            <span class="ayat-btn">▶ Audio</span>
+            <span class="ayat-btn">📖 Tafsir</span>
+            <span class="ayat-btn">🔖 Tandai</span>
+          </div>
+        </div>
+        <div class="ayat-block">
+          <div class="ayat-num">Ayat 2</div>
+          <div class="words-row">
+            <div class="word-item"><span class="word-arab">ٱلصَّمَدُ</span><span class="word-trans">the Eternal</span></div>
+            <div class="word-item"><span class="word-arab">ٱللَّهُ</span><span class="word-trans">Allah</span></div>
+          </div>
+          <div class="ayat-trans" style="margin-top:5px;">Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu.</div>
+        </div>
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><div class="nav-dot"></div><span>Beranda</span></div>
+        <div class="nav-item"><div class="nav-dot"></div><span>Kisah</span></div>
+        <div class="nav-item active"><div class="nav-dot active"></div><span>Al-Quran</span></div>
+        <div class="nav-item"><div class="nav-dot"></div><span>Hadiah</span></div>
+      </div>
+    </div>
+    <div class="content" style="padding:12px 16px;">
+      <h3>C — Word-by-Word Lengkap (seperti referensi)</h3>
+      <p>Setiap kata Arab ditampilkan dengan artinya di bawah, plus terjemahan ayat, tafsir, dan audio. Paling lengkap, paling mirip referensi.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="text-align:center;margin-top:8px;">Klik kartu untuk memilih, lalu beritahu saya di terminal.</p>

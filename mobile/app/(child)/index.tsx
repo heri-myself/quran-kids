@@ -122,10 +122,7 @@ export default function HomeScreen() {
 
       <View style={{ paddingHorizontal: 20, marginTop: -20 }}>
         {/* Feature Menu */}
-        <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 17, marginBottom: 14 }}>
-          Pilih Fitur 🌙
-        </Text>
-        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}>
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24, marginTop: 20 }}>
           {FEATURES.map((feat) => (
             <TouchableOpacity
               key={feat.id}

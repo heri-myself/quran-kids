@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desain Screen Al-Quran</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 32px 24px; }
+
+  h1 { color: #fff; font-size: 22px; text-align: center; margin-bottom: 6px; }
+  .sub { color: #888; font-size: 14px; text-align: center; margin-bottom: 32px; }
+
+  .screens-row { display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; }
+
+  .screen-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .screen-label { color: #aaa; font-size: 13px; font-weight: 600; text-align: center; }
+  .screen-sublabel { color: #555; font-size: 11px; text-align: center; margin-top: -10px; }
+
+  .phone {
+    width: 300px;
+    background: #fff;
+    border-radius: 40px;
+    border: 3px solid #2a2a3a;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  }
+  .notch { background: #111; height: 34px; display: flex; align-items: center; justify-content: center; }
+  .notch-bar { width: 90px; height: 16px; background: #222; border-radius: 10px; }
+
+  /* Header variants */
+  .hdr-green { background: #2d7a4f; padding: 16px 18px 14px; }
+  .hdr-green h2 { color: #fff; font-size: 18px; font-weight: 800; margin: 0; }
+  .hdr-green p { color: rgba(255,255,255,0.65); font-size: 12px; margin: 3px 0 0; }
+  .hdr-back { display: flex; align-items: center; gap: 10px; }
+  .back-btn { width: 30px; height: 30px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; flex-shrink: 0; }
+  .hdr-title { color: #fff; font-size: 17px; font-weight: 800; }
+  .hdr-sub { color: rgba(255,255,255,0.65); font-size: 11px; }
+
+  .phone-body { background: #f5f5f5; padding: 14px 16px; min-height: 460px; overflow: hidden; }
+  .phone-nav { background: #fff; border-top: 1px solid #e5e5e5; padding: 10px 0 8px; display: flex; justify-content: space-around; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .nav-icon { width: 24px; height: 24px; background: #e8e8e8; border-radius: 6px; }
+  .nav-icon.active { background: #2d7a4f; }
+  .nav-label { font-size: 10px; color: #aaa; }
+  .nav-item.active .nav-label { color: #2d7a4f; font-weight: 700; }
+
+  /* Screen 1 - Surah List */
+  .search-bar { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 9px 12px; font-size: 12px; color: #aaa; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .search-icon { font-size: 14px; }
+  .tabs { display: flex; border-bottom: 1.5px solid #e8e8e8; margin-bottom: 12px; }
+  .tab { font-size: 12px; padding: 6px 12px; color: #aaa; border-bottom: 2px solid transparent; margin-bottom: -1.5px; }
+  .tab.active { color: #2d7a4f; border-bottom-color: #2d7a4f; font-weight: 700; }
+  .surah-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+  .surah-num-box {
+    width: 34px; height: 34px; border-radius: 10px;
+    border: 1.5px solid #2d7a4f;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #2d7a4f; flex-shrink: 0;
+  }
+  .surah-info { flex: 1; }
+  .surah-name-en { font-size: 13px; font-weight: 700; color: #2d7a4f; }
+  .surah-name-id { font-size: 11px; color: #999; margin-top: 1px; }
+  .surah-arabic { font-size: 20px; color: #1a1a2e; font-family: serif; }
+
+  /* Screen 2 - Reader */
+  .bismillah-wrap { text-align: center; padding: 14px 0 16px; border-bottom: 1px solid #eee; margin-bottom: 12px; }
+  .bismillah { font-size: 22px; color: #1a1a2e; font-family: serif; direction: rtl; }
+  .bismillah-label { font-size: 10px; color: #aaa; margin-top: 4px; }
+
+  .ayat-card { background: #fff; border-radius: 12px; border: 1px solid #e8e8e8; padding: 14px; margin-bottom: 10px; }
+  .ayat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .ayat-num-badge {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #2d7a4f; color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ayat-more { color: #ccc; font-size: 16px; letter-spacing: 2px; }
+
+  .words-grid { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; direction: rtl; margin-bottom: 12px; }
+  .word-box {
+    display: flex; flex-direction: column; align-items: center;
+    background: #f5f9f7; border: 1px solid #d4e8dc;
+    border-radius: 8px; padding: 7px 9px; min-width: 56px;
+  }
+  .word-box.hl { background: #c8f0d8; border-color: #2d7a4f; }
+  .word-arab { font-size: 18px; color: #1a1a2e; font-family: serif; line-height: 1.4; }
+  .word-box.hl .word-arab { color: #1a5e35; }
+  .word-mean { font-size: 9px; color: #888; text-align: center; margin-top: 3px; line-height: 1.2; }
+
+  .divider { height: 1px; background: #f0f0f0; margin: 10px 0; }
+  .trans-text { font-size: 12px; color: #444; line-height: 1.6; }
+
+  .juz-badge { background: #eaf4ee; color: #2d7a4f; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Desain Screen Al-Quran</h1>
+<p class="sub">Tampilan dua screen utama — Daftar Surah & Reader Word-by-Word</p>
+
+<div class="screens-row">
+
+  <!-- Screen 1: Surah List -->
+  <div class="screen-wrap">
+    <div class="screen-label">Screen 1 — Daftar Surah</div>
+    <div class="screen-sublabel">Tab Al-Quran di bottom nav</div>
+    <div class="phone">
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div class="hdr-green">
+        <h2>Al-Quran 📖</h2>
+        <p>114 Surah · quran.com</p>
+      </div>
+      <div class="phone-body">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <span>Cari nama surah...</span>
+        </div>
+        <div class="tabs">
+          <span class="tab active">Surah</span>
+          <span class="tab">Juz</span>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num-box">1</div>
+          <div class="surah-info">
+            <div class="surah-name-en">Al-Fatihah</div>
+            <div class="surah-name-id">Pembuka · 7 Ayat · Makkiyyah</div>
+          </div>
+          <div class="surah-arabic">الفاتحة</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num-box">2</div>
+          <div class="surah-info">
+            <div class="surah-name-en">Al-Baqarah</div>
+            <div class="surah-name-id">Sapi Betina · 286 Ayat · Madaniyyah</div>
+          </div>
+          <div class="surah-arabic">البقرة</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num-box">3</div>
+          <div class="surah-info">
+            <div class="surah-name-en">Ali Imran</div>
+            <div class="surah-name-id">Keluarga Imran · 200 Ayat · Madaniyyah</div>
+          </div>
+          <div class="surah-arabic">آل عمران</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num-box">4</div>
+          <div class="surah-info">
+            <div class="surah-name-en">An-Nisa</div>
+            <div class="surah-name-id">Wanita · 176 Ayat · Madaniyyah</div>
+          </div>
+          <div class="surah-arabic">النساء</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num-box">5</div>
+          <div class="surah-info">
+            <div class="surah-name-en">Al-Maidah</div>
+            <div class="surah-name-id">Hidangan · 120 Ayat · Madaniyyah</div>
+          </div>
+          <div class="surah-arabic">المائدة</div>
+        </div>
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Beranda</span></div>
+        <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Kisah</span></div>
+        <div class="nav-item active"><div class="nav-icon active"></div><span class="nav-label">Al-Quran</span></div>
+        <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Hadiah</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Reader -->
+  <div class="screen-wrap">
+    <div class="screen-label">Screen 2 — Reader Word-by-Word</div>
+    <div class="screen-sublabel">Setiap kata Arab + arti + terjemahan ayat</div>
+    <div class="phone">
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div class="hdr-green" style="padding:12px 18px;">
+        <div class="hdr-back">
+          <div class="back-btn">←</div>
+          <div>
+            <div class="hdr-title">Al-Ikhlas</div>
+            <div class="hdr-sub">Surah 112 · 4 Ayat · Makkiyyah</div>
+          </div>
+        </div>
+      </div>
+      <div class="phone-body" style="padding:12px 14px;">
+        <div class="bismillah-wrap">
+          <div class="bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>
+          <div class="bismillah-label">Bismillahirrahmanirrahim</div>
+        </div>
+
+        <div class="ayat-card">
+          <div class="ayat-header">
+            <div class="ayat-num-badge">1</div>
+            <span class="ayat-more">···</span>
+          </div>
+          <div class="words-grid">
+            <div class="word-box"><span class="word-arab">أَحَدٌ</span><span class="word-mean">the One</span></div>
+            <div class="word-box hl"><span class="word-arab">ٱللَّهُ</span><span class="word-mean">(is) Allah</span></div>
+            <div class="word-box"><span class="word-arab">هُوَ</span><span class="word-mean">He</span></div>
+            <div class="word-box"><span class="word-arab">قُلْ</span><span class="word-mean">Say</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="trans-text">Katakanlah: Dialah Allah, Yang Maha Esa.</div>
+        </div>
+
+        <div class="ayat-card">
+          <div class="ayat-header">
+            <div class="ayat-num-badge">2</div>
+            <span class="ayat-more">···</span>
+          </div>
+          <div class="words-grid">
+            <div class="word-box"><span class="word-arab">ٱلصَّمَدُ</span><span class="word-mean">the Eternal</span></div>
+            <div class="word-box"><span class="word-arab">ٱللَّهُ</span><span class="word-mean">Allah</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="trans-text">Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu.</div>
+        </div>
+
+        <div class="ayat-card">
+          <div class="ayat-header">
+            <div class="ayat-num-badge">3</div>
+            <span class="ayat-more">···</span>
+          </div>
+          <div class="words-grid">
+            <div class="word-box"><span class="word-arab">يُولَدْ</span><span class="word-mean">He is begotten</span></div>
+            <div class="word-box"><span class="word-arab">وَلَمْ</span><span class="word-mean">and not</span></div>
+            <div class="word-box"><span class="word-arab">يَلِدْ</span><span class="word-mean">He begets</span></div>
+            <div class="word-box"><span class="word-arab">لَمْ</span><span class="word-mean">Not</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="trans-text">Dia tidak beranak dan tidak pula diperanakkan.</div>
+        </div>
+
+      </div>
+      <div class="phone-nav">
+        <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Beranda</span></div>
+        <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Kisah</span></div>
+        <div class="nav-item active"><div class="nav-icon active"></div><span class="nav-label">Al-Quran</span></div>
+        <div class="nav-item"><div class="nav-icon"></div><span class="nav-label">Hadiah</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;color:#555;font-size:13px;margin-top:28px;">Beritahu di terminal jika ada yang perlu diubah, atau ketik "oke" untuk lanjut ke data flow & caching</p>
+
+</body>
+</html>

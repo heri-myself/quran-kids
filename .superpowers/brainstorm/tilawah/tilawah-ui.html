@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Tilawah — UI Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 32px 16px; }
+
+  h1 { color: #fff; font-size: 20px; text-align: center; margin-bottom: 6px; }
+  .sub { color: #666; font-size: 13px; text-align: center; margin-bottom: 32px; }
+
+  .row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .label { color: #aaa; font-size: 12px; font-weight: 700; text-align: center; }
+  .sublabel { color: #444; font-size: 10px; text-align: center; margin-top: -8px; }
+
+  /* Phone shell */
+  .phone {
+    width: 280px;
+    background: #fff;
+    border-radius: 36px;
+    border: 3px solid #2a2a3a;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+    position: relative;
+  }
+  .notch { background: #111; height: 30px; display: flex; align-items: center; justify-content: center; }
+  .notch-bar { width: 80px; height: 14px; background: #222; border-radius: 8px; }
+
+  /* Bottom nav */
+  .nav { background: #fff; border-top: 1px solid #eee; padding: 8px 0 6px; display: flex; justify-content: space-around; position: relative; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .nav-dot { width: 22px; height: 22px; background: #e8e8e8; border-radius: 6px; }
+  .nav-dot.active { background: #7C6FF1; }
+  .nav-txt { font-size: 9px; color: #B0B0C8; }
+  .nav-item.active .nav-txt { color: #7C6FF1; font-weight: 700; }
+
+  /* Floating AI button */
+  .floating-wrap {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 10;
+  }
+  .floating-btn {
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #7C6FF1, #9B5DE5);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(124,111,241,0.6);
+    font-size: 24px;
+    border: 3px solid #fff;
+    cursor: pointer;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(124,111,241,0.6); }
+    50% { box-shadow: 0 4px 32px rgba(124,111,241,0.9), 0 0 0 8px rgba(124,111,241,0.15); }
+  }
+  .floating-label { font-size: 8px; color: #7C6FF1; font-weight: 700; white-space: nowrap; }
+
+  /* Screen 1 — Home */
+  .home-body { background: #F4F4FF; padding: 14px; min-height: 460px; position: relative; padding-bottom: 80px; }
+  .home-hdr { background: #7C6FF1; padding: 16px 14px 14px; }
+  .home-hdr-greet { color: rgba(255,255,255,0.7); font-size: 11px; }
+  .home-hdr-name { color: #fff; font-size: 20px; font-weight: 800; }
+  .home-hdr-sub { color: rgba(255,255,255,0.6); font-size: 11px; margin-top: 2px; }
+  .streak-chip { background: rgba(255,255,255,0.2); border-radius: 12px; padding: 6px 10px; text-align: center; }
+
+  .feature-grid { display: flex; gap: 8px; margin-top: 12px; }
+  .feat-card { flex: 1; border-radius: 16px; padding: 12px 8px; text-align: center; }
+  .feat-card .feat-emoji { font-size: 24px; display: block; margin-bottom: 6px; }
+  .feat-card .feat-name { font-size: 10px; font-weight: 800; }
+  .feat-card .feat-sub { font-size: 8px; margin-top: 2px; opacity: 0.7; }
+
+  /* Screen 2 — Pilih Surah */
+  .tilawah-hdr { background: linear-gradient(135deg, #7C6FF1, #9B5DE5); padding: 14px 16px; }
+  .tilawah-hdr-back { display: flex; align-items: center; gap: 10px; }
+  .back-btn { width: 28px; height: 28px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+  .tilawah-hdr-title { color: #fff; font-size: 16px; font-weight: 800; }
+  .tilawah-hdr-sub { color: rgba(255,255,255,0.7); font-size: 10px; }
+  .tilawah-body { background: #F4F4FF; padding: 12px 14px; min-height: 440px; }
+
+  .search-box { background: #fff; border: 1px solid #E0DFFF; border-radius: 10px; padding: 8px 10px; font-size: 11px; color: #B0B0C8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+
+  .surah-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #EEEEFF; }
+  .surah-num { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #7C6FF1; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #7C6FF1; flex-shrink: 0; }
+  .surah-info { flex: 1; }
+  .surah-name { font-size: 12px; font-weight: 700; color: #7C6FF1; }
+  .surah-meta { font-size: 9px; color: #B0B0C8; margin-top: 1px; }
+  .surah-star { font-size: 10px; color: #FFD166; }
+
+  /* Screen 3 — Mode Latihan (Recording) */
+  .rec-body { background: #1A1A2E; min-height: 460px; padding: 16px 14px; display: flex; flex-direction: column; }
+  .rec-progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .rec-prog-label { color: rgba(255,255,255,0.5); font-size: 10px; }
+  .rec-prog-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin: 0 10px; }
+  .rec-prog-fill { height: 4px; background: #7C6FF1; border-radius: 2px; width: 25%; }
+  .rec-prog-num { color: rgba(255,255,255,0.5); font-size: 10px; }
+
+  .rec-ayat-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px; margin-bottom: 12px; flex: 1; }
+  .rec-ayat-num { width: 24px; height: 24px; background: #7C6FF1; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 700; margin-bottom: 10px; }
+  .rec-arabic { font-size: 20px; font-family: serif; direction: rtl; text-align: right; color: #fff; line-height: 1.8; margin-bottom: 12px; }
+  .rec-word { display: inline; padding: 0 2px; border-radius: 4px; }
+  .rec-word.wrong { background: rgba(239,68,68,0.3); color: #FCA5A5; }
+  .rec-word.ok { background: rgba(16,185,129,0.2); color: #6EE7B7; }
+  .rec-trans { font-size: 10px; color: rgba(255,255,255,0.4); font-style: italic; line-height: 1.5; }
+
+  .rec-mic-area { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0 0; }
+  .rec-status { color: rgba(255,255,255,0.4); font-size: 10px; }
+  .rec-status.recording { color: #EF4444; font-weight: 700; }
+  .rec-waveform { display: flex; align-items: center; gap: 3px; height: 28px; }
+  .wave-bar { width: 3px; background: #7C6FF1; border-radius: 2px; }
+  .wave-bar.active { background: #EF4444; }
+  .rec-btn { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #EF4444, #DC2626); display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 20px rgba(239,68,68,0.5); border: 3px solid rgba(255,255,255,0.2); }
+  .rec-btn.idle { background: linear-gradient(135deg, #7C6FF1, #9B5DE5); box-shadow: 0 4px 20px rgba(124,111,241,0.5); }
+  .rec-hint { color: rgba(255,255,255,0.3); font-size: 9px; text-align: center; }
+
+  /* Screen 4 — Hasil */
+  .result-body { background: #1A1A2E; min-height: 460px; padding: 16px 14px; text-align: center; }
+  .result-stars { display: flex; justify-content: center; gap: 6px; margin: 16px 0 8px; }
+  .star { font-size: 36px; filter: grayscale(0); }
+  .star.empty { filter: grayscale(1); opacity: 0.3; }
+  .result-score { color: #fff; font-size: 36px; font-weight: 900; }
+  .result-score-sub { color: rgba(255,255,255,0.5); font-size: 11px; margin-bottom: 14px; }
+  .result-points { background: rgba(255,215,0,0.15); border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .result-points-text { color: #FFD166; font-size: 13px; font-weight: 700; }
+
+  .result-breakdown { background: rgba(255,255,255,0.05); border-radius: 14px; padding: 12px; text-align: left; margin-bottom: 14px; }
+  .breakdown-title { color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.5px; }
+  .breakdown-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .breakdown-label { color: rgba(255,255,255,0.7); font-size: 10px; flex: 1; }
+  .breakdown-bar-bg { flex: 2; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; }
+  .breakdown-bar { height: 6px; border-radius: 3px; }
+  .breakdown-val { color: #fff; font-size: 10px; font-weight: 700; width: 28px; text-align: right; }
+
+  .result-mistakes { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 14px; padding: 12px; margin-bottom: 14px; text-align: left; }
+  .mistakes-title { color: #FCA5A5; font-size: 10px; font-weight: 700; margin-bottom: 8px; }
+  .mistake-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; }
+  .mistake-dot { width: 6px; height: 6px; background: #EF4444; border-radius: 50%; margin-top: 3px; flex-shrink: 0; }
+  .mistake-text { color: rgba(255,255,255,0.7); font-size: 10px; line-height: 1.5; }
+  .mistake-text span { color: #FCA5A5; font-weight: 600; }
+
+  .result-btns { display: flex; gap: 8px; }
+  .btn-retry { flex: 1; background: rgba(255,255,255,0.08); border-radius: 12px; padding: 10px; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; text-align: center; }
+  .btn-next { flex: 2; background: linear-gradient(135deg, #7C6FF1, #9B5DE5); border-radius: 12px; padding: 10px; color: #fff; font-size: 11px; font-weight: 700; text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>AI Tilawah — UI Mockup</h1>
+<p class="sub">4 screen flow: Home → Pilih Surah → Rekam → Hasil</p>
+
+<div class="row">
+
+  <!-- Screen 1: Home dengan floating button -->
+  <div class="col">
+    <div class="label">Screen 1 — Home</div>
+    <div class="sublabel">Floating AI mic button di tengah nav</div>
+    <div class="phone">
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div class="home-hdr" style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="home-hdr-greet">Assalamu'alaikum 👋</div>
+          <div class="home-hdr-name">Ahmad!</div>
+          <div class="home-hdr-sub">Mau belajar apa hari ini?</div>
+        </div>
+        <div class="streak-chip">
+          <div style="font-size:18px">🔥</div>
+          <div style="color:#fff;font-weight:700;font-size:14px">7</div>
+          <div style="color:rgba(255,255,255,0.6);font-size:9px">streak</div>
+        </div>
+      </div>
+
+      <div class="home-body">
+        <!-- Feature cards -->
+        <div class="feature-grid">
+          <div class="feat-card" style="background:#EEF0FF">
+            <span class="feat-emoji">📖</span>
+            <div class="feat-name" style="color:#7C6FF1">Al-Quran</div>
+            <div class="feat-sub" style="color:#7C6FF1">114 Surah</div>
+          </div>
+          <div class="feat-card" style="background:#FFF4E6">
+            <span class="feat-emoji">📜</span>
+            <div class="feat-name" style="color:#F59E0B">Hadits</div>
+            <div class="feat-sub" style="color:#F59E0B">50 Hadits</div>
+          </div>
+          <div class="feat-card" style="background:#F0FFF4">
+            <span class="feat-emoji">⭐</span>
+            <div class="feat-name" style="color:#10B981">Kisah</div>
+            <div class="feat-sub" style="color:#10B981">Teladan</div>
+          </div>
+        </div>
+
+        <!-- Kisah pilihan -->
+        <div style="margin-top:14px">
+          <div style="font-size:13px;font-weight:700;color:#1A1A2E;margin-bottom:10px">Kisah Pilihan 📚</div>
+          <div style="background:#fff;border-radius:12px;padding:10px;margin-bottom:8px;border:1px solid #E8E8FF;">
+            <div style="font-size:11px;font-weight:700;color:#1A1A2E">Kisah Nabi Ibrahim</div>
+            <div style="font-size:9px;color:#B0B0C8;margin-top:2px">Sahabat Nabi · 5 menit</div>
+          </div>
+          <div style="background:#fff;border-radius:12px;padding:10px;border:1px solid #E8E8FF;">
+            <div style="font-size:11px;font-weight:700;color:#1A1A2E">Kejujuran Abu Bakar</div>
+            <div style="font-size:9px;color:#B0B0C8;margin-top:2px">Akhlaq · 4 menit</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav dengan floating button -->
+      <div style="position:relative">
+        <div class="nav" style="padding-top:10px;">
+          <div class="nav-item active">
+            <div class="nav-dot active"></div>
+            <span class="nav-txt">Beranda</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span class="nav-txt">Kisah</span>
+          </div>
+          <!-- Space for floating button -->
+          <div style="width:56px"></div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span class="nav-txt">Al-Quran</span>
+          </div>
+          <div class="nav-item">
+            <div class="nav-dot"></div>
+            <span class="nav-txt">Hadiah</span>
+          </div>
+        </div>
+        <!-- Floating AI button -->
+        <div class="floating-wrap">
+          <div class="floating-btn">🎙️</div>
+          <div class="floating-label">AI Tilawah</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Pilih Surah -->
+  <div class="col">
+    <div class="label">Screen 2 — Pilih Surah</div>
+    <div class="sublabel">Tap surah untuk mulai latihan</div>
+    <div class="phone">
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div class="tilawah-hdr">
+        <div class="tilawah-hdr-back">
+          <div class="back-btn">←</div>
+          <div>
+            <div class="tilawah-hdr-title">🎙️ Latihan Tilawah</div>
+            <div class="tilawah-hdr-sub">Pilih surah yang ingin dilatih</div>
+          </div>
+        </div>
+      </div>
+      <div class="tilawah-body">
+        <div class="search-box">🔍 &nbsp;Cari surah...</div>
+
+        <!-- Rekomendasi -->
+        <div style="font-size:10px;color:#7C6FF1;font-weight:700;margin-bottom:8px;">⭐ SURAH PENDEK (DIREKOMENDASIKAN)</div>
+
+        <div class="surah-row">
+          <div class="surah-num">112</div>
+          <div class="surah-info">
+            <div class="surah-name">Al-Ikhlas</div>
+            <div class="surah-meta">Kemurnian · 4 Ayat</div>
+          </div>
+          <div class="surah-star">⭐⭐⭐</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num">113</div>
+          <div class="surah-info">
+            <div class="surah-name">Al-Falaq</div>
+            <div class="surah-meta">Waktu Subuh · 5 Ayat</div>
+          </div>
+          <div class="surah-star">⭐⭐</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num">114</div>
+          <div class="surah-info">
+            <div class="surah-name">An-Nas</div>
+            <div class="surah-meta">Manusia · 6 Ayat</div>
+          </div>
+          <div class="surah-star">⭐⭐</div>
+        </div>
+
+        <div style="font-size:10px;color:#B0B0C8;font-weight:700;margin:10px 0 8px;">SEMUA SURAH</div>
+
+        <div class="surah-row">
+          <div class="surah-num">1</div>
+          <div class="surah-info">
+            <div class="surah-name">Al-Fatihah</div>
+            <div class="surah-meta">Pembuka · 7 Ayat</div>
+          </div>
+          <div class="surah-star">⭐⭐⭐</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num">2</div>
+          <div class="surah-info">
+            <div class="surah-name">Al-Baqarah</div>
+            <div class="surah-meta">Sapi Betina · 286 Ayat</div>
+          </div>
+          <div style="font-size:9px;color:#B0B0C8">—</div>
+        </div>
+        <div class="surah-row">
+          <div class="surah-num">36</div>
+          <div class="surah-info">
+            <div class="surah-name">Yasin</div>
+            <div class="surah-meta">83 Ayat</div>
+          </div>
+          <div style="font-size:9px;color:#B0B0C8">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Mode Latihan — sedang rekam -->
+  <div class="col">
+    <div class="label">Screen 3 — Mode Latihan</div>
+    <div class="sublabel">Sedang merekam ayat 1 dari 4</div>
+    <div class="phone">
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div style="background:linear-gradient(135deg,#7C6FF1,#9B5DE5);padding:12px 16px;">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="back-btn">←</div>
+          <div>
+            <div style="color:#fff;font-size:15px;font-weight:800">Al-Ikhlas</div>
+            <div style="color:rgba(255,255,255,0.65);font-size:10px">Surah 112 · Latihan Tilawah</div>
+          </div>
+        </div>
+      </div>
+      <div class="rec-body">
+        <!-- Progress -->
+        <div class="rec-progress">
+          <span class="rec-prog-label">Ayat</span>
+          <div class="rec-prog-bar"><div class="rec-prog-fill"></div></div>
+          <span class="rec-prog-num">1 / 4</span>
+        </div>
+
+        <!-- Ayat card -->
+        <div class="rec-ayat-card">
+          <div class="rec-ayat-num">1</div>
+          <div class="rec-arabic">قُلْ هُوَ اللَّهُ أَحَدٌ</div>
+          <div style="height:1px;background:rgba(255,255,255,0.08);margin:10px 0"></div>
+          <div class="rec-trans">Katakanlah: Dialah Allah, Yang Maha Esa.</div>
+        </div>
+
+        <!-- Recording UI -->
+        <div class="rec-mic-area">
+          <div class="rec-status recording">🔴 Sedang merekam...</div>
+          <div class="rec-waveform">
+            <div class="wave-bar active" style="height:8px"></div>
+            <div class="wave-bar active" style="height:18px"></div>
+            <div class="wave-bar active" style="height:24px"></div>
+            <div class="wave-bar active" style="height:14px"></div>
+            <div class="wave-bar active" style="height:20px"></div>
+            <div class="wave-bar active" style="height:10px"></div>
+            <div class="wave-bar active" style="height:22px"></div>
+            <div class="wave-bar active" style="height:16px"></div>
+            <div class="wave-bar active" style="height:12px"></div>
+          </div>
+          <div class="rec-btn">⏹️</div>
+          <div class="rec-hint">Tap untuk berhenti merekam</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Hasil per ayat (setelah analisis) -->
+  <div class="col">
+    <div class="label">Screen 4 — Hasil Ayat</div>
+    <div class="sublabel">Feedback per ayat + lanjut berikutnya</div>
+    <div class="phone">
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div style="background:linear-gradient(135deg,#7C6FF1,#9B5DE5);padding:12px 16px;">
+        <div style="color:#fff;font-size:15px;font-weight:800">Al-Ikhlas — Ayat 1</div>
+        <div style="color:rgba(255,255,255,0.65);font-size:10px">Hasil Analisis AI</div>
+      </div>
+      <div class="rec-body" style="overflow-y:auto">
+        <!-- Stars -->
+        <div style="text-align:center;padding:10px 0 6px">
+          <div class="result-stars">
+            <span class="star">⭐</span>
+            <span class="star">⭐</span>
+            <span class="star empty">⭐</span>
+          </div>
+          <div class="result-score">75</div>
+          <div class="result-score-sub">dari 100 poin</div>
+          <div class="result-points">
+            <span style="font-size:16px">✨</span>
+            <span class="result-points-text">+15 poin ditambahkan!</span>
+          </div>
+        </div>
+
+        <!-- Skor breakdown -->
+        <div class="result-breakdown">
+          <div class="breakdown-title">RINCIAN PENILAIAN</div>
+          <div class="breakdown-row">
+            <div class="breakdown-label">Akurasi Kata</div>
+            <div class="breakdown-bar-bg"><div class="breakdown-bar" style="width:90%;background:#10B981"></div></div>
+            <div class="breakdown-val" style="color:#10B981">90%</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="breakdown-label">Panjang-Pendek</div>
+            <div class="breakdown-bar-bg"><div class="breakdown-bar" style="width:60%;background:#F59E0B"></div></div>
+            <div class="breakdown-val" style="color:#F59E0B">60%</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="breakdown-label">Kelengkapan</div>
+            <div class="breakdown-bar-bg"><div class="breakdown-bar" style="width:100%;background:#10B981"></div></div>
+            <div class="breakdown-val" style="color:#10B981">100%</div>
+          </div>
+        </div>
+
+        <!-- Kesalahan -->
+        <div class="result-mistakes">
+          <div class="mistakes-title">⚠️ Perlu Diperbaiki</div>
+          <div class="mistake-item">
+            <div class="mistake-dot"></div>
+            <div class="mistake-text">Kata <span>اللَّهُ</span> — mad thabi'i terlalu pendek, seharusnya 2 harakat</div>
+          </div>
+          <div class="mistake-item">
+            <div class="mistake-dot"></div>
+            <div class="mistake-text">Kata <span>أَحَدٌ</span> — perhatikan tanwin di akhir kata</div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="result-btns">
+          <div class="btn-retry">🔄 Ulangi</div>
+          <div class="btn-next">Ayat Berikutnya →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Screen 5: Hasil Akhir Sesi -->
+<div class="row">
+  <div class="col">
+    <div class="label">Screen 5 — Hasil Akhir Sesi</div>
+    <div class="sublabel">Setelah semua ayat selesai — total skor + poin</div>
+    <div class="phone">
+      <div class="notch"><div class="notch-bar"></div></div>
+      <div style="background:linear-gradient(135deg,#7C6FF1,#9B5DE5);padding:14px 16px;text-align:center">
+        <div style="font-size:28px;margin-bottom:4px">🎉</div>
+        <div style="color:#fff;font-size:17px;font-weight:800">Sesi Selesai!</div>
+        <div style="color:rgba(255,255,255,0.7);font-size:11px">Al-Ikhlas · 4 Ayat</div>
+      </div>
+      <div class="rec-body" style="text-align:center;overflow-y:auto">
+        <div class="result-stars" style="justify-content:center;margin-top:10px">
+          <span style="font-size:44px">⭐</span>
+          <span style="font-size:44px">⭐</span>
+          <span style="font-size:32px;opacity:0.3;filter:grayscale(1)">⭐</span>
+        </div>
+        <div style="color:#fff;font-size:40px;font-weight:900;margin-top:4px">82</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:11px;margin-bottom:12px">Nilai Rata-rata</div>
+
+        <div style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:12px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px">
+          <span style="font-size:22px">✨</span>
+          <div>
+            <div style="color:#FFD166;font-size:16px;font-weight:800">+45 Poin</div>
+            <div style="color:rgba(255,215,0,0.6);font-size:9px">ditambahkan ke profil Ahmad</div>
+          </div>
+        </div>
+
+        <!-- Badge baru -->
+        <div style="background:rgba(124,111,241,0.2);border:1px solid rgba(124,111,241,0.4);border-radius:14px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:10px;text-align:left">
+          <span style="font-size:28px">🏆</span>
+          <div>
+            <div style="color:#A5B4FC;font-size:10px;font-weight:700">BADGE BARU!</div>
+            <div style="color:#fff;font-size:12px;font-weight:800">Tilawah Pemula</div>
+            <div style="color:rgba(255,255,255,0.4);font-size:9px">Selesaikan 1 sesi tilawah</div>
+          </div>
+        </div>
+
+        <!-- Rekap per ayat -->
+        <div style="background:rgba(255,255,255,0.05);border-radius:14px;padding:12px;margin-bottom:14px;text-align:left">
+          <div style="color:rgba(255,255,255,0.4);font-size:10px;font-weight:700;margin-bottom:10px">REKAP PER AYAT</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <div style="width:20px;height:20px;background:#7C6FF1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;flex-shrink:0">1</div>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px"><div style="width:75%;height:6px;background:#F59E0B;border-radius:3px"></div></div>
+            <div style="color:#F59E0B;font-size:10px;font-weight:700">75</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <div style="width:20px;height:20px;background:#7C6FF1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;flex-shrink:0">2</div>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px"><div style="width:90%;height:6px;background:#10B981;border-radius:3px"></div></div>
+            <div style="color:#10B981;font-size:10px;font-weight:700">90</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+            <div style="width:20px;height:20px;background:#7C6FF1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;flex-shrink:0">3</div>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px"><div style="width:80%;height:6px;background:#10B981;border-radius:3px"></div></div>
+            <div style="color:#10B981;font-size:10px;font-weight:700">80</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:20px;height:20px;background:#7C6FF1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;flex-shrink:0">4</div>
+            <div style="flex:1;height:6px;background:rgba(255,255,255,0.1);border-radius:3px"><div style="width:82%;height:6px;background:#10B981;border-radius:3px"></div></div>
+            <div style="color:#10B981;font-size:10px;font-weight:700">82</div>
+          </div>
+        </div>
+
+        <div class="result-btns">
+          <div class="btn-retry">🔄 Ulangi Surah</div>
+          <div class="btn-next">🏠 Kembali</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="text-align:center;color:#444;font-size:12px;margin-top:8px">Ketik "oke" untuk lanjut ke design spec & backend architecture</p>
+
+</body>
+</html>
