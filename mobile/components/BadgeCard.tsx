@@ -1,8 +1,8 @@
 import { View, Text } from 'react-native'
-import { Badge } from '../services/progress'
+import { Badge, BadgeWithEarned } from '../services/progress'
 
 interface BadgeCardProps {
-  badge: Badge
+  badge: Badge | BadgeWithEarned
   earned: boolean
 }
 

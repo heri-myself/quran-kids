@@ -62,12 +62,23 @@ const progressRoutes: FastifyPluginAsync = async (app) => {
 
   app.get('/gamification/:profileId', async (request, reply) => {
     const { profileId } = request.params as { profileId: string }
-    const gamification = await prisma.gamification.findUnique({
-      where: { profileId },
-      include: { profile: { include: { userBadges: { include: { badge: true } } } } },
-    })
+    const gamification = await prisma.gamification.findUnique({ where: { profileId } })
     if (!gamification) return reply.code(404).send({ error: 'Not found' })
-    return reply.send(gamification)
+
+    const userBadges = await prisma.userBadge.findMany({
+      where: { profileId },
+      include: { badge: true },
+    })
+    const allBadges = await prisma.badge.findMany()
+
+    const earnedIds = new Set(userBadges.map((ub) => ub.badgeId))
+    const badges = allBadges.map((b) => ({
+      ...b,
+      earned: earnedIds.has(b.id),
+      earnedAt: userBadges.find((ub) => ub.badgeId === b.id)?.earnedAt ?? null,
+    }))
+
+    return reply.send({ ...gamification, badges })
   })
 }
 

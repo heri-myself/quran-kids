@@ -61,7 +61,7 @@ export default function AkunScreen() {
   const { activeProfile, clearActiveProfile } = useProfileStore()
   const { data, isLoading } = useGamification(activeProfile?.id)
 
-  const levelInfo = data ? getLevelInfo(data.currentLevel) : null
+  const levelInfo = data ? getLevelInfo(data.totalPoints) : null
   const progress = data ? getProgressToNextLevel(data.totalPoints) : 0
 
   return (
@@ -96,11 +96,11 @@ export default function AkunScreen() {
       <View style={styles.statsRow}>
         <StatCard label="Total Poin" value={data?.totalPoints ?? 0} emoji="⭐" />
         <StatCard label="Level" value={data?.currentLevel ?? 1} emoji="🏆" />
-        <StatCard label="Streak" value={`${data?.currentStreak ?? data?.streak ?? 0}🔥`} emoji="" />
+        <StatCard label="Streak" value={`${data?.currentStreak ?? 0}🔥`} emoji="" />
       </View>
 
       {/* Streak Calendar */}
-      <StreakCalendar streak={Math.min(data?.currentStreak ?? data?.streak ?? 0, 7)} />
+      <StreakCalendar streak={Math.min(data?.currentStreak ?? 0, 7)} />
 
       {/* Hadiah / Badge */}
       <View style={styles.section}>
@@ -110,7 +110,7 @@ export default function AkunScreen() {
         ) : data?.badges?.length ? (
           <View style={styles.badgeGrid}>
             {data.badges.map((badge: any) => (
-              <BadgeCard key={badge.id} badge={badge} />
+              <BadgeCard key={badge.id} badge={badge} earned={badge.earned ?? false} />
             ))}
           </View>
         ) : (

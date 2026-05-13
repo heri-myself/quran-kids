@@ -7,16 +7,18 @@ export const POINTS = {
 export interface LevelInfo {
   level: number
   name: string
+  title: string
+  icon: string
   minPoints: number
   maxPoints: number
 }
 
 export const LEVELS: LevelInfo[] = [
-  { level: 1, name: 'Santri Baru', minPoints: 0, maxPoints: 200 },
-  { level: 2, name: 'Pencari Ilmu', minPoints: 200, maxPoints: 500 },
-  { level: 3, name: 'Hafizh Muda', minPoints: 500, maxPoints: 1000 },
-  { level: 4, name: 'Sahabat Sejati', minPoints: 1000, maxPoints: 2000 },
-  { level: 5, name: 'Ulama Cilik', minPoints: 2000, maxPoints: Infinity },
+  { level: 1, name: 'Santri Baru',    title: 'Santri Baru',    icon: '🌱', minPoints: 0,    maxPoints: 200 },
+  { level: 2, name: 'Pencari Ilmu',   title: 'Pencari Ilmu',   icon: '📖', minPoints: 200,  maxPoints: 500 },
+  { level: 3, name: 'Hafizh Muda',    title: 'Hafizh Muda',    icon: '🌟', minPoints: 500,  maxPoints: 1000 },
+  { level: 4, name: 'Sahabat Sejati', title: 'Sahabat Sejati', icon: '🏅', minPoints: 1000, maxPoints: 2000 },
+  { level: 5, name: 'Ulama Cilik',    title: 'Ulama Cilik',    icon: '👑', minPoints: 2000, maxPoints: Infinity },
 ]
 
 export function getLevelInfo(points: number): LevelInfo {

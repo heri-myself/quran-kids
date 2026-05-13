@@ -71,13 +71,10 @@ export default function RewardsScreen() {
     )
   }
 
-  const gamification = data?.gamification
-  const earnedBadges = data?.badges ?? []
-  const allBadges = data?.allBadges ?? []
-  const points = gamification?.totalPoints ?? 0
+  const points = data?.totalPoints ?? 0
   const levelInfo = getLevelInfo(points)
   const progress = getProgressToNextLevel(points)
-  const earnedIds = new Set(earnedBadges.map((b) => b.id))
+  const allBadges = data?.badges ?? []
 
   return (
     <ScrollView
@@ -142,13 +139,13 @@ export default function RewardsScreen() {
         </View>
 
         {/* Streak Calendar */}
-        <StreakCalendar streak={Math.min(gamification?.currentStreak ?? 0, 7)} />
+        <StreakCalendar streak={Math.min(data?.currentStreak ?? 0, 7)} />
 
         {/* Badges */}
         <Text style={{ fontWeight: '700', color: '#1A1A2E', fontSize: 17 }}>Koleksi Badge 🎖️</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {allBadges.map((badge) => (
-            <BadgeCard key={badge.id} badge={badge} earned={earnedIds.has(badge.id)} />
+            <BadgeCard key={badge.id} badge={badge} earned={(badge as any).earned ?? false} />
           ))}
           {allBadges.length === 0 && (
             <Text style={{ color: '#94A3B8', fontSize: 14 }}>Belum ada badge tersedia.</Text>

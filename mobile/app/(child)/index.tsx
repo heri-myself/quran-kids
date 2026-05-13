@@ -50,10 +50,9 @@ export default function HomeScreen() {
   const { data: gamificationData } = useGamification(activeProfile?.id)
   const { data: storiesData, isLoading, isError } = useStories({ limit: 4 })
 
-  const gamification = gamificationData?.gamification
   const stories = storiesData?.data ?? []
-  const points = gamification?.totalPoints ?? 0
-  const streak = gamification?.currentStreak ?? 0
+  const points = gamificationData?.totalPoints ?? 0
+  const streak = gamificationData?.currentStreak ?? 0
 
   return (
     <ScrollView

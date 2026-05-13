@@ -8,7 +8,7 @@ import { useSubscription } from '../../hooks/use-subscription'
 
 function ChildSummary({ profileId, name }: { profileId: string; name: string }) {
   const { data } = useGamification(profileId)
-  const g = data?.gamification
+  const g = data
 
   return (
     <View

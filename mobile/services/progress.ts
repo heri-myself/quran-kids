@@ -19,10 +19,13 @@ export interface Badge {
   earnedAt?: string
 }
 
-export interface GamificationResponse {
-  gamification: Gamification
-  badges: Badge[]
-  allBadges: Badge[]
+export interface BadgeWithEarned extends Badge {
+  earned: boolean
+  earnedAt: string | null
+}
+
+export type GamificationResponse = Gamification & {
+  badges: BadgeWithEarned[]
 }
 
 export interface ProgressResponse {
