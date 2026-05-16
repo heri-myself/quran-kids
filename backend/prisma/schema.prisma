@@ -191,6 +191,8 @@ model HafalanSession {
   pointsEarned Int
   createdAt    DateTime             @default(now())
   verses       HafalanVerseResult[]
+
+  @@index([profileId])
 }
 
 model HafalanVerseResult {
