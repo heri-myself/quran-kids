@@ -61,19 +61,33 @@ export default function HafalanIndexScreen() {
     router.push(`/(child)/hafalan/${item.id}` as any)
   }
 
+  const handleSelectContinuous = (item: SurahItem) => {
+    setLastHafalan({ surahId: item.id, surahName: item.name_simple, timestamp: Date.now() })
+    router.push(`/(child)/hafalan/continuous/${item.id}` as any)
+  }
+
   const renderSurah = ({ item }: { item: SurahItem }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handleSelect(item)} activeOpacity={0.75}>
-      <View style={styles.cardBadge}>
-        <Text style={styles.cardBadgeText}>{item.id}</Text>
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.cardName}>{item.name_simple}</Text>
-        <Text style={styles.cardSub}>
-          {item.translated_name?.name} · {item.verses_count} ayat
-        </Text>
-      </View>
-      <Text style={styles.cardArabic}>{item.name_arabic}</Text>
-    </TouchableOpacity>
+    <View style={styles.card}>
+      <TouchableOpacity style={styles.cardMain} onPress={() => handleSelect(item)} activeOpacity={0.75}>
+        <View style={styles.cardBadge}>
+          <Text style={styles.cardBadgeText}>{item.id}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.cardName}>{item.name_simple}</Text>
+          <Text style={styles.cardSub}>
+            {item.translated_name?.name} · {item.verses_count} ayat
+          </Text>
+        </View>
+        <Text style={styles.cardArabic}>{item.name_arabic}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.continuousBtn}
+        onPress={() => handleSelectContinuous(item)}
+        activeOpacity={0.75}
+      >
+        <Text style={styles.continuousBtnText}>📖 Mode Membaca</Text>
+      </TouchableOpacity>
+    </View>
   )
 
   return (
@@ -138,16 +152,32 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
-    padding: 14,
+    marginBottom: 10,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  cardMain: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 8,
-    shadowColor: '#7C6FF1',
-    shadowOpacity: 0.07,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    padding: 14,
+  },
+  continuousBtn: {
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(99,102,241,0.12)',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(99,102,241,0.04)',
+    alignItems: 'center',
+  },
+  continuousBtnText: {
+    color: '#6366F1',
+    fontSize: 12,
+    fontWeight: '600',
   },
   cardBadge: {
     width: 36,
