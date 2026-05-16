@@ -14,7 +14,7 @@ def get_model():
     if _model is None:
         import stable_whisper
         print("Loading naazimsnh02/whisper-large-v3-turbo-ar-quran model (first run will download)...")
-        _model = stable_whisper.load_model("naazimsnh02/whisper-large-v3-turbo-ar-quran")
+        _model = stable_whisper.load_hf_whisper("naazimsnh02/whisper-large-v3-turbo-ar-quran")
         print("Model loaded.")
     return _model
 
