@@ -13,8 +13,8 @@ def get_model():
     global _model
     if _model is None:
         import stable_whisper
-        print("Loading whisper large-v3-turbo model (~809MB, first run will download)...")
-        _model = stable_whisper.load_model("large-v3-turbo")
+        print("Loading naazimsnh02/whisper-large-v3-turbo-ar-quran model (first run will download)...")
+        _model = stable_whisper.load_model("naazimsnh02/whisper-large-v3-turbo-ar-quran")
         print("Model loaded.")
     return _model
 
