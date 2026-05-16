@@ -9,14 +9,14 @@ const sessionSchema = z.object({
   profileId: z.string().min(1),
   chapterId: z.number().int().min(1).max(114),
   verses: z.array(z.object({
-    verseNumber: z.number().int().min(1),
+    verseNumber: z.number().int().min(1).max(286),
     score: z.number().int().min(0).max(100),
     wordResults: z.array(z.object({
       word: z.string(),
       correct: z.boolean(),
       expected: z.string(),
     })),
-  })).min(1),
+  })).min(1).max(286),
 })
 
 function calcPointsFromAvg(avgScore: number): number {
@@ -34,50 +34,55 @@ const hafalanRoutes: FastifyPluginAsync = async (app) => {
     const avgScore = Math.round(verses.reduce((sum, v) => sum + v.score, 0) / verses.length)
     const pointsEarned = calcPointsFromAvg(avgScore)
 
-    const session = await prisma.hafalanSession.create({
-      data: {
-        profileId,
-        chapterId,
-        totalVerses: verses.length,
-        avgScore,
-        pointsEarned,
-        verses: {
-          create: verses.map((v) => ({
-            verseNumber: v.verseNumber,
-            score: v.score,
-            wordResults: v.wordResults,
-          })),
-        },
-      },
-    })
-
-    const gamification = await prisma.gamification.findUnique({ where: { profileId } })
-    if (gamification) {
-      let totalToAdd = pointsEarned
-      let newStreak = gamification.currentStreak
-
-      if (isNewDay(gamification.lastReadAt)) {
-        if (isConsecutiveDay(gamification.lastReadAt)) {
-          newStreak += 1
-          totalToAdd += GAMIFICATION_POINTS.DAILY_STREAK
-        } else {
-          newStreak = 1
-        }
-      }
-
-      const newTotal = gamification.totalPoints + totalToAdd
-      await prisma.gamification.update({
-        where: { profileId },
+    try {
+      const session = await prisma.hafalanSession.create({
         data: {
-          totalPoints: newTotal,
-          currentLevel: getLevelFromPoints(newTotal),
-          currentStreak: newStreak,
-          lastReadAt: new Date(),
+          profileId,
+          chapterId,
+          totalVerses: verses.length,
+          avgScore,
+          pointsEarned,
+          verses: {
+            create: verses.map((v) => ({
+              verseNumber: v.verseNumber,
+              score: v.score,
+              wordResults: v.wordResults,
+            })),
+          },
         },
       })
-    }
 
-    return reply.send({ id: session.id, avgScore, pointsEarned })
+      const gamification = await prisma.gamification.findUnique({ where: { profileId } })
+      if (gamification) {
+        let totalToAdd = pointsEarned
+        let newStreak = gamification.currentStreak
+
+        if (isNewDay(gamification.lastReadAt)) {
+          if (isConsecutiveDay(gamification.lastReadAt)) {
+            newStreak += 1
+            totalToAdd += GAMIFICATION_POINTS.DAILY_STREAK
+          } else {
+            newStreak = 1
+          }
+        }
+
+        const newTotal = gamification.totalPoints + totalToAdd
+        await prisma.gamification.update({
+          where: { profileId },
+          data: {
+            totalPoints: newTotal,
+            currentLevel: getLevelFromPoints(newTotal),
+            currentStreak: newStreak,
+            lastReadAt: new Date(),
+          },
+        })
+      }
+
+      return reply.send({ sessionId: session.id, avgScore, pointsEarned })
+    } catch (err: any) {
+      app.log.error(err)
+      return reply.code(500).send({ error: 'Gagal menyimpan sesi hafalan' })
+    }
   })
 }
 
