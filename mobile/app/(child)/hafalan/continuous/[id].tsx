@@ -97,11 +97,13 @@ export default function ContinuousHafalanScreen() {
   const chapterId = parseInt(id, 10)
   const router = useRouter()
   const scrollRef = useRef<ScrollView>(null)
+  const verseYPositions = useRef<Record<number, number>>({})
 
   const { data: verses = [], isLoading } = useQuery<Verse[]>({
     queryKey: ['verses', chapterId],
     queryFn: () => getSurahVerses(chapterId) as unknown as Verse[],
     staleTime: Infinity,
+    enabled: !isNaN(chapterId),
   })
 
   const verseNumbers = verses.map((v) => v.verse_number)
@@ -127,14 +129,18 @@ export default function ContinuousHafalanScreen() {
   useFocusEffect(
     useCallback(() => {
       reset()
-    }, [id])
+    }, [id, reset])
   )
 
   useEffect(() => {
     if (!isRunning || currentIndex === 0) return
-    setTimeout(() => {
-      scrollRef.current?.scrollTo({ y: currentIndex * 70, animated: true })
+    const t = setTimeout(() => {
+      const y = verseYPositions.current[currentIndex]
+      if (y !== undefined) {
+        scrollRef.current?.scrollTo({ y, animated: true })
+      }
     }, 150)
+    return () => clearTimeout(t)
   }, [currentIndex, isRunning])
 
   const allDone =
@@ -206,23 +212,30 @@ export default function ContinuousHafalanScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.mushafPage}
       >
-        <Text style={styles.arabicFlow}>
-          {verses.map((verse, idx) => {
-            const attempt: VerseAttempt = verseAttempts[idx] ?? {
-              verseNumber: verse.verse_number,
-              state: 'pending',
-              attempts: 0,
-              withHint: false,
-              skipped: false,
-              lastScore: 0,
-              wordResults: [],
-              feedback: [],
-            }
-            return (
-              <VerseSegment key={verse.verse_number} verse={verse} attempt={attempt} />
-            )
-          })}
-        </Text>
+        {verses.map((verse, idx) => {
+          const attempt: VerseAttempt = verseAttempts[idx] ?? {
+            verseNumber: verse.verse_number,
+            state: 'pending',
+            attempts: 0,
+            withHint: false,
+            skipped: false,
+            lastScore: 0,
+            wordResults: [],
+            feedback: [],
+          }
+          return (
+            <View
+              key={verse.verse_number}
+              onLayout={(e) => {
+                verseYPositions.current[idx] = e.nativeEvent.layout.y
+              }}
+            >
+              <Text style={styles.arabicFlow}>
+                <VerseSegment verse={verse} attempt={attempt} />
+              </Text>
+            </View>
+          )
+        })}
       </ScrollView>
 
       {/* Bottom bar */}
