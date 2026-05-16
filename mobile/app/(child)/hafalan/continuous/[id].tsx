@@ -1,5 +1,5 @@
 // mobile/app/(child)/hafalan/continuous/[id].tsx
-import { useCallback, useRef, useEffect } from 'react'
+import { useCallback, useRef, useEffect, useMemo } from 'react'
 import {
   View,
   ScrollView,
@@ -106,7 +106,7 @@ export default function ContinuousHafalanScreen() {
     enabled: !isNaN(chapterId),
   })
 
-  const verseNumbers = verses.map((v) => v.verse_number)
+  const verseNumbers = useMemo(() => verses.map((v) => v.verse_number), [verses])
 
   const getExpectedText = useCallback(
     (verseNumber: number) => {

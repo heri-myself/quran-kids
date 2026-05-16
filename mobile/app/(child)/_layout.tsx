@@ -136,15 +136,7 @@ export default function ChildLayout() {
           },
         }}
       />
-      <Tabs.Screen
-        name="journey"
-        options={{
-          tabBarLabel: 'Journey',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon iconFill="story-fill" iconLine="story-line" focused={focused} />
-          ),
-        }}
-      />
+      <Tabs.Screen name="journey" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen
         name="hafalan/index"
         options={{
@@ -173,6 +165,7 @@ export default function ChildLayout() {
       <Tabs.Screen name="kisah-nabi/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen name="hafalan/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
       <Tabs.Screen name="hafalan/result" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="hafalan/continuous/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
     </Tabs>
   )
 }
