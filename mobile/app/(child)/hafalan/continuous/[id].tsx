@@ -22,13 +22,10 @@ function toArabicNumeral(n: number): string {
   return n.toString().replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d)])
 }
 
-function wordColor(status: string | undefined, verseState: VerseState): string {
-  if (verseState === 'pending' || verseState === 'listening' || verseState === 'analyzing') {
-    return 'rgba(255,255,255,0.12)'
-  }
-  if (!status || status === 'correct') return '#10B981'
-  if (status === 'mad_short') return '#F59E0B'
-  return '#EF4444'
+function wordColor(verseState: VerseState): string {
+  if (verseState === 'correct') return '#10B981'
+  if (verseState === 'skipped') return 'rgba(255,255,255,0.35)'
+  return '#E5E7EB' // white — visible while reading (pending/listening)
 }
 
 const VERSE_NUM_COLORS: Record<VerseState, { bg: string; border: string; text: string }> = {
@@ -40,27 +37,19 @@ const VERSE_NUM_COLORS: Record<VerseState, { bg: string; border: string; text: s
   hint_shown: { bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)',   text: '#FCD34D' },
   skipped:    { bg: 'rgba(100,116,139,0.12)', border: 'rgba(100,116,139,0.3)',  text: '#64748B' },
 }
+// Note: wrong/hint_shown/analyzing states retained for type compatibility but not used in reading mode
 
 function VerseSegment({ verse, attempt }: { verse: Verse; attempt: VerseAttempt }) {
   const numStyle = VERSE_NUM_COLORS[attempt.state]
-  const isDone = attempt.state === 'correct' || attempt.state === 'skipped'
-  const isHint = attempt.state === 'hint_shown'
+  const color = wordColor(attempt.state)
 
   return (
     <>
-      {verse.words.map((w, i) => {
-        const result = attempt.wordResults[i]
-        const color = isDone
-          ? wordColor(result?.status, attempt.state)
-          : isHint
-          ? '#FCD34D'
-          : 'rgba(255,255,255,0.12)'
-        return (
-          <Text key={i} style={[styles.arabicWord, { color }]}>
-            {w.text_uthmani}{' '}
-          </Text>
-        )
-      })}
+      {verse.words.map((w, i) => (
+        <Text key={i} style={[styles.arabicWord, { color }]}>
+          {w.text_uthmani}{' '}
+        </Text>
+      ))}
       <Text style={[styles.verseNum, {
         backgroundColor: numStyle.bg,
         borderColor: numStyle.border,
@@ -75,11 +64,8 @@ function VerseSegment({ verse, attempt }: { verse: Verse; attempt: VerseAttempt 
 
 function ActiveStatusChip({ attempt }: { attempt: VerseAttempt }) {
   const configs: Partial<Record<VerseState, { label: string; color: string; borderColor: string }>> = {
-    listening:  { label: '🎙 Mendengarkan', color: '#A5B4FC', borderColor: 'rgba(99,102,241,0.3)' },
-    analyzing:  { label: '⏳ Menilai...',   color: '#9CA3AF', borderColor: 'rgba(255,255,255,0.15)' },
-    wrong:      { label: `❌ Coba lagi (${attempt.attempts}×)`, color: '#F87171', borderColor: 'rgba(239,68,68,0.3)' },
-    hint_shown: { label: '💡 Bantuan aktif', color: '#FCD34D', borderColor: 'rgba(245,158,11,0.3)' },
-    skipped:    { label: '⏭ Dilewati',     color: '#64748B', borderColor: 'rgba(100,116,139,0.3)' },
+    listening: { label: '🎙 Sedang merekam...', color: '#A5B4FC', borderColor: 'rgba(99,102,241,0.3)' },
+    skipped:   { label: '⏭ Dilewati',          color: '#64748B', borderColor: 'rgba(100,116,139,0.3)' },
   }
   const cfg = configs[attempt.state]
   if (!cfg) return null
@@ -237,11 +223,7 @@ export default function ContinuousHafalanScreen() {
         ) : (
           <>
             <Text style={styles.bottomStatus}>
-              {!isRunning
-                ? 'Tekan mikrofon untuk mulai membaca'
-                : activeAttempt?.state === 'analyzing'
-                ? '⏳ Menilai bacaan...'
-                : '🔴 Sedang merekam — baca terus'}
+              {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : '🔴 Sedang merekam — baca terus'}
             </Text>
             <View style={styles.bottomRow}>
               {isRunning && (
