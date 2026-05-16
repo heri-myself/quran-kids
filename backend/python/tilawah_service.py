@@ -6,17 +6,42 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-_model = None
+_pipe = None
 
 
-def get_model():
-    global _model
-    if _model is None:
-        import stable_whisper
-        print("Loading naazimsnh02/whisper-large-v3-turbo-ar-quran model (first run will download)...")
-        _model = stable_whisper.load_hf_whisper("naazimsnh02/whisper-large-v3-turbo-ar-quran")
+def get_pipe():
+    global _pipe
+    if _pipe is None:
+        import torch
+        from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline as hf_pipeline
+        print("Loading naazimsnh02/whisper-large-v3-turbo-ar-quran ...")
+        device = "mps" if torch.backends.mps.is_available() else "cpu"
+        dtype = torch.float32  # float16 on MPS produces garbage output
+        model = AutoModelForSpeechSeq2Seq.from_pretrained(
+            "naazimsnh02/whisper-large-v3-turbo-ar-quran",
+            torch_dtype=dtype,
+            low_cpu_mem_usage=True,
+            use_safetensors=True,
+        ).to(device)
+        processor = AutoProcessor.from_pretrained("naazimsnh02/whisper-large-v3-turbo-ar-quran")
+        # Force Arabic transcription
+        processor.tokenizer.set_prefix_tokens(language="arabic", task="transcribe")
+        _pipe = hf_pipeline(
+            "automatic-speech-recognition",
+            model=model,
+            tokenizer=processor.tokenizer,
+            feature_extractor=processor.feature_extractor,
+            torch_dtype=dtype,
+            device=device,
+        )
         print("Model loaded.")
-    return _model
+    return _pipe
+
+
+def transcribe_audio(temp_path: str) -> str:
+    pipe = get_pipe()
+    result = pipe(temp_path)
+    return result["text"].strip()
 
 
 def load_audio_to_tempfile(audio_bytes: bytes) -> str:
@@ -64,21 +89,8 @@ def evaluate(req: EvaluateRequest):
     temp_path = None
     try:
         temp_path = load_audio_to_tempfile(audio_bytes)
-        model = get_model()
-
-        # stable-whisper: transcribe with word timestamps
-        result = model.transcribe(temp_path, language="ar", word_timestamps=True)
-        transcription = result.text.strip()
-
-        # Extract word timestamps from all segments
-        word_timestamps = []
-        for segment in result.segments:
-            for w in (segment.words or []):
-                word_timestamps.append({
-                    "word": w.word.strip(),
-                    "start": w.start,
-                    "end": w.end,
-                })
+        transcription = transcribe_audio(temp_path)
+        word_timestamps = []  # HF pipeline doesn't provide word timestamps
 
     except HTTPException:
         raise
@@ -149,9 +161,8 @@ def evaluate_simple(req: EvaluateRequest):
     temp_path = None
     try:
         temp_path = load_audio_to_tempfile(audio_bytes)
-        model = get_model()
-        result = model.transcribe(temp_path, language="ar", word_timestamps=True)
-        transcription = result.text.strip()
+        transcription = transcribe_audio(temp_path)
+
     except HTTPException:
         raise
     except Exception as e:
