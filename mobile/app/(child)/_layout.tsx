@@ -2,6 +2,11 @@ import { Tabs, useRouter } from 'expo-router'
 import { View, Platform, TouchableOpacity, StyleSheet } from 'react-native'
 import { RIcon } from '../../components/RIcon'
 
+const PRIMARY = '#6C5CE7'
+const ORANGE = '#FF6B35'
+const INACTIVE = '#B2BEC3'
+const NAV_BG = '#FFFFFF'
+
 function TabIcon({
   iconFill,
   iconLine,
@@ -16,7 +21,7 @@ function TabIcon({
       <RIcon
         name={(focused ? iconFill : iconLine) as any}
         size={22}
-        color={focused ? '#7C6FF1' : '#B0B0C8'}
+        color={focused ? ORANGE : INACTIVE}
       />
     </View>
   )
@@ -24,7 +29,6 @@ function TabIcon({
 
 function FloatingMicButton() {
   const router = useRouter()
-
   return (
     <TouchableOpacity
       onPress={() => router.push('/(child)/tilawah/')}
@@ -32,7 +36,7 @@ function FloatingMicButton() {
       style={styles.floatingWrapper}
     >
       <View style={styles.floatingButton}>
-        <RIcon name="mic-fill" size={24} color="#FFFFFF" />
+        <RIcon name="mic-fill" size={26} color="#FFFFFF" />
       </View>
     </TouchableOpacity>
   )
@@ -48,27 +52,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabIconContainerFocused: {
-    backgroundColor: 'rgba(124,111,241,0.12)',
+    backgroundColor: 'transparent',
   },
   floatingWrapper: {
-    width: 56,
-    height: 56,
+    width: 68,
+    height: 68,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -36,
+    marginTop: -44,
   },
   floatingButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#7C6FF1',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: ORANGE,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#5B4FD4',
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 10,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.15)',
+    shadowColor: ORANGE,
+    shadowOpacity: 0.65,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 14,
   },
 })
 
@@ -78,20 +84,24 @@ export default function ChildLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: NAV_BG,
           borderTopWidth: 0,
-          elevation: 12,
-          shadowColor: '#7C6FF1',
-          shadowOpacity: 0.1,
+          borderTopColor: 'transparent',
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          shadowColor: 'rgba(45,52,54,1)',
+          shadowOpacity: 0.18,
           shadowRadius: 16,
-          shadowOffset: { width: 0, height: -4 },
-          height: Platform.OS === 'ios' ? 84 : 64,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-          paddingTop: 8,
+          shadowOffset: { width: 0, height: -8 },
+          elevation: 20,
+          height: Platform.OS === 'ios' ? 88 : 68,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          paddingTop: 10,
+          position: 'absolute',
         },
-        tabBarActiveTintColor: '#7C6FF1',
-        tabBarInactiveTintColor: '#B0B0C8',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarActiveTintColor: ORANGE,
+        tabBarInactiveTintColor: INACTIVE,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600', letterSpacing: 0.2, color: undefined },
       }}
     >
       <Tabs.Screen
@@ -115,22 +125,32 @@ export default function ChildLayout() {
       <Tabs.Screen
         name="tilawah/index"
         options={{
-          tabBarLabel: 'AI Tilawah',
+          tabBarLabel: 'Tilawah',
           tabBarIcon: () => <FloatingMicButton />,
           tabBarLabelStyle: {
             fontSize: 10,
             fontWeight: '700',
-            color: '#7C6FF1',
-            marginTop: -4,
+            color: ORANGE,
+            marginTop: 0,
+            letterSpacing: 0.2,
           },
         }}
       />
       <Tabs.Screen
-        name="stories/index"
+        name="journey"
         options={{
-          tabBarLabel: 'Kisah',
+          tabBarLabel: 'Journey',
           tabBarIcon: ({ focused }) => (
             <TabIcon iconFill="story-fill" iconLine="story-line" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="hafalan/index"
+        options={{
+          tabBarLabel: 'Hafalan',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon iconFill="quran-fill" iconLine="quran-line" focused={focused} />
           ),
         }}
       />
@@ -143,15 +163,16 @@ export default function ChildLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="rewards" options={{ href: null }} />
-      <Tabs.Screen name="quran/[id]" options={{ href: null }} />
-      <Tabs.Screen name="hadits/index" options={{ href: null }} />
-      <Tabs.Screen name="hadits/[id]" options={{ href: null }} />
-      <Tabs.Screen name="stories/[slug]" options={{ href: null }} />
-      <Tabs.Screen name="tilawah/[id]" options={{ href: null }} />
-      <Tabs.Screen name="tilawah/result" options={{ href: null }} />
-      <Tabs.Screen name="kisah-nabi/index" options={{ href: null }} />
-      <Tabs.Screen name="kisah-nabi/[id]" options={{ href: null }} />
+      <Tabs.Screen name="stories/index" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="rewards" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="quran/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="stories/[slug]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="tilawah/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="tilawah/result" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="kisah-nabi/index" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="kisah-nabi/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="hafalan/[id]" options={{ href: null, tabBarStyle: { display: 'none' } }} />
+      <Tabs.Screen name="hafalan/result" options={{ href: null, tabBarStyle: { display: 'none' } }} />
     </Tabs>
   )
 }
