@@ -197,14 +197,21 @@ export function useContinuousHafalan(
     }
   }, [updateVerse, stopPoller, stopRecordingClean, evaluateCurrentVerse])
 
+  const startListeningRef = useRef(startListeningForVerse)
+  useEffect(() => {
+    startListeningRef.current = startListeningForVerse
+  }, [startListeningForVerse])
+
   const advanceOrFinish = useCallback(async (idx: number) => {
     if (idx + 1 >= verseNumbers.length) {
       setIsRunning(false)
       isRunningRef.current = false
+      isAdvancingRef.current = false
       return
     }
     await new Promise((r) => setTimeout(r, 300))
     await startListeningForVerse(idx + 1)
+    isAdvancingRef.current = false
   }, [verseNumbers.length, startListeningForVerse])
 
   // Drive state transitions after evaluateCurrentVerse updates state
@@ -218,16 +225,15 @@ export function useContinuousHafalan(
     if (cur.state === 'correct' || cur.state === 'skipped') {
       if (isAdvancingRef.current) return
       isAdvancingRef.current = true
-      advanceOrFinish(currentIndex).finally(() => {
-        isAdvancingRef.current = false
-      })
+      advanceOrFinish(currentIndex)
     } else if (cur.state === 'wrong' || cur.state === 'hint_shown') {
       const t = setTimeout(() => {
-        startListeningForVerse(currentIndex)
+        startListeningRef.current(currentIndex)
       }, 400)
       return () => clearTimeout(t)
     }
-  }, [currentVerseState, currentIndex, isRunning, advanceOrFinish, startListeningForVerse])
+  }, [currentVerseState, currentIndex, isRunning, advanceOrFinish])
+  // Note: startListeningForVerse removed from deps — accessed via ref
 
   const startSession = useCallback(async () => {
     const { granted } = await Audio.requestPermissionsAsync()
