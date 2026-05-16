@@ -33,26 +33,7 @@ interface VerseStatus {
   state: VerseState
   wordResults: { status?: string; correct?: boolean }[]
   score: number
-}
-
-function toArabicNum(n: number) {
-  return n.toString().replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d)])
-}
-
-function wordColor(status: string | undefined, state: VerseState): string {
-  if (state === 'pending' || state === 'listening' || state === 'analyzing') {
-    return 'rgba(255,255,255,0.15)'
-  }
-  if (!status || status === 'correct') return '#10B981'
-  if (status === 'mad_short') return '#EAB308'
-  return '#EF4444'
-}
-
-const NUM_COLORS: Record<VerseState, { bg: string; border: string; color: string }> = {
-  pending:   { bg: 'rgba(124,111,241,0.1)',  border: 'rgba(124,111,241,0.25)', color: '#BDB8FF' },
-  listening: { bg: 'rgba(124,111,241,0.25)', border: '#7C6FF1',                color: '#E0DDFF' },
-  analyzing: { bg: 'rgba(255,255,255,0.07)', border: 'rgba(255,255,255,0.15)', color: '#94A3B8' },
-  done:      { bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',   color: '#10B981' },
+  evaluation: any
 }
 
 export default function TilawahLatihanScreen() {
@@ -62,24 +43,27 @@ export default function TilawahLatihanScreen() {
   const setLastTilawah = useLastActivityStore((s) => s.setLastTilawah)
 
   const verses = useMemo(() => getSurahVerses(chapterId) as unknown as Verse[], [chapterId])
-  const verseNumbers = useMemo(() => verses.map((v) => v.verse_number), [verses])
 
-  const [statuses, setStatuses] = useState<VerseStatus[]>(() =>
-    verseNumbers.map(() => ({ state: 'pending', wordResults: [], score: 0 }))
-  )
+  const [statuses, setStatuses] = useState<VerseStatus[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [verseResults, setVerseResults] = useState<VerseResult[]>([])
-  const scrollRef = useRef<ScrollView>(null)
-  const verseYPositions = useRef<Record<number, number>>({})
 
-  // Recording refs
-  const recordingRef   = useRef<Audio.Recording | null>(null)
-  const pollerRef      = useRef<ReturnType<typeof setInterval> | null>(null)
-  const silenceRef     = useRef(0)
-  const isEvalRef      = useRef(false)
-  const isRunningRef   = useRef(false)
-  const currentIdxRef  = useRef(0)
+  const scrollRef   = useRef<ScrollView>(null)
+  const cardYRef    = useRef<Record<number, number>>({})
+  const recordingRef  = useRef<Audio.Recording | null>(null)
+  const pollerRef     = useRef<ReturnType<typeof setInterval> | null>(null)
+  const silenceRef    = useRef(0)
+  const isEvalRef     = useRef(false)
+  const isRunningRef  = useRef(false)
+  const currentIdxRef = useRef(0)
+
+  // Init statuses when verses load
+  useEffect(() => {
+    if (verses.length > 0) {
+      setStatuses(verses.map(() => ({ state: 'pending', wordResults: [], score: 0, evaluation: null })))
+    }
+  }, [verses])
 
   const stopPoller = useCallback(() => {
     if (pollerRef.current) { clearInterval(pollerRef.current); pollerRef.current = null }
@@ -111,7 +95,7 @@ export default function TilawahLatihanScreen() {
       const verse = verses[idx]
       const result = await evaluateVerse(chapterId, verse.verse_number, verse.text_uthmani, base64)
 
-      updateStatus(idx, { state: 'done', wordResults: result.wordResults, score: result.score })
+      updateStatus(idx, { state: 'done', wordResults: result.wordResults, score: result.score, evaluation: result })
 
       setVerseResults((prev) => {
         const entry: VerseResult = {
@@ -131,16 +115,13 @@ export default function TilawahLatihanScreen() {
         return [...prev, entry]
       })
 
-      // Advance to next verse after 500ms
-      await new Promise((r) => setTimeout(r, 500))
+      await new Promise((r) => setTimeout(r, 600))
       const nextIdx = idx + 1
       if (nextIdx >= verses.length || !isRunningRef.current) {
         setIsRunning(false)
         isRunningRef.current = false
         return
       }
-
-      // Start listening for next verse
       await startListening(nextIdx)
     } catch {
       updateStatus(idx, { state: 'pending' })
@@ -154,13 +135,13 @@ export default function TilawahLatihanScreen() {
     currentIdxRef.current = idx
     setCurrentIndex(idx)
     silenceRef.current = 0
-    updateStatus(idx, { state: 'listening', wordResults: [], score: 0 })
+    updateStatus(idx, { state: 'listening', wordResults: [], score: 0, evaluation: null })
 
-    // Scroll to verse
+    // Scroll to active card
     setTimeout(() => {
-      const y = verseYPositions.current[idx]
-      if (y !== undefined) scrollRef.current?.scrollTo({ y, animated: true })
-    }, 100)
+      const y = cardYRef.current[idx]
+      if (y !== undefined) scrollRef.current?.scrollTo({ y: Math.max(0, y - 20), animated: true })
+    }, 120)
 
     try {
       await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true })
@@ -198,13 +179,12 @@ export default function TilawahLatihanScreen() {
     if (!granted) return
     setIsRunning(true)
     isRunningRef.current = true
-    // Reset results for fresh session
-    setStatuses(verseNumbers.map(() => ({ state: 'pending', wordResults: [], score: 0 })))
+    setStatuses(verses.map(() => ({ state: 'pending', wordResults: [], score: 0, evaluation: null })))
     setVerseResults([])
     currentIdxRef.current = 0
     setCurrentIndex(0)
     await startListening(0)
-  }, [verseNumbers, startListening])
+  }, [verses, startListening])
 
   const stopSession = useCallback(async () => {
     isRunningRef.current = false
@@ -228,19 +208,19 @@ export default function TilawahLatihanScreen() {
   useFocusEffect(
     useCallback(() => {
       stopSession()
-      setStatuses(verseNumbers.map(() => ({ state: 'pending', wordResults: [], score: 0 })))
+      setStatuses(verses.map(() => ({ state: 'pending', wordResults: [], score: 0, evaluation: null })))
       setVerseResults([])
       setCurrentIndex(0)
       currentIdxRef.current = 0
+      cardYRef.current = {}
     }, [id])
   )
 
   const allDone = statuses.length > 0 && statuses.every((s) => s.state === 'done')
 
   const handleFinish = () => {
-    const allResults = verseResults
-    const avg = allResults.length > 0
-      ? Math.round(allResults.reduce((s, v) => s + v.score, 0) / allResults.length)
+    const avg = verseResults.length > 0
+      ? Math.round(verseResults.reduce((s, v) => s + v.score, 0) / verseResults.length)
       : 0
     const stars = calcStars(avg)
     const points = calcPoints(stars, avg)
@@ -252,94 +232,126 @@ export default function TilawahLatihanScreen() {
         totalScore: String(avg),
         stars: String(stars),
         pointsEarned: String(points),
-        verseResults: JSON.stringify(allResults),
+        verseResults: JSON.stringify(verseResults),
       },
     })
   }
 
   const doneCount = statuses.filter((s) => s.state === 'done').length
-  const progress = verses.length > 0 ? doneCount / verses.length : 0
   const activeStatus = statuses[currentIndex]
+
+  if (statuses.length === 0) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color="#7C6FF1" size="large" />
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backIcon}>‹</Text>
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Tilawah</Text>
-          <Text style={styles.headerSub}>{verses.length} Ayat</Text>
-        </View>
-        <View style={[styles.badge, allDone && styles.badgeDone]}>
-          <Text style={[styles.badgeText, allDone && styles.badgeTextDone]}>
-            {doneCount}/{verses.length}
-          </Text>
-        </View>
+      {/* Progress bar */}
+      <View style={styles.progressBar}>
+        <View style={[styles.progressFill, { width: `${(doneCount / verses.length) * 100}%` as any }]} />
       </View>
+      <Text style={styles.progressLabel}>{doneCount} / {verses.length} ayat selesai</Text>
 
-      {/* Progress */}
-      <View style={styles.progressStrip}>
-        <View style={[
-          styles.progressFill,
-          { width: `${progress * 100}%` as any },
-          allDone && { backgroundColor: '#10B981' },
-        ]} />
-      </View>
-
-      {/* Status chip */}
-      {isRunning && activeStatus && (
-        <View style={styles.chipRow}>
-          {activeStatus.state === 'listening' && (
-            <View style={[styles.chip, { borderColor: 'rgba(124,111,241,0.4)' }]}>
-              <Text style={[styles.chipText, { color: '#BDB8FF' }]}>🎙 Merekam ayat {currentIndex + 1}...</Text>
-            </View>
-          )}
-          {activeStatus.state === 'analyzing' && (
-            <View style={[styles.chip, { borderColor: 'rgba(255,255,255,0.15)' }]}>
-              <Text style={[styles.chipText, { color: '#94A3B8' }]}>⏳ Menilai...</Text>
-            </View>
-          )}
-        </View>
-      )}
-
-      {/* Mushaf ScrollView */}
-      <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={styles.mushafPage}>
+      {/* Verse cards */}
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {verses.map((verse, idx) => {
-          const st = statuses[idx] ?? { state: 'pending', wordResults: [], score: 0 }
-          const numStyle = NUM_COLORS[st.state]
+          const st = statuses[idx] ?? { state: 'pending', wordResults: [], score: 0, evaluation: null }
+          const isActive = idx === currentIndex && (st.state === 'listening' || st.state === 'analyzing')
+          const isDone = st.state === 'done'
+          const translation = verse.translations?.[0]?.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? ''
+
           return (
             <View
               key={verse.verse_number}
-              onLayout={(e) => { verseYPositions.current[idx] = e.nativeEvent.layout.y }}
+              style={[
+                styles.card,
+                isActive && styles.cardActive,
+                isDone && styles.cardDone,
+                !isActive && !isDone && idx !== currentIndex && styles.cardPending,
+              ]}
+              onLayout={(e) => { cardYRef.current[idx] = e.nativeEvent.layout.y }}
             >
-              <Text style={styles.arabicFlow}>
-                {verse.words.map((w, i) => {
-                  const wr = st.wordResults[i]
-                  const status = wr?.status ?? (wr?.correct === false ? 'wrong' : wr ? 'correct' : undefined)
-                  return (
-                    <Text key={i} style={[styles.arabicWord, { color: wordColor(status, st.state) }]}>
-                      {w.text_uthmani}{' '}
-                    </Text>
-                  )
-                })}
-                <Text style={[styles.verseNum, {
-                  backgroundColor: numStyle.bg,
-                  borderColor: numStyle.border,
-                  color: numStyle.color,
-                }]}>
-                  {toArabicNum(verse.verse_number)}
-                </Text>
-              </Text>
-              {/* Score chip for done verses */}
-              {st.state === 'done' && (
-                <View style={styles.scoreRow}>
-                  <View style={[styles.scoreChip, { backgroundColor: st.score >= 85 ? 'rgba(16,185,129,0.12)' : st.score >= 65 ? 'rgba(234,179,8,0.12)' : 'rgba(239,68,68,0.12)' }]}>
-                    <Text style={[styles.scoreText, { color: st.score >= 85 ? '#10B981' : st.score >= 65 ? '#EAB308' : '#EF4444' }]}>
-                      {st.score}/100
+              {/* Card header */}
+              <View style={styles.cardHeader}>
+                <View style={[styles.badge, isActive && styles.badgeActive, isDone && styles.badgeDone]}>
+                  <Text style={styles.badgeText}>{verse.verse_number}</Text>
+                </View>
+
+                {isActive && st.state === 'listening' && (
+                  <View style={styles.statusChip}>
+                    <View style={styles.recordDot} />
+                    <Text style={styles.statusText}>Merekam...</Text>
+                  </View>
+                )}
+                {isActive && st.state === 'analyzing' && (
+                  <View style={[styles.statusChip, { borderColor: 'rgba(255,255,255,0.15)' }]}>
+                    <Text style={[styles.statusText, { color: '#94A3B8' }]}>⏳ Menilai...</Text>
+                  </View>
+                )}
+                {isDone && (
+                  <View style={[styles.statusChip, {
+                    borderColor: st.score >= 85 ? 'rgba(16,185,129,0.3)' : st.score >= 65 ? 'rgba(234,179,8,0.3)' : 'rgba(239,68,68,0.3)',
+                  }]}>
+                    <Text style={[styles.statusText, {
+                      color: st.score >= 85 ? '#10B981' : st.score >= 65 ? '#EAB308' : '#EF4444',
+                    }]}>
+                      {st.score >= 85 ? '✅' : st.score >= 65 ? '⚡' : '❌'} {st.score}/100
                     </Text>
                   </View>
+                )}
+              </View>
+
+              {/* Arabic text */}
+              {isDone ? (
+                <Text style={styles.arabicText}>
+                  {verse.words.map((w, i) => {
+                    const wr = st.wordResults[i]
+                    const status = wr?.status ?? (wr?.correct === false ? 'wrong' : wr ? 'correct' : undefined)
+                    const color = !status || status === 'correct' ? '#10B981'
+                      : status === 'mad_short' ? '#EAB308' : '#EF4444'
+                    return (
+                      <Text key={i} style={{ color }}>
+                        {w.text_uthmani}{i < verse.words.length - 1 ? ' ' : ''}
+                      </Text>
+                    )
+                  })}
+                </Text>
+              ) : (
+                // Hidden placeholder chips
+                <View style={styles.hiddenRow}>
+                  {verse.words.map((_, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.hiddenChip,
+                        i % 3 === 0 && { width: 54 },
+                        i % 3 === 1 && { width: 36 },
+                        isActive && { backgroundColor: 'rgba(124,111,241,0.25)' },
+                      ]}
+                    />
+                  ))}
+                </View>
+              )}
+
+              {/* Translation for done verses */}
+              {isDone && translation ? (
+                <Text style={styles.translation}>{translation}</Text>
+              ) : null}
+
+              {/* Feedback for done verses */}
+              {isDone && st.evaluation?.feedback?.length > 0 && (
+                <View style={styles.feedbackWrap}>
+                  {st.evaluation.feedback.slice(0, 2).map((f: string, i: number) => (
+                    <Text key={i} style={styles.feedbackItem}>• {f}</Text>
+                  ))}
                 </View>
               )}
             </View>
@@ -347,34 +359,28 @@ export default function TilawahLatihanScreen() {
         })}
       </ScrollView>
 
-      {/* Bottom bar */}
-      <View style={styles.bottomBar}>
+      {/* Bottom recording area */}
+      <View style={styles.recordArea}>
+        <Text style={styles.recordStatus}>
+          {!isRunning
+            ? '🎙️ Tekan untuk mulai membaca'
+            : activeStatus?.state === 'analyzing'
+            ? '⏳ Menganalisis...'
+            : `🔴 Sedang merekam Ayat ${currentIndex + 1}`}
+        </Text>
+
         {allDone ? (
           <TouchableOpacity style={styles.finishBtn} onPress={handleFinish}>
-            <Text style={styles.finishText}>Lihat Hasil 🎉</Text>
+            <Text style={styles.finishText}>Selesai 🎉</Text>
+          </TouchableOpacity>
+        ) : isRunning ? (
+          <TouchableOpacity style={styles.stopBtn} onPress={stopSession}>
+            <Text style={styles.stopText}>⏹ Berhenti</Text>
           </TouchableOpacity>
         ) : (
-          <>
-            <Text style={styles.bottomStatus}>
-              {!isRunning
-                ? 'Tekan mikrofon untuk mulai tilawah'
-                : activeStatus?.state === 'analyzing'
-                ? '⏳ Menilai bacaan...'
-                : '🔴 Baca terus — berhenti otomatis saat jeda'}
-            </Text>
-            <View style={styles.bottomRow}>
-              {isRunning && (
-                <TouchableOpacity style={styles.stopBtn} onPress={stopSession}>
-                  <Text style={styles.stopBtnText}>⏹ Berhenti</Text>
-                </TouchableOpacity>
-              )}
-              {!isRunning && (
-                <TouchableOpacity style={styles.micBtn} onPress={startSession}>
-                  <Text style={styles.micIcon}>🎙</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </>
+          <TouchableOpacity style={styles.micBtn} onPress={startSession}>
+            <Text style={{ fontSize: 32 }}>🎙️</Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -382,36 +388,40 @@ export default function TilawahLatihanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container:     { flex: 1, backgroundColor: '#1A1A2E' },
-  header:        { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 52 : 32, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
-  backBtn:       { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center' },
-  backIcon:      { color: '#fff', fontSize: 20, lineHeight: 22 },
-  headerTitle:   { color: '#F9FAFB', fontSize: 15, fontWeight: '700' },
-  headerSub:     { color: '#6B7280', fontSize: 11, marginTop: 1 },
-  badge:         { backgroundColor: 'rgba(124,111,241,0.15)', borderWidth: 1, borderColor: 'rgba(124,111,241,0.3)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeDone:     { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)' },
-  badgeText:     { color: '#BDB8FF', fontSize: 12, fontWeight: '700' },
-  badgeTextDone: { color: '#10B981' },
-  progressStrip: { height: 2, backgroundColor: 'rgba(255,255,255,0.05)' },
-  progressFill:  { height: 2, backgroundColor: '#7C6FF1' },
-  chipRow:       { paddingHorizontal: 16, paddingVertical: 8, alignItems: 'flex-end' },
-  chip:          { borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, backgroundColor: 'rgba(0,0,0,0.2)' },
-  chipText:      { fontSize: 11, fontWeight: '700' },
-  scroll:        { flex: 1 },
-  mushafPage:    { padding: 20, paddingBottom: 40 },
-  arabicFlow:    { fontSize: 26, lineHeight: 58, fontFamily: 'ScheherazadeNew-Regular', textAlign: 'right', writingDirection: 'rtl', color: '#E5E7EB', marginBottom: 4 },
-  arabicWord:    { fontSize: 26, fontFamily: 'ScheherazadeNew-Regular', lineHeight: 58 },
-  verseNum:      { fontSize: 11, borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 5, paddingVertical: 2 },
-  scoreRow:      { alignItems: 'flex-start', marginBottom: 12, marginTop: -2 },
-  scoreChip:     { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
-  scoreText:     { fontSize: 11, fontWeight: '700' },
-  bottomBar:     { backgroundColor: 'rgba(26,26,46,0.98)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', padding: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 20 },
-  bottomStatus:  { color: '#6B7280', fontSize: 12, textAlign: 'center', marginBottom: 12 },
-  bottomRow:     { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12 },
-  micBtn:        { width: 64, height: 64, borderRadius: 32, backgroundColor: '#7C6FF1', justifyContent: 'center', alignItems: 'center', shadowColor: '#7C6FF1', shadowOpacity: 0.5, shadowRadius: 14, elevation: 8 },
-  micIcon:       { fontSize: 26 },
-  stopBtn:       { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' },
-  stopBtnText:   { color: '#F87171', fontSize: 14, fontWeight: '700' },
-  finishBtn:     { backgroundColor: '#7C6FF1', borderRadius: 14, padding: 16, alignItems: 'center' },
-  finishText:    { color: '#fff', fontWeight: '700', fontSize: 16 },
+  container:      { flex: 1, backgroundColor: '#1A1A2E' },
+  progressBar:    { height: 4, backgroundColor: 'rgba(255,255,255,0.15)', marginTop: Platform.OS === 'ios' ? 52 : 32, marginHorizontal: 20, borderRadius: 2 },
+  progressFill:   { height: 4, backgroundColor: '#7C6FF1', borderRadius: 2 },
+  progressLabel:  { color: '#BDB8FF', fontSize: 12, textAlign: 'center', marginTop: 6, marginBottom: 4 },
+  scrollContent:  { paddingHorizontal: 16, paddingBottom: 20, gap: 10 },
+  card: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    padding: 14,
+  },
+  cardActive:  { borderColor: '#7C6FF1', backgroundColor: 'rgba(124,111,241,0.1)' },
+  cardDone:    { borderColor: 'rgba(255,255,255,0.08)' },
+  cardPending: { opacity: 0.5 },
+  cardHeader:  { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  badge:       { width: 30, height: 30, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.12)', justifyContent: 'center', alignItems: 'center' },
+  badgeActive: { backgroundColor: '#7C6FF1' },
+  badgeDone:   { backgroundColor: 'rgba(16,185,129,0.2)' },
+  badgeText:   { color: '#fff', fontSize: 12, fontWeight: '700' },
+  statusChip:  { flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, borderColor: 'rgba(124,111,241,0.4)' },
+  recordDot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' },
+  statusText:  { color: '#BDB8FF', fontSize: 11, fontWeight: '700' },
+  arabicText:  { fontSize: 26, lineHeight: 52, fontFamily: 'ScheherazadeNew-Regular', textAlign: 'right', writingDirection: 'rtl', marginBottom: 8 },
+  hiddenRow:   { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-end', direction: 'rtl' as any },
+  hiddenChip:  { height: 14, width: 44, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.08)' },
+  translation: { color: '#94A3B8', fontSize: 12, fontStyle: 'italic', lineHeight: 18, marginTop: 4 },
+  feedbackWrap:{ marginTop: 6 },
+  feedbackItem:{ color: '#BDB8FF', fontSize: 12, marginBottom: 2 },
+  recordArea:  { backgroundColor: 'rgba(255,255,255,0.05)', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: Platform.OS === 'ios' ? 34 : 20, alignItems: 'center', gap: 12 },
+  recordStatus:{ color: '#D4D0FF', fontSize: 13 },
+  micBtn:      { width: 72, height: 72, borderRadius: 36, backgroundColor: '#7C6FF1', alignItems: 'center', justifyContent: 'center', shadowColor: '#7C6FF1', shadowOpacity: 0.5, shadowRadius: 12, elevation: 8 },
+  stopBtn:     { paddingHorizontal: 28, paddingVertical: 14, borderRadius: 14, backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' },
+  stopText:    { color: '#F87171', fontSize: 14, fontWeight: '700' },
+  finishBtn:   { width: '100%', backgroundColor: '#7C6FF1', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  finishText:  { color: '#fff', fontWeight: '700', fontSize: 16 },
 })
