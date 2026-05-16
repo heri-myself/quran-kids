@@ -1,5 +1,5 @@
 // mobile/app/(child)/hafalan/result.tsx
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   View,
   TouchableOpacity,
@@ -26,7 +26,12 @@ export default function HafalanResultScreen() {
     verseResults: string
   }>()
 
-  const verseResults: VerseResult[] = JSON.parse(params.verseResults ?? '[]')
+  let verseResults: VerseResult[] = []
+  try {
+    verseResults = JSON.parse(params.verseResults ?? '[]')
+  } catch {
+    verseResults = []
+  }
   const avgScore =
     verseResults.length > 0
       ? Math.round(verseResults.reduce((s, v) => s + v.score, 0) / verseResults.length)
@@ -35,8 +40,11 @@ export default function HafalanResultScreen() {
   const stars = avgScore >= 85 ? 3 : avgScore >= 65 ? 2 : 1
   const starEmojis = Array.from({ length: 3 }, (_, i) => (i < stars ? '⭐' : '☆')).join(' ')
 
+  const hasSavedRef = useRef(false)
+
   useEffect(() => {
-    if (!activeProfile?.id || verseResults.length === 0) return
+    if (hasSavedRef.current || !activeProfile?.id || verseResults.length === 0) return
+    hasSavedRef.current = true
 
     const save = async () => {
       try {
