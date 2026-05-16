@@ -60,6 +60,26 @@ export async function evaluateVerse(
   return res.json()
 }
 
+export async function evaluateVerseSimple(
+  chapterId: number,
+  verseNumber: number,
+  expectedText: string,
+  audioBase64: string
+): Promise<EvaluateResponse> {
+  const res = await fetch(`${API_URL}/tilawah/evaluate-simple`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ chapterId, verseNumber, expectedText, audioBase64 }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as any).error ?? (err as any).message ?? `Evaluasi gagal (${res.status})`)
+  }
+  return res.json()
+}
+
 export async function saveSession(
   payload: SaveSessionPayload
 ): Promise<SaveSessionResponse> {
