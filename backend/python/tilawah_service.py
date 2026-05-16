@@ -3,52 +3,27 @@ import tempfile
 import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import numpy as np
 
 app = FastAPI()
 
 _model = None
-_processor = None
+
 
 def get_model():
-    global _model, _processor
+    global _model
     if _model is None:
-        from transformers import WhisperProcessor, WhisperForConditionalGeneration
-        print("Loading tarteel-ai/whisper-base-ar-quran model...")
-        _processor = WhisperProcessor.from_pretrained("tarteel-ai/whisper-base-ar-quran")
-        _model = WhisperForConditionalGeneration.from_pretrained("tarteel-ai/whisper-base-ar-quran")
-        _model.eval()
+        import stable_whisper
+        print("Loading tarteel-ai/whisper-small-ar-quran model...")
+        _model = stable_whisper.load_model("tarteel-ai/whisper-small-ar-quran")
         print("Model loaded.")
-    return _model, _processor
+    return _model
 
 
-def load_audio_bytes(audio_bytes: bytes) -> np.ndarray:
-    """Decode audio bytes (m4a/wav/aac/any) to float32 numpy array at 16kHz mono."""
-    import av
-
+def load_audio_to_tempfile(audio_bytes: bytes) -> str:
+    """Write audio bytes to a temp file, return path. Caller must delete."""
     with tempfile.NamedTemporaryFile(suffix='.audio', delete=False) as f:
         f.write(audio_bytes)
-        temp_path = f.name
-
-    try:
-        container = av.open(temp_path)
-        samples = []
-        resampler = av.AudioResampler(format='fltp', layout='mono', rate=16000)
-        for frame in container.decode(audio=0):
-            for out_frame in resampler.resample(frame):
-                samples.append(out_frame.to_ndarray()[0])
-        container.close()
-
-        if not samples:
-            raise ValueError("No audio frames decoded")
-
-        audio_array = np.concatenate(samples).astype(np.float32)
-        return audio_array
-    finally:
-        try:
-            os.unlink(temp_path)
-        except Exception:
-            pass
+        return f.name
 
 
 class EvaluateRequest(BaseModel):
@@ -60,8 +35,9 @@ class EvaluateRequest(BaseModel):
 
 class WordResult(BaseModel):
     word: str
-    correct: bool
+    correct: bool   # True if status is "correct" or "mad_short"
     expected: str
+    status: str     # "correct" | "wrong" | "missing" | "mad_short"
 
 
 class EvaluateResponse(BaseModel):
@@ -85,40 +61,61 @@ def evaluate(req: EvaluateRequest):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid base64 audio")
 
+    temp_path = None
     try:
-        audio_array = load_audio_bytes(audio_bytes)
+        temp_path = load_audio_to_tempfile(audio_bytes)
+        model = get_model()
+
+        # stable-whisper: transcribe with word timestamps
+        result = model.transcribe(temp_path, language="ar", word_timestamps=True)
+        transcription = result.text.strip()
+
+        # Extract word timestamps from all segments
+        word_timestamps = []
+        for segment in result.segments:
+            for w in (segment.words or []):
+                word_timestamps.append({
+                    "word": w.word.strip(),
+                    "start": w.start,
+                    "end": w.end,
+                })
+
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Cannot read audio: {e}")
+        raise HTTPException(status_code=400, detail=f"Cannot process audio: {e}")
+    finally:
+        if temp_path:
+            try:
+                os.unlink(temp_path)
+            except Exception:
+                pass
 
-    model, processor = get_model()
-    import torch
-    inputs = processor(audio_array, sampling_rate=16000, return_tensors="pt")
-    with torch.no_grad():
-        predicted_ids = model.generate(inputs["input_features"])
-    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0].strip()
-
-    from tajweed_engine import compare_texts, analyze_tajweed
+    from tajweed_engine import compare_texts, detect_mad_errors, analyze_tajweed
 
     raw_word_results, word_accuracy = compare_texts(req.expected_text, transcription)
-    tajweed_score, tajweed_feedback = analyze_tajweed(req.expected_text, len(audio_array) / 16000)
+    detect_mad_errors(raw_word_results, word_timestamps)
+    tajweed_score, tajweed_feedback = analyze_tajweed(raw_word_results)
 
     word_results = [
         WordResult(
             word=w.word,
-            correct=(w.status == "correct"),
+            correct=(w.status in ("correct", "mad_short")),
             expected=w.word,
+            status=w.status,
         )
         for w in raw_word_results
     ]
 
     completeness = 100 if not any(w.status == "missing" for w in raw_word_results) else 70
-    score = int(word_accuracy * 0.6 + tajweed_score * 0.2 + completeness * 0.2)
+    score = int(word_accuracy * 0.60 + tajweed_score * 0.25 + completeness * 0.15)
 
-    feedback = []
-    wrong_words = [w for w in raw_word_results if w.status == "wrong"]
-    if wrong_words:
-        feedback.append(f"Ada {len(wrong_words)} kata yang perlu diperbaiki pengucapannya.")
+    feedback: list[str] = []
+    wrong_count = sum(1 for w in raw_word_results if w.status == "wrong")
+    if wrong_count > 0:
+        feedback.append(f"Ada {wrong_count} kata yang perlu diperbaiki pengucapannya.")
     feedback.extend(tajweed_feedback)
+
     if score >= 85:
         feedback.insert(0, "MasyaAllah! Bacaan sangat bagus! 🌟")
     elif score >= 65:
