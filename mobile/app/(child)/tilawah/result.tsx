@@ -28,6 +28,7 @@ export default function TilawahResultScreen() {
 
   const starsRef = useRef<LottieView>(null)
   const confettiRef = useRef<LottieView>(null)
+  const hasSavedRef = useRef(false)
 
   const totalScore = Number(params.totalScore ?? 0)
   const stars = Number(params.stars ?? 1)
@@ -42,9 +43,10 @@ export default function TilawahResultScreen() {
     }
   }, [])
 
-  // Save session on mount
+  // Save session on mount — hasSavedRef guards against StrictMode/Fast Refresh double-invoke
   useEffect(() => {
-    if (!activeProfile?.id) return
+    if (hasSavedRef.current || !activeProfile?.id) return
+    hasSavedRef.current = true
 
     saveSession({
       profileId: activeProfile.id,
@@ -112,17 +114,18 @@ export default function TilawahResultScreen() {
         </View>
 
         {(() => {
-          const tajweedFeedback = verseResults
-            .flatMap((v) => v.feedback)
-            .filter((f) => f.includes('mad') || f.includes('panjang'))
-          const unique = [...new Set(tajweedFeedback)]
-          if (unique.length === 0) return null
+          const madShortCount = verseResults.reduce(
+            (total, v) => total + (v.evaluation?.wordResults ?? []).filter((w) => w.status === 'mad_short').length,
+            0
+          )
+          if (madShortCount === 0) return null
           return (
             <View style={styles.tajweedCard}>
               <Text style={styles.tajweedTitle}>📝 Catatan Tajweed</Text>
-              {unique.map((f, i) => (
-                <Text key={i} style={styles.tajweedItem}>• {f}</Text>
-              ))}
+              <Text style={styles.tajweedItem}>
+                • Ada {madShortCount} kata dengan mad (huruf panjang) yang terlalu pendek.
+                Perhatikan kata yang ditandai kuning.
+              </Text>
             </View>
           )
         })()}
@@ -205,6 +208,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(234,179,8,0.3)',
   },
-  tajweedTitle: { color: '#854D0E', fontWeight: '700', fontSize: 14, marginBottom: 8 },
-  tajweedItem: { color: '#92400E', fontSize: 13, lineHeight: 20 },
+  tajweedTitle: { color: '#FCD34D', fontWeight: '700', fontSize: 14, marginBottom: 8 },
+  tajweedItem: { color: '#FDE68A', fontSize: 13, lineHeight: 20 },
 })

@@ -33,25 +33,25 @@ def test_compare_accuracy_two_of_four_correct():
     assert acc == 50
 
 def test_detect_mad_short_flags_mad_short():
-    word_results = [WordResult(word="الرَّحْمَٰنِ", status="correct", position=0)]
+    word_results = [WordResult(word="الرَّحْمَٰنِ", status="correct", position=0, transcription_index=0)]
     timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.10}]
     detect_mad_errors(word_results, timestamps)
     assert word_results[0].status == "mad_short"
 
 def test_detect_mad_sufficient_stays_correct():
-    word_results = [WordResult(word="الرَّحْمَٰنِ", status="correct", position=0)]
+    word_results = [WordResult(word="الرَّحْمَٰنِ", status="correct", position=0, transcription_index=0)]
     timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.40}]
     detect_mad_errors(word_results, timestamps)
     assert word_results[0].status == "correct"
 
 def test_detect_mad_skips_wrong_words():
-    word_results = [WordResult(word="الرَّحْمَٰنِ", status="wrong", position=0)]
+    word_results = [WordResult(word="الرَّحْمَٰنِ", status="wrong", position=0, transcription_index=0)]
     timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.05}]
     detect_mad_errors(word_results, timestamps)
     assert word_results[0].status == "wrong"
 
 def test_detect_mad_skips_words_without_mad():
-    word_results = [WordResult(word="قُلْ", status="correct", position=0)]
+    word_results = [WordResult(word="قُلْ", status="correct", position=0, transcription_index=0)]
     timestamps = [{"word": "قُلْ", "start": 0.0, "end": 0.05}]
     detect_mad_errors(word_results, timestamps)
     assert word_results[0].status == "correct"
@@ -77,18 +77,19 @@ def test_analyze_tajweed_max_penalty_is_50():
     assert score == 50
 
 def test_detect_mad_exactly_at_threshold_stays_correct():
-    # duration == 0.25 should be sufficient (threshold is exclusive <)
-    word_results = [WordResult(word="الرَّحْمَٰنِ", status="correct", position=0)]
-    timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.25}]
+    # duration == MAD_MIN_DURATION should be sufficient (threshold is exclusive <)
+    word_results = [WordResult(word="الرَّحْمَٰنِ", status="correct", position=0, transcription_index=0)]
+    timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.35}]
     detect_mad_errors(word_results, timestamps)
     assert word_results[0].status == "correct"
 
 def test_detect_mad_missing_timestamp_skips_gracefully():
+    # Word at transcription_index=1 has no timestamp (list only has index 0)
     word_results = [
-        WordResult(word="الرَّحْمَٰنِ", status="correct", position=0),
-        WordResult(word="الرَّحِيمِ", status="correct", position=1),
+        WordResult(word="الرَّحْمَٰنِ", status="correct", position=0, transcription_index=0),
+        WordResult(word="الرَّحِيمِ", status="correct", position=1, transcription_index=1),
     ]
-    timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.05}]  # only 1 timestamp for 2 words
+    timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.05}]  # only 1 timestamp
     detect_mad_errors(word_results, timestamps)
     assert word_results[0].status == "mad_short"
-    assert word_results[1].status == "correct"  # no timestamp → skipped, stays correct
+    assert word_results[1].status == "correct"  # trans_idx=1 out of bounds → skipped

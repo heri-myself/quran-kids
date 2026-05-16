@@ -187,6 +187,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(234,179,8,0.3)',
   },
-  tajweedTitle: { color: '#854D0E', fontWeight: '700', fontSize: 14, marginBottom: 8 },
-  tajweedItem: { color: '#92400E', fontSize: 13, lineHeight: 20 },
+  tajweedTitle: { color: '#FCD34D', fontWeight: '700', fontSize: 14, marginBottom: 8 },
+  tajweedItem: { color: '#FDE68A', fontSize: 13, lineHeight: 20 },
 })
