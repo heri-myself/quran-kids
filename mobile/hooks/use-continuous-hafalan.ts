@@ -30,7 +30,7 @@ export interface UseContinuousHafalanReturn {
   currentIndex: number
   isRunning: boolean
   startSession: () => Promise<void>
-  stopSession: () => void
+  stopSession: () => Promise<void>
   skipCurrentVerse: () => void
   reset: () => void
 }
@@ -137,7 +137,7 @@ export function useContinuousHafalan(
                 ...v,
                 attempts: newAttempts,
                 state: newState,
-                withHint: current.state === 'hint_shown' && passed,
+                withHint: current.withHint || current.state === 'hint_shown',
                 skipped: newState === 'skipped',
                 lastScore: result.score,
                 wordResults: result.wordResults,
@@ -251,10 +251,21 @@ export function useContinuousHafalan(
   }, [stopRecordingClean, stopPoller])
 
   const skipCurrentVerse = useCallback(async () => {
+    isAdvancingRef.current = false
     await stopRecordingClean()
     stopPoller()
     updateVerse(currentIndexRef.current, { state: 'skipped', skipped: true })
   }, [stopRecordingClean, stopPoller, updateVerse])
+
+  useEffect(() => {
+    return () => {
+      isRunningRef.current = false
+      stopPoller()
+      const rec = recordingRef.current
+      recordingRef.current = null
+      if (rec) rec.stopAndUnloadAsync().catch(() => {})
+    }
+  }, [stopPoller])
 
   const reset = useCallback(() => {
     stopSession()
