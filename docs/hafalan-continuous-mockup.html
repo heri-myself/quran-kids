@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hafalan Continuous — Mushaf Mode Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0C0E14;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+  padding: 40px 20px 60px;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+.screen-label {
+  color: #4B5563;
+  font-size: 10px;
+  text-align: center;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+}
+
+/* ─── Phone Frame ─── */
+.phone {
+  width: 310px;
+  background: #111827;
+  border-radius: 44px;
+  border: 1.5px solid #1F2937;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 32px 80px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.phone-inner { height: 650px; display: flex; flex-direction: column; overflow: hidden; }
+
+/* notch */
+.notch {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 28px;
+  background: #111827;
+  border-radius: 0 0 20px 20px;
+  z-index: 10;
+}
+
+/* ─── Status bar ─── */
+.statusbar {
+  height: 44px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 20px 6px;
+  flex-shrink: 0;
+  color: #9CA3AF;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ─── Top header ─── */
+.top-header {
+  padding: 8px 18px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.back-btn {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.surah-info { flex: 1; }
+.surah-name { color: #F9FAFB; font-size: 14px; font-weight: 700; }
+.surah-sub  { color: #6B7280; font-size: 10px; margin-top: 1px; }
+.progress-badge {
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.3);
+  color: #A5B4FC;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 20px;
+  flex-shrink: 0;
+}
+
+/* ─── Progress bar (thin top strip) ─── */
+.progress-strip { height: 2px; background: rgba(255,255,255,0.05); flex-shrink: 0; }
+.progress-fill  { height: 2px; background: linear-gradient(90deg, #6366F1, #A78BFA); transition: width .5s; }
+
+/* ─── Mushaf Page ─── */
+.mushaf-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 0;
+}
+.mushaf-scroll::-webkit-scrollbar { display: none; }
+
+.mushaf-page {
+  background: #1A1F2E;
+  min-height: 100%;
+  padding: 20px 18px 16px;
+  position: relative;
+}
+
+/* Decorative top border */
+.mushaf-page::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(99,102,241,0.4), rgba(167,139,250,0.4), transparent);
+  margin-bottom: 16px;
+  border-radius: 1px;
+}
+
+/* Surah title block (basmala or surah header) */
+.mushaf-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+.mushaf-surah-title {
+  display: inline-block;
+  background: rgba(99,102,241,0.08);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 8px;
+  padding: 5px 20px;
+  color: #818CF8;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Continuous Arabic Flow ─── */
+.arabic-flow {
+  direction: rtl;
+  text-align: justify;
+  font-family: 'Scheherazade New', 'Noto Naskh Arabic', 'Traditional Arabic', serif;
+  font-size: 22px;
+  line-height: 52px;
+  color: #E5E7EB;
+  word-spacing: 6px;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Inline verse number medallion */
+.verse-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(99,102,241,0.15);
+  border: 1.5px solid rgba(99,102,241,0.35);
+  font-size: 11px;
+  font-family: 'Scheherazade New', serif;
+  color: #818CF8;
+  margin: 0 3px;
+  vertical-align: middle;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.verse-num.correct-num {
+  background: rgba(16,185,129,0.1);
+  border-color: rgba(16,185,129,0.3);
+  color: #10B981;
+}
+.verse-num.wrong-num {
+  background: rgba(239,68,68,0.1);
+  border-color: rgba(239,68,68,0.3);
+  color: #F87171;
+}
+.verse-num.hint-num {
+  background: rgba(245,158,11,0.12);
+  border-color: rgba(245,158,11,0.3);
+  color: #FCD34D;
+}
+.verse-num.active-num {
+  background: rgba(99,102,241,0.25);
+  border-color: #6366F1;
+  color: #A5B4FC;
+  box-shadow: 0 0 8px rgba(99,102,241,0.4);
+}
+
+/* Word states */
+.w { display: inline; }
+.w.correct { color: #10B981; }
+.w.wrong   { color: #EF4444; }
+.w.hint    { color: #FCD34D; }
+.w.active  { color: #E5E7EB; }
+.w.pending { color: rgba(255,255,255,0.15); }
+
+/* Pending word blur-mask (placeholder dots in-line) */
+.w-mask {
+  display: inline-block;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  height: 18px;
+  vertical-align: middle;
+  margin: 0 3px;
+}
+
+/* Active verse highlight — a gentle underline glow effect */
+.active-verse-wrap {
+  display: inline;
+}
+.active-verse-wrap .w {
+  background: rgba(99,102,241,0.07);
+  border-radius: 3px;
+}
+
+/* Waveform inline */
+.inline-waveform {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 22px;
+  vertical-align: middle;
+  margin: 0 6px;
+}
+.wb {
+  width: 3px; border-radius: 2px;
+  background: #6366F1;
+  animation: wavepulse .7s ease-in-out infinite alternate;
+}
+.wb:nth-child(2) { animation-delay: .1s; }
+.wb:nth-child(3) { animation-delay: .2s; }
+.wb:nth-child(4) { animation-delay: .12s; }
+.wb:nth-child(5) { animation-delay: .05s; }
+.wb:nth-child(6) { animation-delay: .18s; }
+@keyframes wavepulse { from{height:4px} to{height:18px} }
+
+/* Hint banner — compact inline pill */
+.hint-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 4px 4px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #FCD34D;
+  direction: ltr;
+  vertical-align: middle;
+}
+
+/* Active verse status ribbon */
+.verse-status-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin: -4px 0 4px;
+  direction: ltr;
+}
+.ribbon-chip {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.ribbon-listening { background: rgba(99,102,241,0.15); color: #A5B4FC; border: 1px solid rgba(99,102,241,0.3); }
+.ribbon-correct   { background: rgba(16,185,129,0.12); color: #10B981;  border: 1px solid rgba(16,185,129,0.3); }
+.ribbon-wrong     { background: rgba(239,68,68,0.12);  color: #F87171;  border: 1px solid rgba(239,68,68,0.3); }
+.ribbon-analyzing { background: rgba(255,255,255,0.06); color: #9CA3AF; border: 1px solid rgba(255,255,255,0.1); }
+.ribbon-hint      { background: rgba(245,158,11,0.12); color: #FCD34D;  border: 1px solid rgba(245,158,11,0.3); }
+.attempt-pips { display: flex; gap: 3px; align-items: center; }
+.pip { width: 6px; height: 6px; border-radius: 50%; background: rgba(239,68,68,0.2); }
+.pip.on { background: #EF4444; }
+
+/* ─── Bottom Bar ─── */
+.bottom-bar {
+  background: rgba(17,24,39,0.98);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 12px 18px 22px;
+  flex-shrink: 0;
+}
+.bottom-status {
+  color: #6B7280; font-size: 11px;
+  text-align: center; margin-bottom: 10px;
+  line-height: 1.4;
+}
+.bottom-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+
+.mic-btn {
+  width: 56px; height: 56px; border-radius: 28px;
+  background: #6366F1;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; cursor: pointer;
+  box-shadow: 0 0 24px rgba(99,102,241,0.45);
+  flex-shrink: 0;
+}
+.mic-btn.recording {
+  background: #EF4444;
+  box-shadow: 0 0 24px rgba(239,68,68,0.45);
+  animation: recpulse 1.4s ease-in-out infinite;
+}
+.mic-btn.dim { opacity: 0.4; }
+@keyframes recpulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
+
+.skip-btn {
+  padding: 8px 14px; border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #6B7280; font-size: 11px; cursor: pointer;
+}
+.finish-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #6366F1, #7C3AED);
+  border-radius: 14px;
+  color: #fff; font-weight: 700; font-size: 15px;
+  text-align: center; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.35);
+}
+
+/* Silence countdown bar */
+.silence-bar {
+  height: 2px; background: rgba(255,255,255,0.08);
+  border-radius: 1px; overflow: hidden;
+  margin-bottom: 8px;
+}
+.silence-fill {
+  height: 2px; background: #6366F1;
+  border-radius: 1px;
+  animation: countdown 1.5s linear forwards;
+}
+@keyframes countdown { from{width:100%} to{width:0%} }
+.silence-label { color: #6B7280; font-size: 10px; text-align: center; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ SCREEN 1: Idle ══════════════════ -->
+<div>
+<div class="screen-label">1 · Layar Awal</div>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="phone-inner">
+    <div class="statusbar"><span>9:41</span><span>●●● 100%</span></div>
+    <div class="top-header">
+      <div class="back-btn">‹</div>
+      <div class="surah-info">
+        <div class="surah-name">Al-Fatihah</div>
+        <div class="surah-sub">Mode Hafalan • 7 Ayat</div>
+      </div>
+      <div class="progress-badge">0/7</div>
+    </div>
+    <div class="progress-strip"><div class="progress-fill" style="width:0%"></div></div>
+
+    <div class="mushaf-scroll">
+      <div class="mushaf-page">
+        <div class="mushaf-header">
+          <span class="mushaf-surah-title">سُورَةُ الْفَاتِحَة</span>
+        </div>
+
+        <div class="arabic-flow">
+          <!-- All verses pending: shown as masks -->
+          <span class="w-mask" style="width:42px"></span>
+          <span class="w-mask" style="width:54px"></span>
+          <span class="w-mask" style="width:62px"></span>
+          <span class="w-mask" style="width:50px"></span>
+          <span class="verse-num">١</span>
+          <span class="w-mask" style="width:58px"></span>
+          <span class="w-mask" style="width:44px"></span>
+          <span class="w-mask" style="width:66px"></span>
+          <span class="w-mask" style="width:48px"></span>
+          <span class="verse-num">٢</span>
+          <span class="w-mask" style="width:52px"></span>
+          <span class="w-mask" style="width:44px"></span>
+          <span class="verse-num">٣</span>
+          <span class="w-mask" style="width:46px"></span>
+          <span class="w-mask" style="width:58px"></span>
+          <span class="w-mask" style="width:38px"></span>
+          <span class="verse-num">٤</span>
+          <span class="w-mask" style="width:60px"></span>
+          <span class="w-mask" style="width:44px"></span>
+          <span class="w-mask" style="width:52px"></span>
+          <span class="w-mask" style="width:40px"></span>
+          <span class="verse-num">٥</span>
+          <span class="w-mask" style="width:56px"></span>
+          <span class="w-mask" style="width:66px"></span>
+          <span class="w-mask" style="width:48px"></span>
+          <span class="verse-num">٦</span>
+          <span class="w-mask" style="width:50px"></span>
+          <span class="w-mask" style="width:42px"></span>
+          <span class="w-mask" style="width:58px"></span>
+          <span class="w-mask" style="width:44px"></span>
+          <span class="w-mask" style="width:62px"></span>
+          <span class="w-mask" style="width:36px"></span>
+          <span class="verse-num">٧</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="bottom-status">Tekan mikrofon untuk mulai membaca</div>
+      <div class="bottom-row">
+        <div class="mic-btn">🎙</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════ SCREEN 2: Active Reading (Ayat 3) ══════════════════ -->
+<div>
+<div class="screen-label">2 · Sedang Membaca — Ayat 3</div>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="phone-inner">
+    <div class="statusbar"><span>9:41</span><span>●●● 100%</span></div>
+    <div class="top-header">
+      <div class="back-btn">‹</div>
+      <div class="surah-info">
+        <div class="surah-name">Al-Fatihah</div>
+        <div class="surah-sub">Mode Hafalan • 7 Ayat</div>
+      </div>
+      <div class="progress-badge">2/7</div>
+    </div>
+    <div class="progress-strip"><div class="progress-fill" style="width:28%"></div></div>
+
+    <div class="mushaf-scroll">
+      <div class="mushaf-page">
+        <div class="mushaf-header">
+          <span class="mushaf-surah-title">سُورَةُ الْفَاتِحَة</span>
+        </div>
+
+        <div class="arabic-flow">
+          <!-- Ayat 1: CORRECT (all green) -->
+          <span class="w correct">بِسْمِ</span>
+          <span class="w correct">ٱللَّهِ</span>
+          <span class="w correct">ٱلرَّحْمَـٰنِ</span>
+          <span class="w correct">ٱلرَّحِيمِ</span>
+          <span class="verse-num correct-num">١</span>
+
+          <!-- Ayat 2: WRONG — masks shown (hidden, tried 1x) -->
+          <span class="w-mask" style="width:56px;background:rgba(239,68,68,0.15)"></span>
+          <span class="w-mask" style="width:44px;background:rgba(239,68,68,0.15)"></span>
+          <span class="w-mask" style="width:62px;background:rgba(239,68,68,0.15)"></span>
+          <span class="w-mask" style="width:50px;background:rgba(239,68,68,0.15)"></span>
+          <span class="verse-num wrong-num">٢</span>
+
+          <!-- Ayat 3: ACTIVE — listening now -->
+          <span style="display:block; margin:4px 0 2px;">
+            <span class="verse-status-ribbon">
+              <span class="ribbon-chip ribbon-listening">🎙 Mendengarkan</span>
+            </span>
+          </span>
+          <span class="w-mask" style="width:48px;background:rgba(99,102,241,0.2)"></span>
+          <span class="w-mask" style="width:36px;background:rgba(99,102,241,0.2)"></span>
+          <span class="inline-waveform">
+            <span class="wb" style="height:5px"></span>
+            <span class="wb" style="height:14px"></span>
+            <span class="wb" style="height:9px"></span>
+            <span class="wb" style="height:18px"></span>
+            <span class="wb" style="height:7px"></span>
+            <span class="wb" style="height:13px"></span>
+          </span>
+          <span class="verse-num active-num">٣</span>
+
+          <!-- Ayat 4–7: Pending masks -->
+          <span class="w-mask" style="width:46px"></span>
+          <span class="w-mask" style="width:58px"></span>
+          <span class="w-mask" style="width:38px"></span>
+          <span class="verse-num">٤</span>
+          <span class="w-mask" style="width:60px"></span>
+          <span class="w-mask" style="width:44px"></span>
+          <span class="w-mask" style="width:52px"></span>
+          <span class="w-mask" style="width:40px"></span>
+          <span class="verse-num">٥</span>
+          <span class="w-mask" style="width:56px"></span>
+          <span class="w-mask" style="width:66px"></span>
+          <span class="w-mask" style="width:48px"></span>
+          <span class="verse-num">٦</span>
+          <span class="w-mask" style="width:50px"></span>
+          <span class="w-mask" style="width:42px"></span>
+          <span class="w-mask" style="width:58px"></span>
+          <span class="verse-num">٧</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="bottom-status">🔴 Sedang merekam — baca terus</div>
+      <div class="bottom-row">
+        <div class="skip-btn">⏭ Lewati</div>
+        <div class="mic-btn recording">⏹</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════ SCREEN 3: Silence → Evaluating ══════════════════ -->
+<div>
+<div class="screen-label">3 · Jeda Terdeteksi → Menilai</div>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="phone-inner">
+    <div class="statusbar"><span>9:41</span><span>●●● 100%</span></div>
+    <div class="top-header">
+      <div class="back-btn">‹</div>
+      <div class="surah-info">
+        <div class="surah-name">Al-Fatihah</div>
+        <div class="surah-sub">Mode Hafalan • 7 Ayat</div>
+      </div>
+      <div class="progress-badge">2/7</div>
+    </div>
+    <div class="progress-strip"><div class="progress-fill" style="width:28%"></div></div>
+
+    <div class="mushaf-scroll">
+      <div class="mushaf-page">
+        <div class="mushaf-header">
+          <span class="mushaf-surah-title">سُورَةُ الْفَاتِحَة</span>
+        </div>
+
+        <div class="arabic-flow">
+          <span class="w correct">بِسْمِ</span>
+          <span class="w correct">ٱللَّهِ</span>
+          <span class="w correct">ٱلرَّحْمَـٰنِ</span>
+          <span class="w correct">ٱلرَّحِيمِ</span>
+          <span class="verse-num correct-num">١</span>
+
+          <span class="w-mask" style="width:56px;background:rgba(239,68,68,0.15)"></span>
+          <span class="w-mask" style="width:44px;background:rgba(239,68,68,0.15)"></span>
+          <span class="w-mask" style="width:62px;background:rgba(239,68,68,0.15)"></span>
+          <span class="verse-num wrong-num">٢</span>
+
+          <!-- Ayat 3: analyzing -->
+          <span style="display:block; margin:4px 0 2px;">
+            <span class="verse-status-ribbon">
+              <span class="ribbon-chip ribbon-analyzing">⏳ Menilai...</span>
+            </span>
+          </span>
+          <span class="w-mask" style="width:48px;opacity:.4"></span>
+          <span class="w-mask" style="width:36px;opacity:.4"></span>
+          <span class="verse-num" style="opacity:.5">٣</span>
+
+          <span class="w-mask" style="width:46px"></span>
+          <span class="w-mask" style="width:38px"></span>
+          <span class="verse-num">٤</span>
+          <span class="w-mask" style="width:60px"></span>
+          <span class="w-mask" style="width:52px"></span>
+          <span class="verse-num">٥</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="silence-bar"><div class="silence-fill"></div></div>
+      <div class="silence-label">Jeda terdeteksi — menilai bacaan...</div>
+      <div class="bottom-row">
+        <div class="mic-btn dim">⏹</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════ SCREEN 4: Hint Setelah 3× Salah ══════════════════ -->
+<div>
+<div class="screen-label">4 · Hint Setelah 3× Salah</div>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="phone-inner">
+    <div class="statusbar"><span>9:41</span><span>●●● 100%</span></div>
+    <div class="top-header">
+      <div class="back-btn">‹</div>
+      <div class="surah-info">
+        <div class="surah-name">Al-Fatihah</div>
+        <div class="surah-sub">Mode Hafalan • 7 Ayat</div>
+      </div>
+      <div class="progress-badge">1/7</div>
+    </div>
+    <div class="progress-strip"><div class="progress-fill" style="width:14%"></div></div>
+
+    <div class="mushaf-scroll">
+      <div class="mushaf-page">
+        <div class="mushaf-header">
+          <span class="mushaf-surah-title">سُورَةُ الْفَاتِحَة</span>
+        </div>
+
+        <div class="arabic-flow">
+          <!-- Ayat 1: Correct -->
+          <span class="w correct">بِسْمِ</span>
+          <span class="w correct">ٱللَّهِ</span>
+          <span class="w correct">ٱلرَّحْمَـٰنِ</span>
+          <span class="w correct">ٱلرَّحِيمِ</span>
+          <span class="verse-num correct-num">١</span>
+
+          <!-- Ayat 2: HINT — text revealed in amber -->
+          <span style="display:block; margin:6px 0 2px;">
+            <span class="verse-status-ribbon">
+              <span class="ribbon-chip ribbon-hint">💡 Bantuan</span>
+              <span class="attempt-pips">
+                <span class="pip on"></span><span class="pip on"></span><span class="pip on"></span>
+              </span>
+            </span>
+          </span>
+          <span class="w hint">ٱلْحَمْدُ</span>
+          <span class="w hint">لِلَّهِ</span>
+          <span class="w hint">رَبِّ</span>
+          <span class="w hint">ٱلْعَـٰلَمِينَ</span>
+          <span class="verse-num hint-num">٢</span>
+          <span class="hint-block">💡 Baca dengan benar untuk lanjut</span>
+
+          <!-- Waveform while listening with hint -->
+          <span class="inline-waveform">
+            <span class="wb" style="height:7px;background:#D97706"></span>
+            <span class="wb" style="height:15px;background:#D97706"></span>
+            <span class="wb" style="height:10px;background:#D97706"></span>
+            <span class="wb" style="height:19px;background:#D97706"></span>
+            <span class="wb" style="height:8px;background:#D97706"></span>
+            <span class="wb" style="height:13px;background:#D97706"></span>
+          </span>
+
+          <!-- Ayat 3–4 pending -->
+          <span class="w-mask" style="width:48px"></span>
+          <span class="w-mask" style="width:36px"></span>
+          <span class="verse-num">٣</span>
+          <span class="w-mask" style="width:46px"></span>
+          <span class="w-mask" style="width:52px"></span>
+          <span class="verse-num">٤</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="bottom-status">🔴 Baca ayat yang ditampilkan di atas</div>
+      <div class="bottom-row">
+        <div class="skip-btn">⏭ Lewati</div>
+        <div class="mic-btn recording">⏹</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════ SCREEN 5: All Done ══════════════════ -->
+<div>
+<div class="screen-label">5 · Semua Selesai</div>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="phone-inner">
+    <div class="statusbar"><span>9:41</span><span>●●● 100%</span></div>
+    <div class="top-header">
+      <div class="back-btn">‹</div>
+      <div class="surah-info">
+        <div class="surah-name">Al-Fatihah</div>
+        <div class="surah-sub">Mode Hafalan • Selesai 🎉</div>
+      </div>
+      <div class="progress-badge" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.3);color:#10B981">7/7</div>
+    </div>
+    <div class="progress-strip"><div class="progress-fill" style="width:100%;background:linear-gradient(90deg,#10B981,#34D399)"></div></div>
+
+    <div class="mushaf-scroll">
+      <div class="mushaf-page">
+        <div class="mushaf-header">
+          <span class="mushaf-surah-title">سُورَةُ الْفَاتِحَة</span>
+        </div>
+
+        <div class="arabic-flow">
+          <!-- All 7 verses revealed with per-word colors -->
+
+          <span class="w correct">بِسْمِ</span>
+          <span class="w correct">ٱللَّهِ</span>
+          <span class="w correct">ٱلرَّحْمَـٰنِ</span>
+          <span class="w correct">ٱلرَّحِيمِ</span>
+          <span class="verse-num correct-num">١</span>
+
+          <span class="w correct">ٱلْحَمْدُ</span>
+          <span class="w correct">لِلَّهِ</span>
+          <span class="w correct">رَبِّ</span>
+          <span class="w correct">ٱلْعَـٰلَمِينَ</span>
+          <span class="verse-num correct-num">٢</span>
+
+          <span class="w correct">ٱلرَّحْمَـٰنِ</span>
+          <span class="w correct">ٱلرَّحِيمِ</span>
+          <span class="verse-num correct-num">٣</span>
+
+          <span class="w wrong">مَـٰلِكِ</span>
+          <span class="w wrong">يَوْمِ</span>
+          <span class="w correct">ٱلدِّينِ</span>
+          <span class="verse-num wrong-num">٤</span>
+
+          <span class="w correct">إِيَّاكَ</span>
+          <span class="w correct">نَعْبُدُ</span>
+          <span class="w correct">وَإِيَّاكَ</span>
+          <span class="w correct">نَسْتَعِينُ</span>
+          <span class="verse-num correct-num">٥</span>
+
+          <span class="w correct">ٱهْدِنَا</span>
+          <span class="w correct">ٱلصِّرَٰطَ</span>
+          <span class="w correct">ٱلْمُسْتَقِيمَ</span>
+          <span class="verse-num correct-num">٦</span>
+
+          <span class="w correct">صِرَٰطَ</span>
+          <span class="w wrong">ٱلَّذِينَ</span>
+          <span class="w correct">أَنْعَمْتَ</span>
+          <span class="w wrong">عَلَيْهِمْ</span>
+          <span class="w correct">غَيْرِ</span>
+          <span class="w wrong">ٱلْمَغْضُوبِ</span>
+          <span class="verse-num wrong-num">٧</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="finish-btn">Lihat Hasil 🎉</div>
+    </div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>
