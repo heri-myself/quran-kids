@@ -71,6 +71,49 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
     })
   })
 
+  // POST /tilawah/evaluate-simple — fast evaluation (word accuracy only, no tajweed)
+  app.post('/evaluate-simple', async (request, reply) => {
+    const body = evaluateSchema.safeParse(request.body)
+    if (!body.success) return reply.code(400).send({ error: body.error.flatten() })
+
+    const { chapterId, verseNumber, expectedText, audioBase64 } = body.data
+
+    let pythonResult: any
+    try {
+      const res = await fetch('http://localhost:8001/evaluate-simple', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audio_base64: audioBase64,
+          expected_text: expectedText,
+          verse_number: verseNumber,
+          chapter_id: chapterId,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.text()
+        throw new Error(`Python sidecar error: ${err}`)
+      }
+      pythonResult = await res.json()
+    } catch (err: any) {
+      app.log.error(err)
+      return reply.code(503).send({ error: 'Evaluation service unavailable', detail: err.message })
+    }
+
+    const { score, word_accuracy, tajweed_score, word_results, feedback, transcription } = pythonResult
+
+    return reply.send({
+      verseNumber,
+      score,
+      wordAccuracy: word_accuracy,
+      tajweedScore: tajweed_score,
+      stars: score >= 85 ? 3 : score >= 65 ? 2 : 1,
+      wordResults: word_results,
+      feedback,
+      transcription,
+    })
+  })
+
   // POST /tilawah/session — simpan hasil akhir sesi ke DB + beri poin
   app.post('/session', { preHandler: [authenticate] }, async (request, reply) => {
     const schema = z.object({
