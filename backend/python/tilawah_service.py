@@ -13,8 +13,8 @@ def get_model():
     global _model
     if _model is None:
         import stable_whisper
-        print("Loading naazimsnh02/whisper-large-v3-turbo-ar-quran model...")
-        _model = stable_whisper.load_model("naazimsnh02/whisper-large-v3-turbo-ar-quran")
+        print("Loading whisper large-v3-turbo model (~809MB, first run will download)...")
+        _model = stable_whisper.load_model("large-v3-turbo")
         print("Model loaded.")
     return _model
 
@@ -93,9 +93,15 @@ def evaluate(req: EvaluateRequest):
 
     from tajweed_engine import compare_texts, detect_mad_errors, analyze_tajweed
 
+    print(f"[EXPECTED]     {req.expected_text}")
+    print(f"[TRANSCRIBED]  {transcription}")
+
     raw_word_results, word_accuracy = compare_texts(req.expected_text, transcription)
     detect_mad_errors(raw_word_results, word_timestamps)
     tajweed_score, tajweed_feedback = analyze_tajweed(raw_word_results)
+
+    for w in raw_word_results:
+        print(f"  [{w.status.upper():10}] {w.word}")
 
     word_results = [
         WordResult(
@@ -130,6 +136,69 @@ def evaluate(req: EvaluateRequest):
         tajweed_score=tajweed_score,
         score=score,
         feedback=feedback,
+    )
+
+
+@app.post("/evaluate-simple", response_model=EvaluateResponse)
+def evaluate_simple(req: EvaluateRequest):
+    try:
+        audio_bytes = base64.b64decode(req.audio_base64)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid base64 audio")
+
+    temp_path = None
+    try:
+        temp_path = load_audio_to_tempfile(audio_bytes)
+        model = get_model()
+        result = model.transcribe(temp_path, language="ar", word_timestamps=True)
+        transcription = result.text.strip()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Cannot process audio: {e}")
+    finally:
+        if temp_path:
+            try:
+                os.unlink(temp_path)
+            except Exception:
+                pass
+
+    from tajweed_engine import compare_texts
+
+    print(f"[SIMPLE][EXPECTED]    {req.expected_text}")
+    print(f"[SIMPLE][TRANSCRIBED] {transcription}")
+
+    raw_word_results, word_accuracy = compare_texts(req.expected_text, transcription)
+
+    for w in raw_word_results:
+        print(f"  [{w.status.upper():10}] {w.word}")
+
+    word_results = [
+        WordResult(
+            word=w.word,
+            correct=(w.status in ("correct", "mad_short")),
+            expected=w.word,
+            status=w.status,
+        )
+        for w in raw_word_results
+    ]
+
+    score = word_accuracy
+
+    if score >= 80:
+        feedback_msg = "MasyaAllah! Bacaan sangat bagus! 🌟"
+    elif score >= 50:
+        feedback_msg = "Bagus! Terus berlatih."
+    else:
+        feedback_msg = "Ulangi dan perhatikan kata yang disorot merah."
+
+    return EvaluateResponse(
+        transcription=transcription,
+        word_results=word_results,
+        word_accuracy=word_accuracy,
+        tajweed_score=0,
+        score=score,
+        feedback=[feedback_msg],
     )
 
 
