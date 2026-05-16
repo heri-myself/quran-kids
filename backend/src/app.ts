@@ -9,6 +9,7 @@ import storyRoutes from './routes/stories.js'
 import progressRoutes from './routes/progress.js'
 import subscriptionRoutes from './routes/subscription.js'
 import tilawahRoutes from './routes/tilawah.js'
+import hafalanRoutes from './routes/hafalan.js'
 import adminStoryRoutes from './routes/admin/stories.js'
 
 export function buildApp() {
@@ -33,6 +34,7 @@ export function buildApp() {
   app.register(progressRoutes)
   app.register(subscriptionRoutes, { prefix: '/subscription' })
   app.register(tilawahRoutes, { prefix: '/tilawah' })
+  app.register(hafalanRoutes, { prefix: '/hafalan' })
   app.register(adminStoryRoutes, { prefix: '/admin' })
 
   app.get('/health', async () => ({ status: 'ok' }))
