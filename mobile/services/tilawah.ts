@@ -6,6 +6,7 @@ export interface WordResult {
   word: string
   correct: boolean
   expected: string
+  status?: 'correct' | 'wrong' | 'missing' | 'mad_short'
 }
 
 export interface EvaluateResponse {

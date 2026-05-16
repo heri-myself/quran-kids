@@ -71,13 +71,23 @@ function WordResultRow({ words, wordResults }: { words: Verse['words']; wordResu
     <View style={styles.wordsRow}>
       {words.map((w, i) => {
         const result = wordResults[i]
-        const isCorrect = !result || result.correct !== false
+        const status = result?.status ?? (result?.correct === false ? 'wrong' : 'correct')
+        const isMadShort = status === 'mad_short'
+        const isCorrect = status === 'correct' || isMadShort
         return (
           <View
             key={i}
-            style={[styles.wordChip, isCorrect ? styles.wordCorrect : styles.wordWrong]}
+            style={[
+              styles.wordChip,
+              isMadShort ? styles.wordMadShort : isCorrect ? styles.wordCorrect : styles.wordWrong,
+            ]}
           >
-            <Text style={[styles.wordText, { color: isCorrect ? '#16A34A' : '#DC2626' }]}>
+            <Text
+              style={[
+                styles.wordText,
+                { color: isMadShort ? '#854D0E' : isCorrect ? '#16A34A' : '#DC2626' },
+              ]}
+            >
               {w.text_uthmani}
             </Text>
           </View>
@@ -315,6 +325,7 @@ const styles = StyleSheet.create({
   },
   wordCorrect: { backgroundColor: '#E6FBF0', borderColor: '#86EFAC' },
   wordWrong: { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' },
+  wordMadShort: { backgroundColor: '#FEF9C3', borderColor: '#FDE047' },
   wordText: { fontSize: 24, fontFamily: 'ScheherazadeNew-Regular', lineHeight: 40 },
   scoreRow: {
     flexDirection: 'row',

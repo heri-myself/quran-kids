@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react'
 import {
   View,
-  Text,
+  
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   Platform,
 } from 'react-native'
+import { Text } from '../../../components/Text'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import LottieView from 'lottie-react-native'
 import { useProfileStore } from '../../../stores/profile-store'
@@ -110,6 +111,22 @@ export default function TilawahResultScreen() {
           ))}
         </View>
 
+        {(() => {
+          const tajweedFeedback = verseResults
+            .flatMap((v) => v.feedback)
+            .filter((f) => f.includes('mad') || f.includes('panjang'))
+          const unique = [...new Set(tajweedFeedback)]
+          if (unique.length === 0) return null
+          return (
+            <View style={styles.tajweedCard}>
+              <Text style={styles.tajweedTitle}>📝 Catatan Tajweed</Text>
+              {unique.map((f, i) => (
+                <Text key={i} style={styles.tajweedItem}>• {f}</Text>
+              ))}
+            </View>
+          )
+        })()}
+
         <TouchableOpacity
           style={styles.btnPrimary}
           onPress={() => router.replace(`/(child)/tilawah/${params.chapterId}` as any)}
@@ -179,4 +196,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnSecondaryText: { color: '#D4D0FF', fontWeight: '600', fontSize: 15 },
+  tajweedCard: {
+    width: '100%',
+    backgroundColor: 'rgba(234,179,8,0.12)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(234,179,8,0.3)',
+  },
+  tajweedTitle: { color: '#854D0E', fontWeight: '700', fontSize: 14, marginBottom: 8 },
+  tajweedItem: { color: '#92400E', fontSize: 13, lineHeight: 20 },
 })

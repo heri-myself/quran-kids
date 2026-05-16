@@ -5,6 +5,7 @@ export interface HafalanWordResult {
   word: string
   correct: boolean
   expected: string
+  status?: 'correct' | 'wrong' | 'missing' | 'mad_short'
 }
 
 export interface SaveHafalanPayload {
@@ -18,7 +19,7 @@ export interface SaveHafalanPayload {
 }
 
 export interface SaveHafalanResponse {
-  id: string
+  sessionId: string
   avgScore: number
   pointsEarned: number
 }

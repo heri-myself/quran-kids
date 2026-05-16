@@ -20,6 +20,7 @@ import Animated, {
 import { Audio } from 'expo-av'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
 import { getSurahVerses } from '../../../services/quran'
+import { useLastActivityStore } from '../../../stores/last-activity-store'
 
 interface Verse {
   verse_number: number
@@ -214,6 +215,7 @@ const sheetStyles = StyleSheet.create({
 export default function TilawahLatihanScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const setLastTilawah = useLastActivityStore((s) => s.setLastTilawah)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [verseResults, setVerseResults] = useState<VerseResult[]>([])
   const [sheetDismissed, setSheetDismissed] = useState(false)
@@ -380,11 +382,12 @@ export default function TilawahLatihanScreen() {
             {isDone && currentEval && words.length > 0 ? (
               words.map((w, i) => {
                 const wordResult = currentEval.wordResults?.[i]
-                const isCorrect = !wordResult || wordResult.correct !== false
+                const status = wordResult?.status ?? (wordResult?.correct === false ? 'wrong' : 'correct')
+                const wordColor = status === 'mad_short' ? '#EAB308' : status === 'correct' ? '#10B981' : '#EF4444'
                 return (
                   <Text
                     key={i}
-                    style={[styles.arabicWord, { color: isCorrect ? '#10B981' : '#EF4444' }]}
+                    style={[styles.arabicWord, { color: wordColor }]}
                   >
                     {w.text_uthmani}
                   </Text>
@@ -542,6 +545,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
+    paddingBottom: 100,
     alignItems: 'center',
     gap: 16,
   },

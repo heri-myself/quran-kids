@@ -1,5 +1,5 @@
 // mobile/app/(child)/hafalan/result.tsx
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   View,
   TouchableOpacity,
@@ -36,8 +36,12 @@ export default function HafalanResultScreen() {
     verseResults.length > 0
       ? Math.round(verseResults.reduce((s, v) => s + v.score, 0) / verseResults.length)
       : 0
-  const pointsEarned = avgScore >= 90 ? 50 : avgScore >= 70 ? 30 : 15
+  const [pointsEarned, setPointsEarned] = useState(avgScore >= 90 ? 50 : avgScore >= 70 ? 30 : 15)
   const stars = avgScore >= 85 ? 3 : avgScore >= 65 ? 2 : 1
+  const madShortCount = verseResults.reduce(
+    (total, v) => total + (v.wordResults ?? []).filter((w) => w.status === 'mad_short').length,
+    0
+  )
   const starEmojis = Array.from({ length: 3 }, (_, i) => (i < stars ? '⭐' : '☆')).join(' ')
 
   const hasSavedRef = useRef(false)
@@ -48,7 +52,7 @@ export default function HafalanResultScreen() {
 
     const save = async () => {
       try {
-        await saveHafalanSession({
+        const response = await saveHafalanSession({
           profileId: activeProfile.id,
           chapterId: Number(params.chapterId),
           verses: verseResults.map((v) => ({
@@ -57,6 +61,7 @@ export default function HafalanResultScreen() {
             wordResults: v.wordResults,
           })),
         })
+        setPointsEarned(response.pointsEarned)
       } catch (e) {
         console.error('Gagal simpan sesi hafalan:', e)
       }
@@ -93,6 +98,16 @@ export default function HafalanResultScreen() {
             </View>
           ))}
         </View>
+
+        {madShortCount > 0 && (
+          <View style={styles.tajweedCard}>
+            <Text style={styles.tajweedTitle}>📝 Catatan Tajweed</Text>
+            <Text style={styles.tajweedItem}>
+              • Ada {madShortCount} kata dengan mad (huruf panjang) yang terlalu pendek.
+              Perhatikan kata yang ditandai kuning.
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity
           style={styles.btnPrimary}
@@ -163,4 +178,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   btnSecondaryText: { color: '#D4D0FF', fontWeight: '600', fontSize: 15 },
+  tajweedCard: {
+    width: '100%',
+    backgroundColor: 'rgba(234,179,8,0.12)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(234,179,8,0.3)',
+  },
+  tajweedTitle: { color: '#854D0E', fontWeight: '700', fontSize: 14, marginBottom: 8 },
+  tajweedItem: { color: '#92400E', fontSize: 13, lineHeight: 20 },
 })
