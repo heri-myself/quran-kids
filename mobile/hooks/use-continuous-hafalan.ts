@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Audio } from 'expo-av'
 import * as FileSystem from 'expo-file-system/legacy'
-import { evaluateVerse } from '../services/tilawah'
+import { evaluateVerseSimple } from '../services/tilawah'
 import type { EvaluateResponse } from '../services/tilawah'
 
 export type VerseState =
@@ -113,12 +113,12 @@ export function useContinuousHafalan(
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any })
       const cur = verseAttemptsRef.current[idx]
       const expectedText = getExpectedText(cur.verseNumber)
-      const result = await evaluateVerse(chapterId, cur.verseNumber, expectedText, base64)
+      const result = await evaluateVerseSimple(chapterId, cur.verseNumber, expectedText, base64)
 
       setVerseAttempts((prev) => {
         const current = prev[idx]
         const newAttempts = current.attempts + 1
-        const passed = result.score >= 60
+        const passed = result.score >= 50
 
         let newState: VerseState
         if (passed) {
