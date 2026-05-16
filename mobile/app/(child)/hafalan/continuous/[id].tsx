@@ -4,12 +4,10 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   StyleSheet,
 } from 'react-native'
 import { Text } from '../../../../components/Text'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
-import { useQuery } from '@tanstack/react-query'
 import { getSurahVerses } from '../../../../services/quran'
 import { useContinuousHafalan } from '../../../../hooks/use-continuous-hafalan'
 import type { VerseAttempt, VerseState } from '../../../../hooks/use-continuous-hafalan'
@@ -99,12 +97,10 @@ export default function ContinuousHafalanScreen() {
   const scrollRef = useRef<ScrollView>(null)
   const verseYPositions = useRef<Record<number, number>>({})
 
-  const { data: verses = [], isLoading } = useQuery<Verse[]>({
-    queryKey: ['verses', chapterId],
-    queryFn: () => getSurahVerses(chapterId) as unknown as Verse[],
-    staleTime: Infinity,
-    enabled: !isNaN(chapterId),
-  })
+  const verses = useMemo(
+    () => (isNaN(chapterId) ? [] : getSurahVerses(chapterId) as unknown as Verse[]),
+    [chapterId]
+  )
 
   const verseNumbers = useMemo(() => verses.map((v) => v.verse_number), [verses])
 
@@ -157,13 +153,7 @@ export default function ContinuousHafalanScreen() {
     })
   }
 
-  if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color="#6366F1" />
-      </View>
-    )
-  }
+
 
   const correctCount = verseAttempts.filter((v) => v.state === 'correct').length
   const progress = verseNumbers.length > 0 ? correctCount / verseNumbers.length : 0
