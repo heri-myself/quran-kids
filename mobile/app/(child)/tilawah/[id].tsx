@@ -11,7 +11,7 @@ import { Text } from '../../../components/Text'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { Audio } from 'expo-av'
 import * as FileSystem from 'expo-file-system/legacy'
-import { evaluateVerse } from '../../../services/tilawah'
+import { evaluateVerseSimple } from '../../../services/tilawah'
 import { calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
 import { getSurahVerses } from '../../../services/quran'
 import { useLastActivityStore } from '../../../stores/last-activity-store'
@@ -93,7 +93,7 @@ export default function TilawahLatihanScreen() {
     try {
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any })
       const verse = verses[idx]
-      const result = await evaluateVerse(chapterId, verse.verse_number, verse.text_uthmani, base64)
+      const result = await evaluateVerseSimple(chapterId, verse.verse_number, verse.text_uthmani, base64)
 
       updateStatus(idx, { state: 'done', wordResults: result.wordResults, score: result.score, evaluation: result })
 
