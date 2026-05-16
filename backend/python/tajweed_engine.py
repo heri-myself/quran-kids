@@ -72,9 +72,11 @@ def compare_texts(expected: str, transcribed: str) -> tuple[list[WordResult], in
                 idx = i1 + k
                 results[idx] = WordResult(word=expected_words[idx], status="correct", position=idx)
         elif tag == 'replace':
+            spoken_count = j2 - j1  # how many transcribed words replace this range
             for k in range(i2 - i1):
                 idx = i1 + k
-                results[idx] = WordResult(word=expected_words[idx], status="wrong", position=idx)
+                status = "wrong" if k < spoken_count else "missing"
+                results[idx] = WordResult(word=expected_words[idx], status=status, position=idx)
         elif tag == 'delete':
             for k in range(i2 - i1):
                 idx = i1 + k
@@ -96,6 +98,7 @@ def detect_mad_errors(
     word_results: list[WordResult],
     word_timestamps: list[dict],
 ) -> None:
+    """Mutates word_results in-place: sets status to 'mad_short' for correct words with too-short mad duration."""
     for i, wr in enumerate(word_results):
         if wr.status != "correct":
             continue

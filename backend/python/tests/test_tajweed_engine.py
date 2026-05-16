@@ -75,3 +75,20 @@ def test_analyze_tajweed_max_penalty_is_50():
     word_results = [WordResult(word=f"word{i}", status="mad_short", position=i) for i in range(10)]
     score, feedback = analyze_tajweed(word_results)
     assert score == 50
+
+def test_detect_mad_exactly_at_threshold_stays_correct():
+    # duration == 0.25 should be sufficient (threshold is exclusive <)
+    word_results = [WordResult(word="الرَّحْمَٰنِ", status="correct", position=0)]
+    timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.25}]
+    detect_mad_errors(word_results, timestamps)
+    assert word_results[0].status == "correct"
+
+def test_detect_mad_missing_timestamp_skips_gracefully():
+    word_results = [
+        WordResult(word="الرَّحْمَٰنِ", status="correct", position=0),
+        WordResult(word="الرَّحِيمِ", status="correct", position=1),
+    ]
+    timestamps = [{"word": "الرَّحْمَٰنِ", "start": 0.0, "end": 0.05}]  # only 1 timestamp for 2 words
+    detect_mad_errors(word_results, timestamps)
+    assert word_results[0].status == "mad_short"
+    assert word_results[1].status == "correct"  # no timestamp → skipped, stays correct
