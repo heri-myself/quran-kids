@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Hafalan — Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+    gap: 32px;
+    flex-wrap: wrap;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .label {
+    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+    text-align: center;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 375px;
+    min-height: 700px;
+    background: #fff;
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 0 0 1.5px rgba(255,255,255,0.15);
+    position: relative;
+  }
+
+  .screen {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── GRADIENT BG ── */
+  .bg-gradient {
+    background: linear-gradient(180deg, #6C5CE7 0%, #9B8FF0 28%, #E8E4FF 60%, #fff 100%);
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+  }
+  .status-bar span { font-size: 12px; font-weight: 600; color: #fff; }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 0 20px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px; cursor: pointer;
+  }
+  .header-text { flex: 1; }
+  .header-text h1 { font-size: 18px; font-weight: 800; color: #fff; }
+  .header-text p { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+
+  /* progress bar */
+  .progress-wrap {
+    padding: 0 20px 24px;
+  }
+  .progress-track {
+    height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px;
+  }
+  .progress-fill {
+    height: 4px; background: #FF6B35; border-radius: 99px;
+    width: 14%; /* 1 of 7 */
+    transition: width .4s;
+  }
+  .progress-label {
+    font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 6px; text-align: right;
+  }
+
+  /* ── BODY CARD ── */
+  .body-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 28px 28px 0 0;
+    margin-top: 0;
+    padding: 28px 20px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ── VERSE AREA ── */
+  .verse-area {
+    background: #F5F3FF;
+    border-radius: 20px;
+    padding: 22px 20px;
+    min-height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    border: 1.5px solid rgba(108,92,231,0.12);
+  }
+
+  /* hidden state */
+  .hidden-dots {
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  }
+  .dot-word {
+    width: 40px; height: 14px;
+    background: rgba(108,92,231,0.15);
+    border-radius: 7px;
+  }
+  .dot-word.sm { width: 28px; }
+  .dot-word.lg { width: 54px; }
+
+  /* result words */
+  .words-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    justify-content: center;
+    direction: rtl;
+  }
+  .word-chip {
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 22px;
+    font-family: 'Scheherazade New', 'Amiri', serif;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .word-correct {
+    background: #E6FBF0;
+    color: #16A34A;
+    border: 1.5px solid #86EFAC;
+  }
+  .word-wrong {
+    background: #FEE2E2;
+    color: #DC2626;
+    border: 1.5px solid #FCA5A5;
+  }
+  .word-pending {
+    background: #F1F5F9;
+    color: #94A3B8;
+    border: 1.5px solid #E2E8F0;
+  }
+
+  /* analyzing */
+  .analyzing-text {
+    font-size: 13px; color: #6C5CE7; font-weight: 600;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .pulse { animation: pulse 1.2s ease-in-out infinite; }
+
+  /* ── SCORE SECTION ── */
+  .score-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px;
+    background: #FAFAFA;
+    border-radius: 14px;
+    border: 1px solid #F0F0F0;
+  }
+  .score-left { display: flex; flex-direction: column; gap: 2px; }
+  .score-label { font-size: 10px; color: #94A3B8; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; }
+  .score-value { font-size: 22px; font-weight: 800; color: #1A1A2E; }
+  .stars { font-size: 22px; letter-spacing: 2px; }
+
+  /* ── REC BUTTON ── */
+  .rec-wrap {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .rec-btn {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #6C5CE7, #A78BFA);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 8px 24px rgba(108,92,231,0.45);
+    cursor: pointer;
+    border: none;
+    transition: transform .15s;
+  }
+  .rec-btn:active { transform: scale(.95); }
+  .rec-btn.recording {
+    background: linear-gradient(135deg, #EF4444, #F87171);
+    box-shadow: 0 8px 24px rgba(239,68,68,0.45);
+  }
+  .rec-btn.analyzing {
+    background: #E2E8F0;
+    box-shadow: none;
+    cursor: default;
+  }
+  .rec-hint { font-size: 13px; color: #94A3B8; font-weight: 500; }
+
+  /* waveform */
+  .waveform {
+    display: flex; align-items: center; gap: 3px; height: 28px;
+  }
+  .waveform-bar {
+    width: 3px; border-radius: 2px;
+    background: #6C5CE7;
+    animation: wave 0.8s ease-in-out infinite;
+  }
+  .waveform-bar:nth-child(1) { height: 10px; animation-delay: 0s; }
+  .waveform-bar:nth-child(2) { height: 20px; animation-delay: .1s; }
+  .waveform-bar:nth-child(3) { height: 14px; animation-delay: .2s; }
+  .waveform-bar:nth-child(4) { height: 24px; animation-delay: .3s; }
+  .waveform-bar:nth-child(5) { height: 18px; animation-delay: .2s; }
+  .waveform-bar:nth-child(6) { height: 12px; animation-delay: .1s; }
+  .waveform-bar:nth-child(7) { height: 22px; animation-delay: 0s; }
+  @keyframes wave {
+    0%,100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.8); }
+  }
+
+  /* ── NEXT BUTTON ── */
+  .next-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #FF6B35, #FF8C5A);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,107,53,0.4);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .try-again-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 16px;
+    background: transparent;
+    color: #6C5CE7;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1.5px solid rgba(108,92,231,0.3);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* ── SPINNER ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2.5px solid rgba(108,92,231,0.2);
+    border-top-color: #6C5CE7;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+
+  /* ── TAB SWITCHER ── */
+  .tabs {
+    display: flex; gap: 8px; justify-content: center;
+    margin-bottom: 8px;
+  }
+  .tab {
+    padding: 6px 14px; border-radius: 99px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer; border: none;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .tab.active {
+    background: rgba(255,255,255,0.25);
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── STATE 1: IDLE ── -->
+<div>
+  <div class="label">① Idle — siap rekam</div>
+  <div class="phone">
+    <div class="screen bg-gradient">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>◼◼◼</span>
+      </div>
+      <div class="header">
+        <div class="back-btn">←</div>
+        <div class="header-text">
+          <h1>Al-Fatihah</h1>
+          <p>Uji hafalanmu</p>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" style="width:14%"></div></div>
+        <div class="progress-label">Ayat 1 / 7</div>
+      </div>
+      <div class="body-card">
+        <div class="verse-area">
+          <div style="font-size:11px;color:#94A3B8;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Bacakan ayat ini</div>
+          <div class="hidden-dots">
+            <div class="dot-word sm"></div>
+            <div class="dot-word lg"></div>
+            <div class="dot-word"></div>
+            <div class="dot-word lg"></div>
+          </div>
+          <div style="font-size:11px;color:rgba(108,92,231,0.5);margin-top:4px">Teks disembunyikan • rekam dulu</div>
+        </div>
+
+        <div class="rec-wrap" style="margin-top:8px">
+          <button class="rec-btn">🎙️</button>
+          <span class="rec-hint">Tekan untuk mulai merekam</span>
+        </div>
+
+        <div style="flex:1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATE 2: RECORDING ── -->
+<div>
+  <div class="label">② Sedang merekam</div>
+  <div class="phone">
+    <div class="screen bg-gradient">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>◼◼◼</span>
+      </div>
+      <div class="header">
+        <div class="back-btn">←</div>
+        <div class="header-text">
+          <h1>Al-Fatihah</h1>
+          <p>Uji hafalanmu</p>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" style="width:14%"></div></div>
+        <div class="progress-label">Ayat 1 / 7</div>
+      </div>
+      <div class="body-card">
+        <div class="verse-area" style="border-color:rgba(239,68,68,0.2);background:#FFF5F5;">
+          <div style="font-size:11px;color:#EF4444;font-weight:700;letter-spacing:1px;text-transform:uppercase">🔴 Merekam...</div>
+          <div class="waveform">
+            <div class="waveform-bar" style="background:#EF4444"></div>
+            <div class="waveform-bar" style="background:#EF4444"></div>
+            <div class="waveform-bar" style="background:#EF4444"></div>
+            <div class="waveform-bar" style="background:#EF4444"></div>
+            <div class="waveform-bar" style="background:#EF4444"></div>
+            <div class="waveform-bar" style="background:#EF4444"></div>
+            <div class="waveform-bar" style="background:#EF4444"></div>
+          </div>
+          <div style="font-size:13px;color:#94A3B8">0:03</div>
+        </div>
+
+        <div class="rec-wrap" style="margin-top:8px">
+          <button class="rec-btn recording">⏹️</button>
+          <span class="rec-hint" style="color:#EF4444;font-weight:600">Tekan untuk selesai</span>
+        </div>
+
+        <div style="flex:1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATE 3: ANALYZING ── -->
+<div>
+  <div class="label">③ Sedang dinilai</div>
+  <div class="phone">
+    <div class="screen bg-gradient">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>◼◼◼</span>
+      </div>
+      <div class="header">
+        <div class="back-btn">←</div>
+        <div class="header-text">
+          <h1>Al-Fatihah</h1>
+          <p>Uji hafalanmu</p>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" style="width:14%"></div></div>
+        <div class="progress-label">Ayat 1 / 7</div>
+      </div>
+      <div class="body-card">
+        <div class="verse-area">
+          <div class="spinner"></div>
+          <div class="analyzing-text pulse">Sedang dinilai bacaanmu...</div>
+        </div>
+
+        <div class="rec-wrap" style="margin-top:8px">
+          <button class="rec-btn analyzing">⏳</button>
+          <span class="rec-hint">Mohon tunggu sebentar</span>
+        </div>
+
+        <div style="flex:1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATE 4: RESULT (GOOD) ── -->
+<div>
+  <div class="label">④ Hasil — sebagian benar</div>
+  <div class="phone">
+    <div class="screen bg-gradient">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>◼◼◼</span>
+      </div>
+      <div class="header">
+        <div class="back-btn">←</div>
+        <div class="header-text">
+          <h1>Al-Fatihah</h1>
+          <p>Uji hafalanmu</p>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" style="width:14%"></div></div>
+        <div class="progress-label">Ayat 1 / 7</div>
+      </div>
+      <div class="body-card">
+        <div class="verse-area">
+          <div style="font-size:11px;color:#16A34A;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">✓ Selesai dibaca</div>
+          <div class="words-row">
+            <span class="word-chip word-correct">بِسْمِ</span>
+            <span class="word-chip word-correct">ٱللَّهِ</span>
+            <span class="word-chip word-wrong">ٱلرَّحْمَٰنِ</span>
+            <span class="word-chip word-correct">ٱلرَّحِيمِ</span>
+          </div>
+        </div>
+
+        <div class="score-row">
+          <div class="score-left">
+            <span class="score-label">Skor</span>
+            <span class="score-value">75</span>
+          </div>
+          <div class="stars">⭐⭐⭐</div>
+          <div style="font-size:11px;color:#94A3B8;text-align:right;line-height:1.5">
+            3 benar<br>1 perlu latihan
+          </div>
+        </div>
+
+        <button class="next-btn">Ayat Berikutnya →</button>
+        <button class="try-again-btn">↺ Ulangi Ayat Ini</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATE 5: RESULT PERFECT ── -->
+<div>
+  <div class="label">⑤ Hasil — sempurna</div>
+  <div class="phone">
+    <div class="screen bg-gradient">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span>◼◼◼</span>
+      </div>
+      <div class="header">
+        <div class="back-btn">←</div>
+        <div class="header-text">
+          <h1>Al-Fatihah</h1>
+          <p>Uji hafalanmu</p>
+        </div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" style="width:14%"></div></div>
+        <div class="progress-label">Ayat 1 / 7</div>
+      </div>
+      <div class="body-card">
+        <div class="verse-area" style="background:#F0FDF4;border-color:rgba(22,163,74,0.2)">
+          <div style="font-size:13px;color:#16A34A;font-weight:700;margin-bottom:8px">🎉 Sempurna!</div>
+          <div class="words-row">
+            <span class="word-chip word-correct">بِسْمِ</span>
+            <span class="word-chip word-correct">ٱللَّهِ</span>
+            <span class="word-chip word-correct">ٱلرَّحْمَٰنِ</span>
+            <span class="word-chip word-correct">ٱلرَّحِيمِ</span>
+          </div>
+        </div>
+
+        <div class="score-row">
+          <div class="score-left">
+            <span class="score-label">Skor</span>
+            <span class="score-value">100</span>
+          </div>
+          <div class="stars">⭐⭐⭐</div>
+          <div style="font-size:22px">🏆</div>
+        </div>
+
+        <button class="next-btn">Ayat Berikutnya →</button>
+        <button class="try-again-btn">↺ Ulangi Ayat Ini</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
