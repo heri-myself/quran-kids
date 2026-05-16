@@ -1,26 +1,24 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   View,
-  Text,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
   StyleSheet,
   Platform,
-  Modal,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-} from 'react-native-reanimated'
+import { Text } from '../../../components/Text'
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import { Audio } from 'expo-av'
-import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
+import * as FileSystem from 'expo-file-system/legacy'
+import { evaluateVerse } from '../../../services/tilawah'
+import { calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
 import { getSurahVerses } from '../../../services/quran'
 import { useLastActivityStore } from '../../../stores/last-activity-store'
+
+const SILENCE_DB = -50
+const SILENCE_MS = 1500
+const POLL_MS    = 100
 
 interface Verse {
   verse_number: number
@@ -29,574 +27,391 @@ interface Verse {
   words: { text_uthmani: string; position: number }[]
 }
 
-function WaveformBar({ index, isActive }: { index: number; isActive: boolean }) {
-  const height = useSharedValue(8)
-  useEffect(() => {
-    if (isActive) {
-      height.value = withRepeat(
-        withSequence(
-          withTiming(8 + (index % 5) * 5, { duration: 200 + index * 40 }),
-          withTiming(8, { duration: 200 + index * 40 })
-        ),
-        -1,
-        true
-      )
-    } else {
-      height.value = withTiming(8)
-    }
-  }, [isActive])
-  const style = useAnimatedStyle(() => ({ height: height.value }))
-  return <Animated.View style={[styles.waveBar, style]} />
+type VerseState = 'pending' | 'listening' | 'analyzing' | 'done'
+
+interface VerseStatus {
+  state: VerseState
+  wordResults: { status?: string; correct?: boolean }[]
+  score: number
 }
 
-function AudioSampleSheet({
-  visible,
-  chapterId,
-  verseNumber,
-  onDismiss,
-  onPlay,
-  isLoading,
-  audioError,
-}: {
-  visible: boolean
-  chapterId: string
-  verseNumber: number
-  onDismiss: () => void
-  onPlay: () => void
-  isLoading: boolean
-  audioError: string | null
-}) {
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onDismiss}
-    >
-      <View style={sheetStyles.overlay}>
-        <View style={sheetStyles.sheet}>
-          <View style={sheetStyles.handle} />
-          <Text style={sheetStyles.title}>🎧 Mau dengar contoh bacaan?</Text>
-          <Text style={sheetStyles.subtitle}>
-            Sudah 3x mencoba. Yuk dengar dulu cara yang benar!
-          </Text>
-          <View style={sheetStyles.waveform}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <View
-                key={i}
-                style={[sheetStyles.waveBar, { height: 8 + (i % 5) * 4 }]}
-              />
-            ))}
-            <Text style={sheetStyles.waveLabel}>
-              Surah {chapterId} : {verseNumber}
-            </Text>
-          </View>
-          {audioError && (
-            <Text style={sheetStyles.errorText}>{audioError}</Text>
-          )}
-          <View style={sheetStyles.actions}>
-            <TouchableOpacity style={sheetStyles.skipBtn} onPress={onDismiss}>
-              <Text style={sheetStyles.skipText}>Lewati</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[sheetStyles.playBtn, (isLoading || !!audioError) && { opacity: 0.6 }]}
-              onPress={onPlay}
-              disabled={isLoading || !!audioError}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <Text style={sheetStyles.playText}>▶ Dengar Contoh</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  )
+function toArabicNum(n: number) {
+  return n.toString().replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d)])
 }
 
-const sheetStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#1E1B3A',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(124,111,241,0.3)',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-    marginBottom: 6,
-  },
-  subtitle: {
-    color: '#8B8BAA',
-    fontSize: 13,
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  waveform: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(124,111,241,0.1)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
-  },
-  waveBar: {
-    width: 4,
-    backgroundColor: '#7C6FF1',
-    borderRadius: 2,
-  },
-  waveLabel: {
-    color: '#BDB8FF',
-    fontSize: 12,
-    marginLeft: 8,
-    flex: 1,
-  },
-  errorText: {
-    color: '#EF4444',
-    fontSize: 12,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
-  skipBtn: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  skipText: {
-    color: '#BDB8FF',
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  playBtn: {
-    flex: 2,
-    backgroundColor: '#7C6FF1',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    shadowColor: '#7C6FF1',
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  playText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-})
+function wordColor(status: string | undefined, state: VerseState): string {
+  if (state === 'pending' || state === 'listening' || state === 'analyzing') {
+    return 'rgba(255,255,255,0.15)'
+  }
+  if (!status || status === 'correct') return '#10B981'
+  if (status === 'mad_short') return '#EAB308'
+  return '#EF4444'
+}
+
+const NUM_COLORS: Record<VerseState, { bg: string; border: string; color: string }> = {
+  pending:   { bg: 'rgba(124,111,241,0.1)',  border: 'rgba(124,111,241,0.25)', color: '#BDB8FF' },
+  listening: { bg: 'rgba(124,111,241,0.25)', border: '#7C6FF1',                color: '#E0DDFF' },
+  analyzing: { bg: 'rgba(255,255,255,0.07)', border: 'rgba(255,255,255,0.15)', color: '#94A3B8' },
+  done:      { bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',   color: '#10B981' },
+}
 
 export default function TilawahLatihanScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const chapterId = Number(id)
   const router = useRouter()
   const setLastTilawah = useLastActivityStore((s) => s.setLastTilawah)
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [verseResults, setVerseResults] = useState<VerseResult[]>([])
-  const [sheetDismissed, setSheetDismissed] = useState(false)
-  const [audioLoading, setAudioLoading] = useState(false)
-  const [audioError, setAudioError] = useState<string | null>(null)
-  const soundRef = useRef<any>(null)
 
-  useEffect(() => {
-    return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync().catch(() => {})
-        soundRef.current = null
-      }
-    }
+  const verses = useMemo(() => getSurahVerses(chapterId) as unknown as Verse[], [chapterId])
+  const verseNumbers = useMemo(() => verses.map((v) => v.verse_number), [verses])
+
+  const [statuses, setStatuses] = useState<VerseStatus[]>(() =>
+    verseNumbers.map(() => ({ state: 'pending', wordResults: [], score: 0 }))
+  )
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isRunning, setIsRunning] = useState(false)
+  const [verseResults, setVerseResults] = useState<VerseResult[]>([])
+  const scrollRef = useRef<ScrollView>(null)
+  const verseYPositions = useRef<Record<number, number>>({})
+
+  // Recording refs
+  const recordingRef   = useRef<Audio.Recording | null>(null)
+  const pollerRef      = useRef<ReturnType<typeof setInterval> | null>(null)
+  const silenceRef     = useRef(0)
+  const isEvalRef      = useRef(false)
+  const isRunningRef   = useRef(false)
+  const currentIdxRef  = useRef(0)
+
+  const stopPoller = useCallback(() => {
+    if (pollerRef.current) { clearInterval(pollerRef.current); pollerRef.current = null }
   }, [])
 
-  const verses = getSurahVerses(Number(id)) as Verse[]
-  const isLoading = false
-
-  const { recordingState, currentEval, error, retryCount, startRecording, stopAndEvaluate, reset, resetVerse } =
-    useTilawah(Number(id))
-
-  const currentVerse = verses[currentIndex]
-  const isRecording = recordingState === 'recording'
-  const isAnalyzing = recordingState === 'analyzing'
-  const isDone = recordingState === 'done'
-
-  const handleMicPress = async () => {
-    if (recordingState === 'idle' || recordingState === 'error') {
-      await startRecording()
-    } else if (recordingState === 'recording') {
-      if (!currentVerse) return
-      const result = await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
-      if (result) {
-        setVerseResults((prev) => {
-          const newEntry: VerseResult = {
-            verseNumber: currentVerse.verse_number,
-            score: result.score,
-            wordAccuracy: result.wordAccuracy,
-            tajweedScore: result.tajweedScore,
-            feedback: result.feedback,
-            evaluation: result,
-          }
-          const existing = prev.findIndex((v) => v.verseNumber === currentVerse.verse_number)
-          if (existing >= 0) {
-            const updated = [...prev]
-            if (result.score > prev[existing].score) updated[existing] = newEntry
-            return updated
-          }
-          return [...prev, newEntry]
-        })
-      }
-    }
-  }
-
-  const handleNext = () => {
-    if (currentIndex + 1 >= verses.length) {
-      const allResults = [...verseResults]
-      const avg =
-        allResults.length > 0
-          ? Math.round(allResults.reduce((s, v) => s + v.score, 0) / allResults.length)
-          : 0
-      const stars = calcStars(avg)
-      const points = calcPoints(stars, avg)
-      router.replace({
-        pathname: '/(child)/tilawah/result',
-        params: {
-          chapterId: String(id),
-          totalScore: String(avg),
-          stars: String(stars),
-          pointsEarned: String(points),
-          verseResults: JSON.stringify(allResults),
-        },
-      })
-    } else {
-      setCurrentIndex((i) => i + 1)
-      setSheetDismissed(false)
-      setAudioError(null)
-      resetVerse()
-    }
-  }
-
-  const playAudioSample = async () => {
-    if (!currentVerse) return
-    setAudioLoading(true)
-    setAudioError(null)
+  const stopRec = useCallback(async (): Promise<string | null> => {
+    stopPoller()
+    const rec = recordingRef.current
+    if (!rec) return null
+    recordingRef.current = null
     try {
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync()
-        soundRef.current = null
-      }
-      const verseKey = `${id}:${currentVerse.verse_number}`
-      const res = await fetch(
-        `https://api.quran.com/api/v4/recitations/12/by_ayah/${verseKey}`
-      )
-      if (!res.ok) throw new Error('Gagal mengambil audio')
-      const data = await res.json()
-      const rawUrl = data?.audio_files?.[0]?.url
-      if (!rawUrl) throw new Error('URL audio tidak tersedia')
-      const audioUrl = rawUrl.startsWith('http') ? rawUrl : rawUrl.startsWith('//') ? `https:${rawUrl}` : `https://verses.quran.com${rawUrl}`
+      await rec.stopAndUnloadAsync()
+      return rec.getURI() ?? null
+    } catch { return null }
+  }, [stopPoller])
 
-      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, allowsRecordingIOS: false })
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: true }
-      )
-      soundRef.current = sound
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.didJustFinish) {
-          setSheetDismissed(true)
-          soundRef.current = null
+  const updateStatus = useCallback((idx: number, patch: Partial<VerseStatus>) => {
+    setStatuses((prev) => prev.map((s, i) => i === idx ? { ...s, ...patch } : s))
+  }, [])
+
+  const evaluateAndAdvance = useCallback(async (uri: string) => {
+    if (isEvalRef.current) return
+    isEvalRef.current = true
+    const idx = currentIdxRef.current
+    updateStatus(idx, { state: 'analyzing' })
+
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any })
+      const verse = verses[idx]
+      const result = await evaluateVerse(chapterId, verse.verse_number, verse.text_uthmani, base64)
+
+      updateStatus(idx, { state: 'done', wordResults: result.wordResults, score: result.score })
+
+      setVerseResults((prev) => {
+        const entry: VerseResult = {
+          verseNumber: verse.verse_number,
+          score: result.score,
+          wordAccuracy: result.wordAccuracy,
+          tajweedScore: result.tajweedScore,
+          feedback: result.feedback,
+          evaluation: result,
         }
+        const existing = prev.findIndex((v) => v.verseNumber === verse.verse_number)
+        if (existing >= 0) {
+          const updated = [...prev]
+          if (result.score > prev[existing].score) updated[existing] = entry
+          return updated
+        }
+        return [...prev, entry]
       })
-    } catch (e: any) {
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync().catch(() => {})
-        soundRef.current = null
+
+      // Advance to next verse after 500ms
+      await new Promise((r) => setTimeout(r, 500))
+      const nextIdx = idx + 1
+      if (nextIdx >= verses.length || !isRunningRef.current) {
+        setIsRunning(false)
+        isRunningRef.current = false
+        return
       }
-      setAudioError(e.message ?? 'Audio tidak tersedia')
+
+      // Start listening for next verse
+      await startListening(nextIdx)
+    } catch {
+      updateStatus(idx, { state: 'pending' })
     } finally {
-      setAudioLoading(false)
+      isEvalRef.current = false
     }
-  }
+  }, [chapterId, verses, updateStatus])
 
-  const dismissSheet = async () => {
-    if (soundRef.current) {
-      await soundRef.current.unloadAsync().catch(() => {})
-      soundRef.current = null
+  const startListening = useCallback(async (idx: number) => {
+    if (!isRunningRef.current) return
+    currentIdxRef.current = idx
+    setCurrentIndex(idx)
+    silenceRef.current = 0
+    updateStatus(idx, { state: 'listening', wordResults: [], score: 0 })
+
+    // Scroll to verse
+    setTimeout(() => {
+      const y = verseYPositions.current[idx]
+      if (y !== undefined) scrollRef.current?.scrollTo({ y, animated: true })
+    }, 100)
+
+    try {
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true })
+      const { recording } = await Audio.Recording.createAsync({
+        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        isMeteringEnabled: true,
+      })
+      recordingRef.current = recording
+
+      pollerRef.current = setInterval(async () => {
+        if (!isRunningRef.current || isEvalRef.current) return
+        try {
+          const status = await recording.getStatusAsync()
+          const metering = (status as any).metering ?? 0
+          if (metering < SILENCE_DB) {
+            silenceRef.current += POLL_MS
+          } else {
+            silenceRef.current = 0
+          }
+          if (silenceRef.current >= SILENCE_MS) {
+            silenceRef.current = 0
+            stopPoller()
+            const uri = await stopRec()
+            if (uri) await evaluateAndAdvance(uri)
+          }
+        } catch { /* recording unloaded */ }
+      }, POLL_MS)
+    } catch {
+      updateStatus(idx, { state: 'pending' })
     }
-    setSheetDismissed(true)
+  }, [updateStatus, stopPoller, stopRec, evaluateAndAdvance])
+
+  const startSession = useCallback(async () => {
+    const { granted } = await Audio.requestPermissionsAsync()
+    if (!granted) return
+    setIsRunning(true)
+    isRunningRef.current = true
+    // Reset results for fresh session
+    setStatuses(verseNumbers.map(() => ({ state: 'pending', wordResults: [], score: 0 })))
+    setVerseResults([])
+    currentIdxRef.current = 0
+    setCurrentIndex(0)
+    await startListening(0)
+  }, [verseNumbers, startListening])
+
+  const stopSession = useCallback(async () => {
+    isRunningRef.current = false
+    setIsRunning(false)
+    await stopRec()
+    stopPoller()
+  }, [stopRec, stopPoller])
+
+  // Unmount cleanup
+  useEffect(() => {
+    return () => {
+      isRunningRef.current = false
+      stopPoller()
+      const rec = recordingRef.current
+      recordingRef.current = null
+      if (rec) rec.stopAndUnloadAsync().catch(() => {})
+    }
+  }, [stopPoller])
+
+  // Reset on focus
+  useFocusEffect(
+    useCallback(() => {
+      stopSession()
+      setStatuses(verseNumbers.map(() => ({ state: 'pending', wordResults: [], score: 0 })))
+      setVerseResults([])
+      setCurrentIndex(0)
+      currentIdxRef.current = 0
+    }, [id])
+  )
+
+  const allDone = statuses.length > 0 && statuses.every((s) => s.state === 'done')
+
+  const handleFinish = () => {
+    const allResults = verseResults
+    const avg = allResults.length > 0
+      ? Math.round(allResults.reduce((s, v) => s + v.score, 0) / allResults.length)
+      : 0
+    const stars = calcStars(avg)
+    const points = calcPoints(stars, avg)
+    setLastTilawah({ surahId: chapterId, surahName: String(id), verseNumber: 1, timestamp: Date.now() })
+    router.replace({
+      pathname: '/(child)/tilawah/result',
+      params: {
+        chapterId: String(id),
+        totalScore: String(avg),
+        stars: String(stars),
+        pointsEarned: String(points),
+        verseResults: JSON.stringify(allResults),
+      },
+    })
   }
 
-  if (isLoading || !currentVerse) {
-    return (
-      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color="#7C6FF1" size="large" />
-      </View>
-    )
-  }
-
-  const words = currentVerse.words ?? []
-  const translation =
-    currentVerse.translations?.[0]?.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? ''
-
-  const progressWidth = `${((currentIndex + 1) / verses.length) * 100}%`
+  const doneCount = statuses.filter((s) => s.state === 'done').length
+  const progress = verses.length > 0 ? doneCount / verses.length : 0
+  const activeStatus = statuses[currentIndex]
 
   return (
     <View style={styles.container}>
-      {/* Progress Bar */}
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: progressWidth as any }]} />
-      </View>
-      <Text style={styles.progressLabel}>
-        Ayat {currentIndex + 1} / {verses.length}
-      </Text>
-
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 16 }}>
-        <View style={styles.verseCard}>
-          <View style={styles.verseBadge}>
-            <Text style={styles.verseBadgeText}>{currentVerse.verse_number}</Text>
-          </View>
-
-          <View style={styles.arabicRow}>
-            {isDone && currentEval && words.length > 0 ? (
-              words.map((w, i) => {
-                const wordResult = currentEval.wordResults?.[i]
-                const status = wordResult?.status ?? (wordResult?.correct === false ? 'wrong' : 'correct')
-                const wordColor = status === 'mad_short' ? '#EAB308' : status === 'correct' ? '#10B981' : '#EF4444'
-                return (
-                  <Text
-                    key={i}
-                    style={[styles.arabicWord, { color: wordColor }]}
-                  >
-                    {w.text_uthmani}
-                  </Text>
-                )
-              })
-            ) : (
-              <Text style={styles.arabicFull}>{currentVerse.text_uthmani}</Text>
-            )}
-          </View>
-
-          <Text style={styles.translation}>{translation}</Text>
-        </View>
-
-        {isDone && currentEval && (
-          <View style={styles.feedbackCard}>
-            <Text style={styles.feedbackScore}>Skor: {currentEval.score}/100</Text>
-            {currentEval.feedback.map((f, i) => (
-              <Text key={i} style={styles.feedbackItem}>
-                • {f}
-              </Text>
-            ))}
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Recording Area */}
-      <View style={styles.recordArea}>
-        {!!error && <Text style={styles.errorText}>{error}</Text>}
-
-        <Text style={styles.recordStatus}>
-          {recordingState === 'idle' && 'Tap untuk mulai rekam'}
-          {recordingState === 'recording' && '🔴 Sedang merekam...'}
-          {recordingState === 'analyzing' && '⏳ Menganalisis...'}
-          {recordingState === 'done' && `✅ Skor: ${currentEval?.score ?? 0}`}
-          {recordingState === 'error' && '❌ Coba lagi'}
-        </Text>
-
-        {isRecording && (
-          <View style={styles.waveform}>
-            {Array.from({ length: 20 }).map((_, i) => (
-              <WaveformBar key={i} index={i} isActive={isRecording} />
-            ))}
-          </View>
-        )}
-
-        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          {isDone && (
-            <TouchableOpacity style={styles.retryBtn} onPress={() => { reset(); startRecording() }}>
-              <Text style={styles.retryBtnText}>Ulangi</Text>
-            </TouchableOpacity>
-          )}
-
-          {!isDone && (
-            <TouchableOpacity
-              style={[
-                styles.micBtn,
-                isRecording && styles.micBtnActive,
-                isAnalyzing && { opacity: 0.6 },
-              ]}
-              onPress={handleMicPress}
-              disabled={isAnalyzing}
-            >
-              {isAnalyzing ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={{ fontSize: 32 }}>{isRecording ? '⏹' : '🎙️'}</Text>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {isDone && (
-            <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-              <Text style={styles.nextBtnText}>
-                {currentIndex + 1 >= verses.length ? 'Selesai 🎉' : 'Ayat Berikutnya →'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      {retryCount >= 3 && (
-        <TouchableOpacity
-          style={styles.hintBtn}
-          onPress={() => setSheetDismissed(false)}
-        >
-          <Text style={styles.hintBtnText}>🎧 Dengar Contoh Syeikh</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.backIcon}>‹</Text>
         </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>Tilawah</Text>
+          <Text style={styles.headerSub}>{verses.length} Ayat</Text>
+        </View>
+        <View style={[styles.badge, allDone && styles.badgeDone]}>
+          <Text style={[styles.badgeText, allDone && styles.badgeTextDone]}>
+            {doneCount}/{verses.length}
+          </Text>
+        </View>
+      </View>
+
+      {/* Progress */}
+      <View style={styles.progressStrip}>
+        <View style={[
+          styles.progressFill,
+          { width: `${progress * 100}%` as any },
+          allDone && { backgroundColor: '#10B981' },
+        ]} />
+      </View>
+
+      {/* Status chip */}
+      {isRunning && activeStatus && (
+        <View style={styles.chipRow}>
+          {activeStatus.state === 'listening' && (
+            <View style={[styles.chip, { borderColor: 'rgba(124,111,241,0.4)' }]}>
+              <Text style={[styles.chipText, { color: '#BDB8FF' }]}>🎙 Merekam ayat {currentIndex + 1}...</Text>
+            </View>
+          )}
+          {activeStatus.state === 'analyzing' && (
+            <View style={[styles.chip, { borderColor: 'rgba(255,255,255,0.15)' }]}>
+              <Text style={[styles.chipText, { color: '#94A3B8' }]}>⏳ Menilai...</Text>
+            </View>
+          )}
+        </View>
       )}
 
-      <AudioSampleSheet
-        visible={retryCount >= 3 && !sheetDismissed && !!currentVerse}
-        chapterId={String(id)}
-        verseNumber={currentVerse?.verse_number ?? 1}
-        onDismiss={dismissSheet}
-        onPlay={playAudioSample}
-        isLoading={audioLoading}
-        audioError={audioError}
-      />
+      {/* Mushaf ScrollView */}
+      <ScrollView ref={scrollRef} style={styles.scroll} contentContainerStyle={styles.mushafPage}>
+        {verses.map((verse, idx) => {
+          const st = statuses[idx] ?? { state: 'pending', wordResults: [], score: 0 }
+          const numStyle = NUM_COLORS[st.state]
+          return (
+            <View
+              key={verse.verse_number}
+              onLayout={(e) => { verseYPositions.current[idx] = e.nativeEvent.layout.y }}
+            >
+              <Text style={styles.arabicFlow}>
+                {verse.words.map((w, i) => {
+                  const wr = st.wordResults[i]
+                  const status = wr?.status ?? (wr?.correct === false ? 'wrong' : wr ? 'correct' : undefined)
+                  return (
+                    <Text key={i} style={[styles.arabicWord, { color: wordColor(status, st.state) }]}>
+                      {w.text_uthmani}{' '}
+                    </Text>
+                  )
+                })}
+                <Text style={[styles.verseNum, {
+                  backgroundColor: numStyle.bg,
+                  borderColor: numStyle.border,
+                  color: numStyle.color,
+                }]}>
+                  {toArabicNum(verse.verse_number)}
+                </Text>
+              </Text>
+              {/* Score chip for done verses */}
+              {st.state === 'done' && (
+                <View style={styles.scoreRow}>
+                  <View style={[styles.scoreChip, { backgroundColor: st.score >= 85 ? 'rgba(16,185,129,0.12)' : st.score >= 65 ? 'rgba(234,179,8,0.12)' : 'rgba(239,68,68,0.12)' }]}>
+                    <Text style={[styles.scoreText, { color: st.score >= 85 ? '#10B981' : st.score >= 65 ? '#EAB308' : '#EF4444' }]}>
+                      {st.score}/100
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+          )
+        })}
+      </ScrollView>
+
+      {/* Bottom bar */}
+      <View style={styles.bottomBar}>
+        {allDone ? (
+          <TouchableOpacity style={styles.finishBtn} onPress={handleFinish}>
+            <Text style={styles.finishText}>Lihat Hasil 🎉</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <Text style={styles.bottomStatus}>
+              {!isRunning
+                ? 'Tekan mikrofon untuk mulai tilawah'
+                : activeStatus?.state === 'analyzing'
+                ? '⏳ Menilai bacaan...'
+                : '🔴 Baca terus — berhenti otomatis saat jeda'}
+            </Text>
+            <View style={styles.bottomRow}>
+              {isRunning && (
+                <TouchableOpacity style={styles.stopBtn} onPress={stopSession}>
+                  <Text style={styles.stopBtnText}>⏹ Berhenti</Text>
+                </TouchableOpacity>
+              )}
+              {!isRunning && (
+                <TouchableOpacity style={styles.micBtn} onPress={startSession}>
+                  <Text style={styles.micIcon}>🎙</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </>
+        )}
       </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1A1A2E' },
-  progressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginTop: Platform.OS === 'ios' ? 52 : 32,
-    marginHorizontal: 20,
-    borderRadius: 2,
-  },
-  progressFill: { height: 4, backgroundColor: '#7C6FF1', borderRadius: 2 },
-  progressLabel: { color: '#BDB8FF', fontSize: 12, textAlign: 'center', marginTop: 6 },
-  verseCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-  },
-  verseBadge: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#7C6FF1',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginBottom: 12,
-  },
-  verseBadgeText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
-  arabicRow: {
-    flexDirection: 'row-reverse',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 8,
-    marginBottom: 16,
-  },
-  arabicWord: { fontSize: 30, lineHeight: 56, fontFamily: 'ScheherazadeNew-Regular' },
-  arabicFull: {
-    fontSize: 30,
-    color: '#FFFFFF',
-    textAlign: 'right',
-    lineHeight: 56,
-    writingDirection: 'rtl',
-    fontFamily: 'ScheherazadeNew-Regular',
-  },
-  translation: { color: '#94A3B8', fontSize: 13, fontStyle: 'italic', lineHeight: 20 },
-  feedbackCard: {
-    backgroundColor: 'rgba(124,111,241,0.15)',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 16,
-  },
-  feedbackScore: { color: '#7C6FF1', fontWeight: '700', fontSize: 15, marginBottom: 8 },
-  feedbackItem: { color: '#D4D0FF', fontSize: 13, marginBottom: 4 },
-  recordArea: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 100,
-    alignItems: 'center',
-    gap: 16,
-  },
-  recordStatus: { color: '#D4D0FF', fontSize: 14 },
-  errorText: { color: '#EF4444', fontSize: 13 },
-  waveform: { flexDirection: 'row', gap: 4, alignItems: 'center', height: 48 },
-  waveBar: { width: 4, borderRadius: 2, backgroundColor: '#7C6FF1', minHeight: 8 },
-  micBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#7C6FF1',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#7C6FF1',
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  micBtnActive: { backgroundColor: '#EF4444' },
-  hintBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(124,111,241,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(124,111,241,0.4)',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-  },
-  hintBtnText: {
-    color: '#BDB8FF',
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#7C6FF1',
-  },
-  retryBtnText: { color: '#7C6FF1', fontWeight: '700', fontSize: 14 },
-  nextBtn: {
-    flex: 1,
-    backgroundColor: '#7C6FF1',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  nextBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  container:     { flex: 1, backgroundColor: '#1A1A2E' },
+  header:        { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: Platform.OS === 'ios' ? 52 : 32, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  backBtn:       { width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.08)', justifyContent: 'center', alignItems: 'center' },
+  backIcon:      { color: '#fff', fontSize: 20, lineHeight: 22 },
+  headerTitle:   { color: '#F9FAFB', fontSize: 15, fontWeight: '700' },
+  headerSub:     { color: '#6B7280', fontSize: 11, marginTop: 1 },
+  badge:         { backgroundColor: 'rgba(124,111,241,0.15)', borderWidth: 1, borderColor: 'rgba(124,111,241,0.3)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeDone:     { backgroundColor: 'rgba(16,185,129,0.15)', borderColor: 'rgba(16,185,129,0.3)' },
+  badgeText:     { color: '#BDB8FF', fontSize: 12, fontWeight: '700' },
+  badgeTextDone: { color: '#10B981' },
+  progressStrip: { height: 2, backgroundColor: 'rgba(255,255,255,0.05)' },
+  progressFill:  { height: 2, backgroundColor: '#7C6FF1' },
+  chipRow:       { paddingHorizontal: 16, paddingVertical: 8, alignItems: 'flex-end' },
+  chip:          { borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, backgroundColor: 'rgba(0,0,0,0.2)' },
+  chipText:      { fontSize: 11, fontWeight: '700' },
+  scroll:        { flex: 1 },
+  mushafPage:    { padding: 20, paddingBottom: 40 },
+  arabicFlow:    { fontSize: 26, lineHeight: 58, fontFamily: 'ScheherazadeNew-Regular', textAlign: 'right', writingDirection: 'rtl', color: '#E5E7EB', marginBottom: 4 },
+  arabicWord:    { fontSize: 26, fontFamily: 'ScheherazadeNew-Regular', lineHeight: 58 },
+  verseNum:      { fontSize: 11, borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 5, paddingVertical: 2 },
+  scoreRow:      { alignItems: 'flex-start', marginBottom: 12, marginTop: -2 },
+  scoreChip:     { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
+  scoreText:     { fontSize: 11, fontWeight: '700' },
+  bottomBar:     { backgroundColor: 'rgba(26,26,46,0.98)', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.07)', padding: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 20 },
+  bottomStatus:  { color: '#6B7280', fontSize: 12, textAlign: 'center', marginBottom: 12 },
+  bottomRow:     { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12 },
+  micBtn:        { width: 64, height: 64, borderRadius: 32, backgroundColor: '#7C6FF1', justifyContent: 'center', alignItems: 'center', shadowColor: '#7C6FF1', shadowOpacity: 0.5, shadowRadius: 14, elevation: 8 },
+  micIcon:       { fontSize: 26 },
+  stopBtn:       { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' },
+  stopBtnText:   { color: '#F87171', fontSize: 14, fontWeight: '700' },
+  finishBtn:     { backgroundColor: '#7C6FF1', borderRadius: 14, padding: 16, alignItems: 'center' },
+  finishText:    { color: '#fff', fontWeight: '700', fontSize: 16 },
 })
