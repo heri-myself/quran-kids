@@ -13,8 +13,8 @@ def get_model():
     global _model
     if _model is None:
         import stable_whisper
-        print("Loading tarteel-ai/whisper-small-ar-quran model...")
-        _model = stable_whisper.load_model("tarteel-ai/whisper-small-ar-quran")
+        print("Loading naazimsnh02/whisper-large-v3-turbo-ar-quran model...")
+        _model = stable_whisper.load_model("naazimsnh02/whisper-large-v3-turbo-ar-quran")
         print("Model loaded.")
     return _model
 
