@@ -67,6 +67,7 @@ export function useContinuousHafalan(
   const silenceCounterRef = useRef(0)
   const pollerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isEvaluatingRef = useRef(false)
+  const isAdvancingRef = useRef(false)
   const currentIndexRef = useRef(0)
   const isRunningRef = useRef(false)
   const verseAttemptsRef = useRef(verseAttempts)
@@ -207,20 +208,26 @@ export function useContinuousHafalan(
   }, [verseNumbers.length, startListeningForVerse])
 
   // Drive state transitions after evaluateCurrentVerse updates state
+  const currentVerseState = verseAttempts[currentIndex]?.state
+
   useEffect(() => {
     if (!isRunning) return
     const cur = verseAttempts[currentIndex]
     if (!cur) return
 
     if (cur.state === 'correct' || cur.state === 'skipped') {
-      advanceOrFinish(currentIndex)
+      if (isAdvancingRef.current) return
+      isAdvancingRef.current = true
+      advanceOrFinish(currentIndex).finally(() => {
+        isAdvancingRef.current = false
+      })
     } else if (cur.state === 'wrong' || cur.state === 'hint_shown') {
       const t = setTimeout(() => {
         startListeningForVerse(currentIndex)
       }, 400)
       return () => clearTimeout(t)
     }
-  }, [verseAttempts, currentIndex, isRunning, advanceOrFinish, startListeningForVerse])
+  }, [currentVerseState, currentIndex, isRunning, advanceOrFinish, startListeningForVerse])
 
   const startSession = useCallback(async () => {
     const { granted } = await Audio.requestPermissionsAsync()
