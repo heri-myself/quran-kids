@@ -66,6 +66,7 @@ model Profile {
   readingProgress ReadingProgress[]
   userBadges      UserBadge[]
   tilawahSessions TilawahSession[]
+  hafalanSessions HafalanSession[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -79,6 +80,7 @@ model Story {
   category        Category
   difficultyLevel Difficulty        @default(easy)
   isPremium       Boolean           @default(false)
+  isFeatured      Boolean           @default(false)
   coverImageUrl   String?
   totalPages      Int               @default(0)
   isPublished     Boolean           @default(false)
@@ -177,6 +179,31 @@ model TilawahVerseResult {
 
   @@index([sessionId])
   @@unique([sessionId, verseNumber])
+}
+
+model HafalanSession {
+  id           String               @id @default(cuid())
+  profileId    String
+  profile      Profile              @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  chapterId    Int
+  totalVerses  Int
+  avgScore     Int
+  pointsEarned Int
+  createdAt    DateTime             @default(now())
+  verses       HafalanVerseResult[]
+}
+
+model HafalanVerseResult {
+  id          String         @id @default(cuid())
+  sessionId   String
+  session     HafalanSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  verseNumber Int
+  score       Int
+  wordResults Json
+  createdAt   DateTime       @default(now())
+
+  @@unique([sessionId, verseNumber])
+  @@index([sessionId])
 }
 
 model Subscription {
