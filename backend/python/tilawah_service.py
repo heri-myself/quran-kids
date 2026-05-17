@@ -42,26 +42,27 @@ def get_pipe():
 def transcribe_audio(temp_path: str, expected_text: str = "") -> str:
     pipe = get_pipe()
 
-    generate_kwargs: dict = {
-        "num_beams": 1,
-        "temperature": 0.0,
-        "condition_on_prev_tokens": False,
-    }
+    generate_kwargs: dict = {"num_beams": 1}
 
     # Prefix forced decoding — anchor Whisper ke ayat yang diharapkan
     if expected_text and _processor is not None:
         words = expected_text.strip().split()
-        # Ambil 4 kata pertama sebagai prompt; kurangi jika ayat pendek (≤4 kata)
+        # Ambil 4 kata pertama sebagai prompt; kurangi jika ayat sangat pendek
         prefix_words = words[:min(4, max(1, len(words) - 1))]
         prefix = " ".join(prefix_words)
         try:
-            prompt_ids = _processor.get_prompt_ids(prefix, return_tensors="pt")
             import torch
+            # Encode prefix sebagai token ids tanpa special tokens
+            prefix_token_ids = _processor.tokenizer.encode(
+                prefix, add_special_tokens=False
+            )
             device = next(pipe.model.parameters()).device
-            generate_kwargs["prompt_ids"] = prompt_ids.to(device)
-            print(f"[PREFIX] {prefix}")
+            generate_kwargs["prompt_ids"] = torch.tensor(
+                prefix_token_ids, dtype=torch.long
+            ).to(device)
+            print(f"[PREFIX] {prefix} → {len(prefix_token_ids)} tokens")
         except Exception as e:
-            print(f"[PREFIX] gagal generate prompt_ids: {e}")
+            print(f"[PREFIX] gagal: {e}")
 
     result = pipe(temp_path, generate_kwargs=generate_kwargs)
     return result["text"].strip()
