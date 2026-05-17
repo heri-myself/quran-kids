@@ -462,12 +462,14 @@ export default function ContinuousHafalanScreen() {
               {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : ''}
             </Text>
             <View style={styles.bottomRow}>
-              {isRunning && (
-                <TouchableOpacity style={styles.skipBtn} onPress={skipCurrentVerse}>
-                  <RiIcon name="skip-forward-line" size={14} color="#94A3B8" />
-                  <Text style={styles.skipBtnText}>Lewati</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={[styles.skipBtn, !isRunning && { opacity: 0 }]}
+                onPress={isRunning ? skipCurrentVerse : undefined}
+                disabled={!isRunning}
+              >
+                <RiIcon name="skip-forward-line" size={14} color="#94A3B8" />
+                <Text style={styles.skipBtnText}>Lewati</Text>
+              </TouchableOpacity>
               <View style={styles.micWrap}>
                 <TouchableOpacity
                   style={[styles.micBtn, isRunning && styles.micBtnRecording]}
@@ -485,16 +487,15 @@ export default function ContinuousHafalanScreen() {
                   )}
                 </TouchableOpacity>
               </View>
-              {isRunning && (
-                <TouchableOpacity
-                  style={[styles.skipBtn, hintActive && { borderColor: 'rgba(252,211,77,0.4)', backgroundColor: 'rgba(252,211,77,0.08)' }]}
-                  onPress={() => hintActive ? showHint(currentIndex) : undefined}
-                  activeOpacity={hintActive ? 0.7 : 1}
-                >
-                  <RiIcon name="lightbulb-line" size={14} color={hintActive ? '#FCD34D' : 'rgba(255,255,255,0.2)'} />
-                  <Text style={[styles.skipBtnText, hintActive && { color: '#FCD34D' }]}>Petunjuk</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity
+                style={[styles.skipBtn, !isRunning && { opacity: 0 }, isRunning && hintActive && { borderColor: 'rgba(252,211,77,0.4)', backgroundColor: 'rgba(252,211,77,0.08)' }]}
+                onPress={() => isRunning && hintActive ? showHint(currentIndex) : undefined}
+                disabled={!isRunning || !hintActive}
+                activeOpacity={hintActive ? 0.7 : 1}
+              >
+                <RiIcon name="lightbulb-line" size={14} color={isRunning && hintActive ? '#FCD34D' : 'rgba(255,255,255,0.2)'} />
+                <Text style={[styles.skipBtnText, isRunning && hintActive && { color: '#FCD34D' }]}>Petunjuk</Text>
+              </TouchableOpacity>
             </View>
           </>
         )}
