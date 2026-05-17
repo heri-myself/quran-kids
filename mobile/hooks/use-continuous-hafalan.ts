@@ -138,10 +138,12 @@ export function useContinuousHafalan(
         base64,
       )
       isCorrect = result.wordAccuracy >= 60
-      // Penalti 10 poin per attempt sebelumnya, minimum 10
-      const penalty = cur.attempts * 10
-      score = Math.max(10, result.wordAccuracy - penalty)
       wordResults = result.wordResults
+      if (isCorrect) {
+        // Penalti 10 poin per attempt salah sebelumnya, minimum 10
+        const penalty = cur.attempts * 10
+        score = Math.max(10, result.wordAccuracy - penalty)
+      }
     } catch {
       // Service error — restart tanpa hitung attempt
       updateVerse(idx, { state: 'listening' })
@@ -168,7 +170,7 @@ export function useContinuousHafalan(
       setVerseAttempts((prev) =>
         prev.map((v, i) =>
           i === idx
-            ? { ...v, state: 'listening', attempts: newAttempts, lastScore: score, wordResults, feedback: [] }
+            ? { ...v, state: 'listening', attempts: newAttempts, wordResults, feedback: [] }
             : v
         )
       )
