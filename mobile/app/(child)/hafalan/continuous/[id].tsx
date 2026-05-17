@@ -256,7 +256,7 @@ export default function ContinuousHafalanScreen() {
   )
 
   const {
-    verseAttempts, currentIndex, isRunning,
+    verseAttempts, currentIndex, isRunning, hintUnlocked,
     startSession, stopSession, skipCurrentVerse, showHint, reset,
   } = useContinuousHafalan(chapterId, verseNumbers, getExpectedText)
 
@@ -462,6 +462,19 @@ export default function ContinuousHafalanScreen() {
                   )}
                 </TouchableOpacity>
               </View>
+              {isRunning && (
+                <TouchableOpacity
+                  style={[styles.hintBtn, hintUnlocked && styles.hintBtnActive]}
+                  onPress={() => hintUnlocked ? showHint(currentIndex) : undefined}
+                  activeOpacity={hintUnlocked ? 0.7 : 1}
+                >
+                  <RiIcon
+                    name="lightbulb-line"
+                    size={22}
+                    color={hintUnlocked ? '#FCD34D' : 'rgba(255,255,255,0.2)'}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
           </>
         )}
@@ -517,6 +530,8 @@ const styles = StyleSheet.create({
   micGradient:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
   skipBtn:            { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   skipBtnText:        { color: '#94A3B8', fontSize: 12 },
+  hintBtn:            { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)' },
+  hintBtnActive:      { backgroundColor: 'rgba(252,211,77,0.12)', borderColor: 'rgba(252,211,77,0.5)' },
   finishBtn:          { borderRadius: 16, overflow: 'hidden', shadowColor: '#7C3AED', shadowOpacity: 0.5, shadowRadius: 16, elevation: 8 },
   finishGradient:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 18 },
   finishBtnText:      { color: '#FFF', fontWeight: '700', fontSize: 17 },

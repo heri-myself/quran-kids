@@ -28,6 +28,7 @@ export interface UseContinuousHafalanReturn {
   verseAttempts: VerseAttempt[]
   currentIndex: number
   isRunning: boolean
+  hintUnlocked: boolean
   startSession: () => Promise<void>
   stopSession: () => Promise<void>
   skipCurrentVerse: () => void
@@ -64,6 +65,7 @@ export function useContinuousHafalan(
   )
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
+  const [hintUnlocked, setHintUnlocked] = useState(false)
 
   const recordingRef = useRef<Audio.Recording | null>(null)
   const silenceCounterRef = useRef(0)
@@ -152,10 +154,12 @@ export function useContinuousHafalan(
         )
       )
     } else {
+      const newAttempts = cur.attempts + 1
+      if (newAttempts >= 3) setHintUnlocked(true)
       setVerseAttempts((prev) =>
         prev.map((v, i) =>
           i === idx
-            ? { ...v, state: 'listening', attempts: cur.attempts + 1, lastScore: score, wordResults, feedback: [] }
+            ? { ...v, state: 'listening', attempts: newAttempts, lastScore: score, wordResults, feedback: [] }
             : v
         )
       )
@@ -296,10 +300,12 @@ export function useContinuousHafalan(
     setCurrentIndex(0)
     currentIndexRef.current = 0
     silenceCounterRef.current = 0
+    setHintUnlocked(false)
   }, [stopSession, verseNumbers])
 
   return {
     verseAttempts,
+    hintUnlocked,
     currentIndex,
     isRunning,
     startSession,
