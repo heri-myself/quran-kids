@@ -422,18 +422,9 @@ export default function ContinuousHafalanScreen() {
           </TouchableOpacity>
         ) : (
           <>
-            {isRunning && activeAttempt?.state === 'listening' ? (
-              <View style={styles.recordingStatus}>
-                <RiIcon name="mic-fill" size={12} color="#4ADE80" />
-                <Text style={styles.recordingStatusText}> Sedang merekam...</Text>
-              </View>
-            ) : isRunning && activeAttempt?.state === 'analyzing' ? (
-              <Text style={styles.bottomStatus}>Sedang melakukan penilaian...</Text>
-            ) : (
-              <Text style={styles.bottomStatus}>
-                {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : ''}
-              </Text>
-            )}
+            <Text style={styles.bottomStatus}>
+              {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : ''}
+            </Text>
             <View style={styles.bottomRow}>
               {isRunning && (
                 <TouchableOpacity style={styles.skipBtn} onPress={skipCurrentVerse}>
