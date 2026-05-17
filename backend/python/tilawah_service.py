@@ -46,14 +46,14 @@ def transcribe_audio(audio_bytes: bytes, expected_text: str = "") -> str:
     audio_array = audio_bytes_to_array(audio_bytes)
     inputs = {"raw": audio_array, "sampling_rate": 16000}
 
-    generate_kwargs: dict = {"num_beams": 1}
+    pipe_kwargs: dict = {"generate_kwargs": {"num_beams": 1}}
 
-    # initial_prompt: berikan full teks ayat sebagai prior — jauh lebih kuat dari prompt_ids
+    # initial_prompt: berikan full teks ayat sebagai prior langsung ke pipeline
     if expected_text:
-        generate_kwargs["initial_prompt"] = expected_text
+        pipe_kwargs["initial_prompt"] = expected_text
         print(f"[PROMPT] {expected_text}")
 
-    result = pipe(inputs, generate_kwargs=generate_kwargs)
+    result = pipe(inputs, **pipe_kwargs)
     return result["text"].strip()
 
 
