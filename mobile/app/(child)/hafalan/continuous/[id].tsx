@@ -342,7 +342,8 @@ export default function ContinuousHafalanScreen() {
         <View style={styles.chipRow}>
           {activeAttempt.state === 'listening' && (
             <View style={styles.chipWrap}>
-              <Text style={styles.chipText}>Sedang merekam...</Text>
+              <RiIcon name="mic-fill" size={11} color="#4ADE80" />
+              <Text style={[styles.chipText, { color: '#4ADE80' }]}> Sedang merekam...</Text>
             </View>
           )}
           {activeAttempt.state === 'skipped' && (
@@ -494,7 +495,7 @@ const styles = StyleSheet.create({
   progressStrip:      { height: 3, backgroundColor: 'rgba(255,255,255,0.05)' },
   progressFill:       { height: 3, borderRadius: 2 },
 
-  chipRow:            { paddingHorizontal: 16, paddingVertical: 6, alignItems: 'flex-end' },
+  chipRow:            { paddingHorizontal: 16, paddingVertical: 6, alignItems: 'center' },
   chipWrap:           { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(96,165,250,0.3)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, backgroundColor: 'rgba(96,165,250,0.08)' },
   chipText:           { color: '#60A5FA', fontSize: 11, fontWeight: '700' },
 
