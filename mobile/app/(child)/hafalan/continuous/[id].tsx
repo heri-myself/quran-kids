@@ -256,7 +256,7 @@ export default function ContinuousHafalanScreen() {
   )
 
   const {
-    verseAttempts, currentIndex, isRunning, hintUnlocked,
+    verseAttempts, currentIndex, isRunning, hintUnlocked, isVoiceDetected,
     startSession, stopSession, skipCurrentVerse, showHint, reset,
   } = useContinuousHafalan(chapterId, verseNumbers, getExpectedText)
 
@@ -374,9 +374,14 @@ export default function ContinuousHafalanScreen() {
                 verseHeights.current[idx] = e.nativeEvent.layout.height
               }}
             >
-              {attempt.state === 'analyzing' && (
+              {idx === currentIndex && isRunning && isVoiceDetected && attempt.state === 'listening' && (
                 <View style={styles.waveContainer}>
                   <SpectrumWave />
+                </View>
+              )}
+              {attempt.state === 'analyzing' && (
+                <View style={styles.waveContainer}>
+                  <Text style={styles.analyzingText}>Mencocokan hasil...</Text>
                 </View>
               )}
               <View style={{ flex: 1, position: 'relative' }}>
@@ -505,7 +510,8 @@ const styles = StyleSheet.create({
   hintBadge:          { position: 'absolute', bottom: -8, right: 0, backgroundColor: 'rgba(252,211,77,0.1)', borderWidth: 1, borderColor: 'rgba(252,211,77,0.4)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5 },
   hintBadgeText:      { color: '#FCD34D', fontSize: 11, fontWeight: '700' },
 
-  waveContainer:      { marginLeft: 10, marginBottom: 4 },
+  waveContainer:      { marginLeft: 10, marginBottom: 4, justifyContent: 'center' },
+  analyzingText:      { color: '#FCD34D', fontSize: 11, fontWeight: '600' },
   waveWrap:           { flexDirection: 'row', alignItems: 'center', gap: 3, height: 36 },
   waveBar:            { width: 3, borderRadius: 2 },
 

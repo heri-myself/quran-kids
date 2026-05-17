@@ -29,6 +29,7 @@ export interface UseContinuousHafalanReturn {
   currentIndex: number
   isRunning: boolean
   hintUnlocked: boolean
+  isVoiceDetected: boolean
   startSession: () => Promise<void>
   stopSession: () => Promise<void>
   skipCurrentVerse: () => void
@@ -66,6 +67,7 @@ export function useContinuousHafalan(
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [hintUnlocked, setHintUnlocked] = useState(false)
+  const [isVoiceDetected, setIsVoiceDetected] = useState(false)
 
   const recordingRef = useRef<Audio.Recording | null>(null)
   const silenceCounterRef = useRef(0)
@@ -179,6 +181,7 @@ export function useContinuousHafalan(
     setCurrentIndex(index)
     silenceCounterRef.current = 0
     hasSpokenRef.current = false
+    setIsVoiceDetected(false)
 
     updateVerse(index, { state: 'listening' })
 
@@ -199,6 +202,7 @@ export function useContinuousHafalan(
           const elapsed = Date.now() - recordingStart
 
           if (metering >= SPEECH_DB_THRESHOLD) {
+            if (!hasSpokenRef.current) setIsVoiceDetected(true)
             hasSpokenRef.current = true
             silenceCounterRef.current = 0
           } else if (metering < SILENCE_DB_THRESHOLD && hasSpokenRef.current) {
@@ -306,6 +310,7 @@ export function useContinuousHafalan(
   return {
     verseAttempts,
     hintUnlocked,
+    isVoiceDetected,
     currentIndex,
     isRunning,
     startSession,
