@@ -161,8 +161,11 @@ function RevealingVerseOverlay({ verse, attempt, isFirst }: {
   verse: Verse; attempt: VerseAttempt; isFirst: boolean
 }) {
   const [revealedCount, setRevealedCount] = useState(0)
+  const [hintRevealedCount, setHintRevealedCount] = useState(0)
   const prevState = useRef<VerseState>('pending')
+  const prevWithHint = useRef(false)
 
+  // Reveal on correct
   useEffect(() => {
     if (prevState.current === attempt.state) return
     prevState.current = attempt.state
@@ -177,6 +180,28 @@ function RevealingVerseOverlay({ verse, attempt, isFirst }: {
       return () => clearInterval(timer)
     }
   }, [attempt.state, verse.words.length])
+
+  // Reset hint reveal state when withHint is cleared (e.g. after session reset)
+  useEffect(() => {
+    if (!attempt.withHint) {
+      prevWithHint.current = false
+      setHintRevealedCount(0)
+    }
+  }, [attempt.withHint])
+
+  // Reveal hint words one-by-one when withHint becomes true
+  useEffect(() => {
+    if (!attempt.withHint || prevWithHint.current) return
+    prevWithHint.current = true
+    setHintRevealedCount(0)
+    let count = 0
+    const timer = setInterval(() => {
+      count += 1
+      setHintRevealedCount(count)
+      if (count >= verse.words.length) clearInterval(timer)
+    }, 120)
+    return () => clearInterval(timer)
+  }, [attempt.withHint, verse.words.length])
 
   if (attempt.state === 'correct') {
     const showEnd = revealedCount >= verse.words.length
@@ -199,11 +224,22 @@ function RevealingVerseOverlay({ verse, attempt, isFirst }: {
     )
   }
 
-  if (isFirst || attempt.withHint) {
+  if (attempt.withHint && !isFirst) {
+    const showEnd = hintRevealedCount >= verse.words.length
     return (
-      <Text style={[styles.arabicFlow, styles.arabicFlowOverlay, {
-        color: attempt.withHint && !isFirst ? '#FCD34D' : '#FFFFFF'
-      }]}>
+      <Text style={[styles.arabicFlow, styles.arabicFlowOverlay, { color: '#FCD34D' }]}>
+        {verse.words.slice(0, hintRevealedCount).map((w, i) => (
+          <Text key={i} style={styles.arabicWord}>{w.text_uthmani}{' '}</Text>
+        ))}
+        {showEnd && <VerseEndMark verseNumber={verse.verse_number} state={attempt.state} />}
+        {showEnd && <Text style={styles.arabicWord}> </Text>}
+      </Text>
+    )
+  }
+
+  if (isFirst) {
+    return (
+      <Text style={[styles.arabicFlow, styles.arabicFlowOverlay, { color: '#FFFFFF' }]}>
         <VerseSegment verse={verse} attempt={attempt} firstWordOnly />
       </Text>
     )
@@ -256,7 +292,7 @@ export default function ContinuousHafalanScreen() {
   )
 
   const {
-    verseAttempts, currentIndex, isRunning, hintUnlocked, isVoiceDetected,
+    verseAttempts, currentIndex, isRunning, hintUnlocked, hintActive, isVoiceDetected,
     startSession, stopSession, skipCurrentVerse, showHint, reset,
   } = useContinuousHafalan(chapterId, verseNumbers, getExpectedText)
 
@@ -451,12 +487,12 @@ export default function ContinuousHafalanScreen() {
               </View>
               {isRunning && (
                 <TouchableOpacity
-                  style={[styles.skipBtn, hintUnlocked && { borderColor: 'rgba(252,211,77,0.4)', backgroundColor: 'rgba(252,211,77,0.08)' }]}
-                  onPress={() => hintUnlocked ? showHint(currentIndex) : undefined}
-                  activeOpacity={hintUnlocked ? 0.7 : 1}
+                  style={[styles.skipBtn, hintActive && { borderColor: 'rgba(252,211,77,0.4)', backgroundColor: 'rgba(252,211,77,0.08)' }]}
+                  onPress={() => hintActive ? showHint(currentIndex) : undefined}
+                  activeOpacity={hintActive ? 0.7 : 1}
                 >
-                  <RiIcon name="lightbulb-line" size={14} color={hintUnlocked ? '#FCD34D' : 'rgba(255,255,255,0.2)'} />
-                  <Text style={[styles.skipBtnText, hintUnlocked && { color: '#FCD34D' }]}>Petunjuk</Text>
+                  <RiIcon name="lightbulb-line" size={14} color={hintActive ? '#FCD34D' : 'rgba(255,255,255,0.2)'} />
+                  <Text style={[styles.skipBtnText, hintActive && { color: '#FCD34D' }]}>Petunjuk</Text>
                 </TouchableOpacity>
               )}
             </View>

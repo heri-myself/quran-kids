@@ -29,6 +29,7 @@ export interface UseContinuousHafalanReturn {
   currentIndex: number
   isRunning: boolean
   hintUnlocked: boolean
+  hintActive: boolean
   isVoiceDetected: boolean
   startSession: () => Promise<void>
   stopSession: () => Promise<void>
@@ -67,6 +68,7 @@ export function useContinuousHafalan(
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
   const [hintUnlocked, setHintUnlocked] = useState(false)
+  const [hintActive, setHintActive] = useState(false)
   const [isVoiceDetected, setIsVoiceDetected] = useState(false)
 
   const recordingRef = useRef<Audio.Recording | null>(null)
@@ -157,7 +159,12 @@ export function useContinuousHafalan(
       )
     } else {
       const newAttempts = cur.attempts + 1
-      if (newAttempts >= 3) setHintUnlocked(true)
+      if (newAttempts >= 3) {
+        setHintUnlocked(true)
+        setHintActive(true)
+      } else if (hintUnlocked) {
+        setHintActive(true)
+      }
       setVerseAttempts((prev) =>
         prev.map((v, i) =>
           i === idx
@@ -172,7 +179,7 @@ export function useContinuousHafalan(
     }
 
     FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => {})
-  }, [chapterId, getExpectedText, updateVerse])
+  }, [chapterId, getExpectedText, updateVerse, hintUnlocked])
 
   const startListeningForVerse = useCallback(async (index: number) => {
     if (!isRunningRef.current) return
@@ -296,6 +303,7 @@ export function useContinuousHafalan(
 
   const showHint = useCallback((index: number) => {
     updateVerse(index, { withHint: true })
+    setHintActive(false)
   }, [updateVerse])
 
   const reset = useCallback(() => {
@@ -305,11 +313,13 @@ export function useContinuousHafalan(
     currentIndexRef.current = 0
     silenceCounterRef.current = 0
     setHintUnlocked(false)
+    setHintActive(false)
   }, [stopSession, verseNumbers])
 
   return {
     verseAttempts,
     hintUnlocked,
+    hintActive,
     isVoiceDetected,
     currentIndex,
     isRunning,
