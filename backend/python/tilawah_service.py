@@ -39,27 +39,11 @@ def get_pipe():
     return _pipe
 
 
-def transcribe_audio(audio_bytes: bytes, expected_text: str = "") -> str:
-    import numpy as np
+def transcribe_audio(audio_bytes: bytes) -> str:
     pipe = get_pipe()
-
     audio_array = audio_bytes_to_array(audio_bytes)
     inputs = {"raw": audio_array, "sampling_rate": 16000}
-
-    generate_kwargs: dict = {"num_beams": 1}
-
-    # prompt_ids: anchor Whisper ke teks ayat yang diharapkan
-    if expected_text and _processor is not None:
-        try:
-            import torch
-            prompt_ids = _processor.get_prompt_ids(expected_text, return_tensors="pt")
-            device = next(pipe.model.parameters()).device
-            generate_kwargs["prompt_ids"] = prompt_ids.squeeze().to(device)
-            print(f"[PROMPT] {expected_text[:40]}...")
-        except Exception as e:
-            print(f"[PROMPT] gagal: {e}")
-
-    result = pipe(inputs, generate_kwargs=generate_kwargs)
+    result = pipe(inputs, generate_kwargs={"num_beams": 1})
     return result["text"].strip()
 
 
@@ -121,7 +105,7 @@ def evaluate(req: EvaluateRequest):
         raise HTTPException(status_code=400, detail="Invalid base64 audio")
 
     try:
-        transcription = transcribe_audio(audio_bytes, req.expected_text)
+        transcription = transcribe_audio(audio_bytes)
         word_timestamps = []
     except HTTPException:
         raise
@@ -185,7 +169,7 @@ def evaluate_simple(req: EvaluateRequest):
         raise HTTPException(status_code=400, detail="Invalid base64 audio")
 
     try:
-        transcription = transcribe_audio(audio_bytes, req.expected_text)
+        transcription = transcribe_audio(audio_bytes)
     except HTTPException:
         raise
     except Exception as e:
