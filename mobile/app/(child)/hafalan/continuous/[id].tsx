@@ -392,13 +392,6 @@ export default function ContinuousHafalanScreen() {
             wordResults: [],
             feedback: [],
           }
-          const showHintBadge =
-            idx === currentIndex &&
-            attempt.state === 'listening' &&
-            attempt.attempts >= 3 &&
-            !attempt.withHint &&
-            idx !== 0
-
           const isActive = idx === currentIndex && isRunning
 
           return (
@@ -425,15 +418,6 @@ export default function ContinuousHafalanScreen() {
                   <VerseSegment verse={verse} attempt={attempt} hideEndMark />
                 </Text>
                 <RevealingVerseOverlay verse={verse} attempt={attempt} isFirst={idx === 0} />
-                {showHintBadge && (
-                  <TouchableOpacity
-                    style={styles.hintBadge}
-                    onPress={() => showHint(idx)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.hintBadgeText}>💡 Tampilkan Bantuan</Text>
-                  </TouchableOpacity>
-                )}
               </View>
             </View>
           )
