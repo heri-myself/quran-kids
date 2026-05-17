@@ -435,7 +435,7 @@ export default function ContinuousHafalanScreen() {
         ) : (
           <>
             <Text style={styles.bottomStatus}>
-              {!isRunning ? '🎙️ Tekan mikrofon untuk mulai membaca' : '📖 Baca terus dengan tartil...'}
+              {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : 'Baca terus dengan tartil...'}
             </Text>
             <View style={styles.bottomRow}>
               {isRunning && (
