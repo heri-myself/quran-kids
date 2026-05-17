@@ -132,7 +132,9 @@ export function useContinuousHafalan(
         base64,
       )
       isCorrect = result.wordAccuracy >= 60
-      score = result.wordAccuracy
+      // Penalti 10 poin per attempt sebelumnya, minimum 10
+      const penalty = cur.attempts * 10
+      score = Math.max(10, result.wordAccuracy - penalty)
       wordResults = result.wordResults
     } catch {
       // Service error — restart tanpa hitung attempt
@@ -271,7 +273,7 @@ export function useContinuousHafalan(
     isAdvancingRef.current = false
     await stopRecordingClean()
     stopPoller()
-    updateVerse(currentIndexRef.current, { state: 'skipped', skipped: true })
+    updateVerse(currentIndexRef.current, { state: 'skipped', skipped: true, lastScore: 0 })
   }, [stopRecordingClean, stopPoller, updateVerse])
 
   useEffect(() => {
