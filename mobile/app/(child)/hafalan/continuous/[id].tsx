@@ -337,23 +337,6 @@ export default function ContinuousHafalanScreen() {
         />
       </View>
 
-      {/* Status chip */}
-      {isRunning && activeAttempt && (
-        <View style={styles.chipRow}>
-          {activeAttempt.state === 'listening' && (
-            <View style={styles.chipWrap}>
-              <RiIcon name="mic-fill" size={11} color="#4ADE80" />
-              <Text style={[styles.chipText, { color: '#4ADE80' }]}> Sedang merekam...</Text>
-            </View>
-          )}
-          {activeAttempt.state === 'skipped' && (
-            <View style={[styles.chipWrap, { borderColor: 'rgba(5,150,105,0.2)' }]}>
-              <RiIcon name="skip-forward-line" size={11} color="rgba(52,211,153,0.4)" />
-              <Text style={[styles.chipText, { color: 'rgba(52,211,153,0.4)' }]}> Dilewati</Text>
-            </View>
-          )}
-        </View>
-      )}
 
       {/* Mushaf scroll */}
       <ScrollView
@@ -434,9 +417,16 @@ export default function ContinuousHafalanScreen() {
           </TouchableOpacity>
         ) : (
           <>
-            <Text style={styles.bottomStatus}>
-              {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : 'Baca terus dengan tartil...'}
-            </Text>
+            {isRunning && activeAttempt?.state === 'listening' ? (
+              <View style={styles.recordingStatus}>
+                <RiIcon name="mic-fill" size={12} color="#4ADE80" />
+                <Text style={styles.recordingStatusText}> Sedang merekam...</Text>
+              </View>
+            ) : (
+              <Text style={styles.bottomStatus}>
+                {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : 'Baca terus dengan tartil...'}
+              </Text>
+            )}
             <View style={styles.bottomRow}>
               {isRunning && (
                 <TouchableOpacity style={styles.skipBtn} onPress={skipCurrentVerse}>
@@ -519,6 +509,8 @@ const styles = StyleSheet.create({
 
   bottomGradient:     { paddingTop: 24, paddingHorizontal: 20, paddingBottom: 36 },
   bottomStatus:       { color: 'rgba(203,213,225,0.6)', fontSize: 13, textAlign: 'center', marginBottom: 16 },
+  recordingStatus:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  recordingStatusText:{ color: '#4ADE80', fontSize: 13, fontWeight: '600' },
   bottomRow:          { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 16 },
   micWrap:            { position: 'relative', width: 68, height: 68, justifyContent: 'center', alignItems: 'center' },
   pulseRing:          { position: 'absolute', width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#EF4444' },
