@@ -46,14 +46,20 @@ def transcribe_audio(audio_bytes: bytes, expected_text: str = "") -> str:
     audio_array = audio_bytes_to_array(audio_bytes)
     inputs = {"raw": audio_array, "sampling_rate": 16000}
 
-    pipe_kwargs: dict = {"generate_kwargs": {"num_beams": 1}}
+    generate_kwargs: dict = {"num_beams": 1}
 
-    # initial_prompt: berikan full teks ayat sebagai prior langsung ke pipeline
-    if expected_text:
-        pipe_kwargs["initial_prompt"] = expected_text
-        print(f"[PROMPT] {expected_text}")
+    # prompt_ids: anchor Whisper ke teks ayat yang diharapkan
+    if expected_text and _processor is not None:
+        try:
+            import torch
+            prompt_ids = _processor.get_prompt_ids(expected_text, return_tensors="pt")
+            device = next(pipe.model.parameters()).device
+            generate_kwargs["prompt_ids"] = prompt_ids.squeeze().to(device)
+            print(f"[PROMPT] {expected_text[:40]}...")
+        except Exception as e:
+            print(f"[PROMPT] gagal: {e}")
 
-    result = pipe(inputs, **pipe_kwargs)
+    result = pipe(inputs, generate_kwargs=generate_kwargs)
     return result["text"].strip()
 
 
