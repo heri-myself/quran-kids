@@ -342,8 +342,7 @@ export default function ContinuousHafalanScreen() {
         <View style={styles.chipRow}>
           {activeAttempt.state === 'listening' && (
             <View style={styles.chipWrap}>
-              <RiIcon name="mic-fill" size={11} color="#60A5FA" />
-              <Text style={styles.chipText}> Sedang merekam...</Text>
+              <Text style={styles.chipText}>Sedang merekam...</Text>
             </View>
           )}
           {activeAttempt.state === 'skipped' && (
