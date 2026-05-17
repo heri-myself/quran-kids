@@ -7,10 +7,11 @@ from pydantic import BaseModel
 app = FastAPI()
 
 _pipe = None
+_processor = None
 
 
 def get_pipe():
-    global _pipe
+    global _pipe, _processor
     if _pipe is None:
         import torch
         from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline as hf_pipeline
@@ -23,14 +24,14 @@ def get_pipe():
             low_cpu_mem_usage=True,
             use_safetensors=True,
         ).to(device)
-        processor = AutoProcessor.from_pretrained("naazimsnh02/whisper-large-v3-turbo-ar-quran")
+        _processor = AutoProcessor.from_pretrained("naazimsnh02/whisper-large-v3-turbo-ar-quran")
         # Force Arabic transcription
-        processor.tokenizer.set_prefix_tokens(language="arabic", task="transcribe")
+        _processor.tokenizer.set_prefix_tokens(language="arabic", task="transcribe")
         _pipe = hf_pipeline(
             "automatic-speech-recognition",
             model=model,
-            tokenizer=processor.tokenizer,
-            feature_extractor=processor.feature_extractor,
+            tokenizer=_processor.tokenizer,
+            feature_extractor=_processor.feature_extractor,
             torch_dtype=dtype,
             device=device,
         )
@@ -38,9 +39,31 @@ def get_pipe():
     return _pipe
 
 
-def transcribe_audio(temp_path: str) -> str:
+def transcribe_audio(temp_path: str, expected_text: str = "") -> str:
     pipe = get_pipe()
-    result = pipe(temp_path)
+
+    generate_kwargs: dict = {
+        "num_beams": 1,
+        "temperature": 0.0,
+        "condition_on_prev_tokens": False,
+    }
+
+    # Prefix forced decoding — anchor Whisper ke ayat yang diharapkan
+    if expected_text and _processor is not None:
+        words = expected_text.strip().split()
+        # Ambil 4 kata pertama sebagai prompt; kurangi jika ayat pendek (≤4 kata)
+        prefix_words = words[:min(4, max(1, len(words) - 1))]
+        prefix = " ".join(prefix_words)
+        try:
+            prompt_ids = _processor.get_prompt_ids(prefix, return_tensors="pt")
+            import torch
+            device = next(pipe.model.parameters()).device
+            generate_kwargs["prompt_ids"] = prompt_ids.to(device)
+            print(f"[PREFIX] {prefix}")
+        except Exception as e:
+            print(f"[PREFIX] gagal generate prompt_ids: {e}")
+
+    result = pipe(temp_path, generate_kwargs=generate_kwargs)
     return result["text"].strip()
 
 
@@ -89,7 +112,7 @@ def evaluate(req: EvaluateRequest):
     temp_path = None
     try:
         temp_path = load_audio_to_tempfile(audio_bytes)
-        transcription = transcribe_audio(temp_path)
+        transcription = transcribe_audio(temp_path, req.expected_text)
         word_timestamps = []  # HF pipeline doesn't provide word timestamps
 
     except HTTPException:
@@ -161,7 +184,7 @@ def evaluate_simple(req: EvaluateRequest):
     temp_path = None
     try:
         temp_path = load_audio_to_tempfile(audio_bytes)
-        transcription = transcribe_audio(temp_path)
+        transcription = transcribe_audio(temp_path, req.expected_text)
 
     except HTTPException:
         raise
