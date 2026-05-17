@@ -464,16 +464,12 @@ export default function ContinuousHafalanScreen() {
               </View>
               {isRunning && (
                 <TouchableOpacity
-                  style={[styles.hintBtn, hintUnlocked && styles.hintBtnActive]}
+                  style={[styles.skipBtn, hintUnlocked && { borderColor: 'rgba(252,211,77,0.4)', backgroundColor: 'rgba(252,211,77,0.08)' }]}
                   onPress={() => hintUnlocked ? showHint(currentIndex) : undefined}
                   activeOpacity={hintUnlocked ? 0.7 : 1}
                 >
-                  <RiIcon
-                    name="lightbulb-line"
-                    size={18}
-                    color={hintUnlocked ? '#FCD34D' : 'rgba(255,255,255,0.2)'}
-                  />
-                  <Text style={[styles.hintBtnText, hintUnlocked && styles.hintBtnTextActive]}>Hint</Text>
+                  <RiIcon name="lightbulb-line" size={14} color={hintUnlocked ? '#FCD34D' : 'rgba(255,255,255,0.2)'} />
+                  <Text style={[styles.skipBtnText, hintUnlocked && { color: '#FCD34D' }]}>Hint</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -531,10 +527,6 @@ const styles = StyleSheet.create({
   micGradient:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
   skipBtn:            { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   skipBtnText:        { color: '#94A3B8', fontSize: 12 },
-  hintBtn:            { flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)' },
-  hintBtnActive:      { backgroundColor: 'rgba(252,211,77,0.12)', borderColor: 'rgba(252,211,77,0.5)' },
-  hintBtnText:        { color: 'rgba(255,255,255,0.2)', fontSize: 11, fontWeight: '700' },
-  hintBtnTextActive:  { color: '#FCD34D' },
   finishBtn:          { borderRadius: 16, overflow: 'hidden', shadowColor: '#7C3AED', shadowOpacity: 0.5, shadowRadius: 16, elevation: 8 },
   finishGradient:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, padding: 18 },
   finishBtnText:      { color: '#FFF', fontWeight: '700', fontSize: 17 },
