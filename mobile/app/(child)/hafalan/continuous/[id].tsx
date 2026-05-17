@@ -456,7 +456,7 @@ export default function ContinuousHafalanScreen() {
                   activeOpacity={hintUnlocked ? 0.7 : 1}
                 >
                   <RiIcon name="lightbulb-line" size={14} color={hintUnlocked ? '#FCD34D' : 'rgba(255,255,255,0.2)'} />
-                  <Text style={[styles.skipBtnText, hintUnlocked && { color: '#FCD34D' }]}>Hint</Text>
+                  <Text style={[styles.skipBtnText, hintUnlocked && { color: '#FCD34D' }]}>Petunjuk</Text>
                 </TouchableOpacity>
               )}
             </View>
