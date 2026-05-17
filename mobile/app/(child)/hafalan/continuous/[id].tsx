@@ -212,6 +212,16 @@ function RevealingVerseOverlay({ verse, attempt, isFirst }: {
   return null
 }
 
+// ─── Animated dots ───────────────────────────────────────────────────────────
+function AnimatedDots() {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setCount((c) => (c + 1) % 4), 500)
+    return () => clearInterval(t)
+  }, [])
+  return <Text style={styles.recordingStatusText}>{'.'.repeat(count)}</Text>
+}
+
 // ─── Mic pulse ring ───────────────────────────────────────────────────────────
 function MicPulse() {
   const scale = useSharedValue(1)
@@ -420,7 +430,8 @@ export default function ContinuousHafalanScreen() {
             {isRunning && activeAttempt?.state === 'listening' ? (
               <View style={styles.recordingStatus}>
                 <RiIcon name="mic-fill" size={12} color="#4ADE80" />
-                <Text style={styles.recordingStatusText}> Sedang merekam...</Text>
+                <Text style={styles.recordingStatusText}> Sedang merekam</Text>
+                <AnimatedDots />
               </View>
             ) : (
               <Text style={styles.bottomStatus}>
