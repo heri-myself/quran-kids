@@ -219,13 +219,19 @@ export function useContinuousHafalan(
           }
 
           const silenceStop = hasSpokenRef.current && silenceCounterRef.current >= SILENCE_DURATION_MS
+          // timeoutStop hanya valid jika user sudah bicara; jika belum ada suara, restart tanpa menghitung attempt
           const timeoutStop = elapsed >= MAX_RECORDING_MS
 
-          if (silenceStop || timeoutStop) {
+          if (silenceStop || (timeoutStop && hasSpokenRef.current)) {
             silenceCounterRef.current = 0
             stopPoller()
             const uri = await stopRecordingClean()
             if (uri) markVerseRead(uri)
+          } else if (timeoutStop && !hasSpokenRef.current) {
+            // Timeout tanpa deteksi suara = tidak ada bacaan, restart recording
+            stopPoller()
+            await stopRecordingClean()
+            if (isRunningRef.current) setTimeout(() => startListeningRef.current(currentIndexRef.current), 300)
           }
         } catch {
           // recording already unloaded
