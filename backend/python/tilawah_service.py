@@ -46,23 +46,14 @@ def transcribe_audio(audio_bytes: bytes, expected_text: str = "") -> str:
     audio_array = audio_bytes_to_array(audio_bytes)
     inputs = {"raw": audio_array, "sampling_rate": 16000}
 
-    pipe_kwargs: dict = {"generate_kwargs": {"num_beams": 1}}
+    generate_kwargs: dict = {"num_beams": 1}
 
-    # Prefix forced decoding — anchor Whisper ke ayat yang diharapkan
-    if expected_text and _processor is not None:
-        words = expected_text.strip().split()
-        prefix_words = words[:min(4, max(1, len(words) - 1))]
-        prefix = " ".join(prefix_words)
-        try:
-            import torch
-            prompt_ids = _processor.get_prompt_ids(prefix, return_tensors="pt")
-            device = next(pipe.model.parameters()).device
-            pipe_kwargs["prompt_ids"] = prompt_ids.to(device)
-            print(f"[PREFIX] {prefix}")
-        except Exception as e:
-            print(f"[PREFIX] gagal: {e}")
+    # initial_prompt: berikan full teks ayat sebagai prior — jauh lebih kuat dari prompt_ids
+    if expected_text:
+        generate_kwargs["initial_prompt"] = expected_text
+        print(f"[PROMPT] {expected_text}")
 
-    result = pipe(inputs, **pipe_kwargs)
+    result = pipe(inputs, generate_kwargs=generate_kwargs)
     return result["text"].strip()
 
 
