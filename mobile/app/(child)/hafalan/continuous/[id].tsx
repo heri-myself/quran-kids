@@ -434,7 +434,7 @@ export default function ContinuousHafalanScreen() {
           </TouchableOpacity>
         ) : (
           <>
-            <Text style={styles.bottomStatus}>
+            <Text style={[styles.bottomStatus, isRunning && { color: '#4ADE80' }]}>
               {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : 'Baca terus dengan tartil...'}
             </Text>
             <View style={styles.bottomRow}>
