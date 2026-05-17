@@ -200,9 +200,15 @@ function RevealingVerseOverlay({ verse, attempt, isFirst }: {
   }
 
   if (attempt.withHint && !isFirst) {
+    const count = Math.min(attempt.hintWordCount, verse.words.length)
+    const showEnd = count >= verse.words.length
     return (
       <Text style={[styles.arabicFlow, styles.arabicFlowOverlay, { color: '#FCD34D' }]}>
-        <VerseSegment verse={verse} attempt={attempt} firstWordOnly />
+        {verse.words.slice(0, count).map((w, i) => (
+          <Text key={i} style={styles.arabicWord}>{w.text_uthmani}{' '}</Text>
+        ))}
+        {showEnd && <VerseEndMark verseNumber={verse.verse_number} state={attempt.state} />}
+        {showEnd && <Text style={styles.arabicWord}> </Text>}
       </Text>
     )
   }

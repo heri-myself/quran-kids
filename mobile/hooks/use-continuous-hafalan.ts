@@ -18,6 +18,7 @@ export interface VerseAttempt {
   state: VerseState
   attempts: number
   withHint: boolean
+  hintWordCount: number
   skipped: boolean
   lastScore: number
   wordResults: EvaluateResponse['wordResults']
@@ -50,6 +51,7 @@ function buildInitialAttempts(verseNumbers: number[]): VerseAttempt[] {
     state: 'pending',
     attempts: 0,
     withHint: false,
+    hintWordCount: 0,
     skipped: false,
     lastScore: 0,
     wordResults: [],
@@ -310,9 +312,15 @@ export function useContinuousHafalan(
   }, [stopPoller])
 
   const showHint = useCallback((index: number) => {
-    updateVerse(index, { withHint: true })
+    setVerseAttempts((prev) =>
+      prev.map((v, i) =>
+        i === index
+          ? { ...v, withHint: true, hintWordCount: v.hintWordCount + 1 }
+          : v
+      )
+    )
     setHintActive(false)
-  }, [updateVerse])
+  }, [])
 
   const reset = useCallback(() => {
     stopSession()
