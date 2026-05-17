@@ -49,9 +49,12 @@ class WordResult:
 
 
 def normalize_arabic(text: str) -> str:
-    harakat = 'ًٌٍَُِّْٕٓٔ'
+    # Normalize alef variants to plain alef (Whisper always outputs plain ا)
+    text = text.replace('ٱ', 'ا').replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
+    # Strip harakat, tatweel, and superscript alef ٰ (U+0670) — all absent from Whisper output
+    # Note: ٰ was previously converted to ا which caused مismatch (e.g. إِلَـٰهِ → "الاه" vs Whisper "اله")
+    harakat = 'ًٌٍَُِّْٕٓٔـٰ'
     return ''.join(c for c in text if c not in harakat)
-
 
 def has_mad_pattern(word: str) -> bool:
     return any(pattern in word for pattern in MAD_PATTERNS)

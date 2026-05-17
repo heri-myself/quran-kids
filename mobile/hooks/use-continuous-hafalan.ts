@@ -35,10 +35,11 @@ export interface UseContinuousHafalanReturn {
   reset: () => void
 }
 
-const SILENCE_DB_THRESHOLD = -50
-const SILENCE_DURATION_MS = 800
+const SILENCE_DB_THRESHOLD = -55
+const SILENCE_DURATION_MS = 1200
 const POLL_INTERVAL_MS = 100
-const SPEECH_DB_THRESHOLD = -35  // metering above this = user is speaking
+const SPEECH_DB_THRESHOLD = -45
+const MAX_RECORDING_MS = 10000
 
 function buildInitialAttempts(verseNumbers: number[]): VerseAttempt[] {
   return verseNumbers.map((n) => ({
@@ -110,12 +111,20 @@ export function useContinuousHafalan(
     // Mark as analyzing while we evaluate
     updateVerse(idx, { state: 'analyzing' })
 
-    let score = 100
+    let score = 0
     let wordResults: EvaluateResponse['wordResults'] = []
-    let isCorrect = true
+    let isCorrect = false
 
     try {
       const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' as any })
+
+      // Audio terlalu kecil = noise bukan suara, restart tanpa hitung attempt
+      if (base64.length < 15000) {
+        updateVerse(idx, { state: 'listening' })
+        if (isRunningRef.current) setTimeout(() => startListeningRef.current(idx), 300)
+        return
+      }
+
       const result = await evaluateVerseSimple(
         chapterId,
         cur.verseNumber,
@@ -123,10 +132,13 @@ export function useContinuousHafalan(
         base64,
       )
       isCorrect = result.wordAccuracy >= 60
-      score = isCorrect ? 100 : result.wordAccuracy
+      score = result.wordAccuracy
       wordResults = result.wordResults
     } catch {
-      // Evaluation failed — treat as correct so session can continue
+      // Service error — restart tanpa hitung attempt
+      updateVerse(idx, { state: 'listening' })
+      if (isRunningRef.current) setTimeout(() => startListeningRef.current(idx), 1000)
+      return
     }
 
     if (isCorrect) {
@@ -171,12 +183,14 @@ export function useContinuousHafalan(
         isMeteringEnabled: true,
       })
       recordingRef.current = recording
+      const recordingStart = Date.now()
 
       pollerRef.current = setInterval(async () => {
         if (!isRunningRef.current) return
         try {
           const status = await recording.getStatusAsync()
-          const metering = (status as any).metering ?? 0
+          const metering = (status as any).metering ?? -160
+          const elapsed = Date.now() - recordingStart
 
           if (metering >= SPEECH_DB_THRESHOLD) {
             hasSpokenRef.current = true
@@ -185,7 +199,10 @@ export function useContinuousHafalan(
             silenceCounterRef.current += POLL_INTERVAL_MS
           }
 
-          if (hasSpokenRef.current && silenceCounterRef.current >= SILENCE_DURATION_MS) {
+          const silenceStop = hasSpokenRef.current && silenceCounterRef.current >= SILENCE_DURATION_MS
+          const timeoutStop = elapsed >= MAX_RECORDING_MS
+
+          if (silenceStop || timeoutStop) {
             silenceCounterRef.current = 0
             stopPoller()
             const uri = await stopRecordingClean()
