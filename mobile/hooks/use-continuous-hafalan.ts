@@ -80,6 +80,7 @@ export function useContinuousHafalan(
   const isAdvancingRef = useRef(false)
   const currentIndexRef = useRef(0)
   const isRunningRef = useRef(false)
+  const hintUnlockedRef = useRef(false)
   const verseAttemptsRef = useRef(verseAttempts)
 
   useEffect(() => {
@@ -163,10 +164,9 @@ export function useContinuousHafalan(
       )
     } else {
       const newAttempts = cur.attempts + 1
-      if (newAttempts >= 3) {
+      if (newAttempts >= 3 || hintUnlockedRef.current) {
+        hintUnlockedRef.current = true
         setHintUnlocked(true)
-        setHintActive(true)
-      } else if (hintUnlocked) {
         setHintActive(true)
       }
       setVerseAttempts((prev) =>
@@ -183,7 +183,7 @@ export function useContinuousHafalan(
     }
 
     FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => {})
-  }, [chapterId, getExpectedText, updateVerse, hintUnlocked])
+  }, [chapterId, getExpectedText, updateVerse])
 
   const startListeningForVerse = useCallback(async (index: number) => {
     if (!isRunningRef.current) return
@@ -328,6 +328,7 @@ export function useContinuousHafalan(
     setCurrentIndex(0)
     currentIndexRef.current = 0
     silenceCounterRef.current = 0
+    hintUnlockedRef.current = false
     setHintUnlocked(false)
     setHintActive(false)
   }, [stopSession, verseNumbers])
