@@ -39,40 +39,53 @@ def get_pipe():
     return _pipe
 
 
-def transcribe_audio(temp_path: str, expected_text: str = "") -> str:
+def transcribe_audio(audio_bytes: bytes, expected_text: str = "") -> str:
+    import numpy as np
     pipe = get_pipe()
 
-    generate_kwargs: dict = {"num_beams": 1}
+    audio_array = audio_bytes_to_array(audio_bytes)
+    inputs = {"raw": audio_array, "sampling_rate": 16000}
+
+    pipe_kwargs: dict = {"generate_kwargs": {"num_beams": 1}}
 
     # Prefix forced decoding — anchor Whisper ke ayat yang diharapkan
     if expected_text and _processor is not None:
         words = expected_text.strip().split()
-        # Ambil 4 kata pertama sebagai prompt; kurangi jika ayat sangat pendek
         prefix_words = words[:min(4, max(1, len(words) - 1))]
         prefix = " ".join(prefix_words)
         try:
             import torch
-            # Encode prefix sebagai token ids tanpa special tokens
-            prefix_token_ids = _processor.tokenizer.encode(
-                prefix, add_special_tokens=False
-            )
+            prompt_ids = _processor.get_prompt_ids(prefix, return_tensors="pt")
             device = next(pipe.model.parameters()).device
-            generate_kwargs["prompt_ids"] = torch.tensor(
-                prefix_token_ids, dtype=torch.long
-            ).to(device)
-            print(f"[PREFIX] {prefix} → {len(prefix_token_ids)} tokens")
+            pipe_kwargs["prompt_ids"] = prompt_ids.to(device)
+            print(f"[PREFIX] {prefix}")
         except Exception as e:
             print(f"[PREFIX] gagal: {e}")
 
-    result = pipe(temp_path, generate_kwargs=generate_kwargs)
+    result = pipe(inputs, **pipe_kwargs)
     return result["text"].strip()
 
 
 def load_audio_to_tempfile(audio_bytes: bytes) -> str:
     """Write audio bytes to a temp file, return path. Caller must delete."""
-    with tempfile.NamedTemporaryFile(suffix='.audio', delete=False) as f:
+    with tempfile.NamedTemporaryFile(suffix='.m4a', delete=False) as f:
         f.write(audio_bytes)
         return f.name
+
+
+def audio_bytes_to_array(audio_bytes: bytes) -> "np.ndarray":
+    """Convert raw audio bytes (any format) to float32 numpy array at 16kHz mono."""
+    import subprocess
+    import numpy as np
+    cmd = [
+        'ffmpeg', '-hide_banner', '-loglevel', 'error',
+        '-i', 'pipe:0',
+        '-ar', '16000', '-ac', '1', '-f', 'f32le', 'pipe:1',
+    ]
+    proc = subprocess.run(cmd, input=audio_bytes, capture_output=True)
+    if proc.returncode != 0:
+        raise ValueError(f"ffmpeg error: {proc.stderr.decode()}")
+    return np.frombuffer(proc.stdout, dtype=np.float32)
 
 
 class EvaluateRequest(BaseModel):
@@ -110,22 +123,14 @@ def evaluate(req: EvaluateRequest):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid base64 audio")
 
-    temp_path = None
     try:
-        temp_path = load_audio_to_tempfile(audio_bytes)
-        transcription = transcribe_audio(temp_path, req.expected_text)
-        word_timestamps = []  # HF pipeline doesn't provide word timestamps
-
+        transcription = transcribe_audio(audio_bytes, req.expected_text)
+        word_timestamps = []
     except HTTPException:
         raise
     except Exception as e:
+        import traceback; traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"Cannot process audio: {e}")
-    finally:
-        if temp_path:
-            try:
-                os.unlink(temp_path)
-            except Exception:
-                pass
 
     from tajweed_engine import compare_texts, detect_mad_errors, analyze_tajweed
 
@@ -182,21 +187,13 @@ def evaluate_simple(req: EvaluateRequest):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid base64 audio")
 
-    temp_path = None
     try:
-        temp_path = load_audio_to_tempfile(audio_bytes)
-        transcription = transcribe_audio(temp_path, req.expected_text)
-
+        transcription = transcribe_audio(audio_bytes, req.expected_text)
     except HTTPException:
         raise
     except Exception as e:
+        import traceback; traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"Cannot process audio: {e}")
-    finally:
-        if temp_path:
-            try:
-                os.unlink(temp_path)
-            except Exception:
-                pass
 
     from tajweed_engine import compare_texts
 
