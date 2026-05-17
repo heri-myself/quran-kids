@@ -422,9 +422,11 @@ export default function ContinuousHafalanScreen() {
                 <RiIcon name="mic-fill" size={12} color="#4ADE80" />
                 <Text style={styles.recordingStatusText}> Sedang merekam...</Text>
               </View>
+            ) : isRunning && activeAttempt?.state === 'analyzing' ? (
+              <Text style={styles.bottomStatus}>Sedang melakukan penilaian...</Text>
             ) : (
               <Text style={styles.bottomStatus}>
-                {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : 'Baca terus dengan tartil...'}
+                {!isRunning ? 'Tekan mikrofon untuk mulai membaca' : ''}
               </Text>
             )}
             <View style={styles.bottomRow}>
