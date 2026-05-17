@@ -440,7 +440,7 @@ export default function ContinuousHafalanScreen() {
                 >
                   {isRunning ? (
                     <LinearGradient colors={['#EF4444', '#B91C1C']} style={styles.micGradient}>
-                      <RiIcon name="stop-fill" size={28} color="#FFF" />
+                      <View style={styles.stopSquare} />
                     </LinearGradient>
                   ) : (
                     <LinearGradient colors={['#7C3AED', '#4F46E5', '#0EA5E9']} style={styles.micGradient}>
@@ -515,6 +515,7 @@ const styles = StyleSheet.create({
   micBtn:             { width: 68, height: 68, borderRadius: 34, overflow: 'hidden', shadowColor: '#7C3AED', shadowOpacity: 0.6, shadowRadius: 20, elevation: 10 },
   micBtnRecording:    { shadowColor: '#EF4444' },
   micGradient:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  stopSquare:         { width: 22, height: 22, borderRadius: 4, backgroundColor: '#FFF' },
   skipBtn:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minWidth: 80, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   skipBtnText:        { color: '#94A3B8', fontSize: 12 },
   finishBtn:          { borderRadius: 16, overflow: 'hidden', shadowColor: '#7C3AED', shadowOpacity: 0.5, shadowRadius: 16, elevation: 8 },
