@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: quran-kids-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: quran_kids
+      POSTGRES_USER: qkuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - /opt/quran-kids/pgdata:/var/lib/postgresql/data
+    networks:
+      - quran-kids
+
+  backend:
+    image: quran-kids-backend
+    container_name: quran-kids-backend
+    restart: unless-stopped
+    env_file: /opt/quran-kids/.env
+    ports:
+      - "4001:3000"
+    volumes:
+      - /opt/quran-kids/uploads:/app/uploads
+    depends_on:
+      - postgres
+    networks:
+      - quran-kids
+      - n8n_default
+
+networks:
+  quran-kids:
+    name: quran-kids
+  n8n_default:
+    external: true
