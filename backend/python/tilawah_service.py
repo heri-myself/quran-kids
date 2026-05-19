@@ -15,16 +15,17 @@ def get_pipe():
     if _pipe is None:
         import torch
         from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline as hf_pipeline
-        print("Loading naazimsnh02/whisper-large-v3-turbo-ar-quran ...")
+        MODEL_ID = "InkBest/whisper-quran-juz30-husary"
+        print(f"Loading {MODEL_ID} ...")
         device = "mps" if torch.backends.mps.is_available() else "cpu"
         dtype = torch.float32  # float16 on MPS produces garbage output
         model = AutoModelForSpeechSeq2Seq.from_pretrained(
-            "naazimsnh02/whisper-large-v3-turbo-ar-quran",
+            MODEL_ID,
             torch_dtype=dtype,
             low_cpu_mem_usage=True,
             use_safetensors=True,
         ).to(device)
-        _processor = AutoProcessor.from_pretrained("naazimsnh02/whisper-large-v3-turbo-ar-quran")
+        _processor = AutoProcessor.from_pretrained(MODEL_ID)
         # Force Arabic transcription
         _processor.tokenizer.set_prefix_tokens(language="arabic", task="transcribe")
         _pipe = hf_pipeline(
