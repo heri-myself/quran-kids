@@ -3,7 +3,7 @@ set -e
 
 VPS="ubuntu@n8n.qbest.id"
 SSH_KEY="$HOME/.ssh/id_ed25519"
-REPO="https://github.com/heri-myself/quran-kids.git"
+REPO="https://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@github.com/heri-myself/quran-kids.git"
 REMOTE_DIR="/opt/quran-kids"
 SSH="ssh -i $SSH_KEY"
 
@@ -34,8 +34,9 @@ $SSH $VPS << REMOTE
   # Start postgres jika belum jalan
   echo "🗄️  Start postgres..."
   cd backend
-  sudo docker compose up -d postgres
-  sleep 5
+  sudo docker compose --env-file $REMOTE_DIR/.env up -d postgres
+  echo "Tunggu postgres siap..."
+  sleep 15
 
   # Run database migration
   echo "🗄️  Run database migration..."
@@ -47,7 +48,7 @@ $SSH $VPS << REMOTE
 
   # Restart backend container
   echo "🔄 Restart backend container..."
-  sudo docker compose up -d backend
+  sudo docker compose --env-file $REMOTE_DIR/.env up -d backend
 
   sleep 5
   echo "📋 Container logs:"
