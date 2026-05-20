@@ -15,7 +15,7 @@ import { useLastActivityStore } from '../../../stores/last-activity-store'
 import {
   ArrowCounterClockwise, ArrowRight, CheckCircle,
   Headphones, Play, Microphone, StopCircle,
-  XCircle, NotePencil, Star,
+  XCircle, NotePencil, Star, Trophy,
 } from 'phosphor-react-native'
 
 // ─────────────────────────────────────────────────────────────
@@ -472,7 +472,7 @@ export default function TilawahLatihanScreen() {
           {recordingState === 'idle'      && <Microphone    size={15} color={D.panel} weight="regular" />}
           {recordingState === 'recording' && <View style={s.recDot} />}
           {recordingState === 'analyzing' && <NotePencil size={15} color={D.amber} weight="regular" />}
-          {recordingState === 'done'      && <CheckCircle   size={15} color={D.panel} weight="fill" />}
+          {recordingState === 'done'      && <Trophy size={15} color={D.panel} weight="fill" />}
           {recordingState === 'error'     && <XCircle       size={15} color={D.coral} weight="fill" />}
           <Text style={s.chipTxt}>
             {recordingState === 'idle'      && 'Tap mic untuk mulai membaca'}
