@@ -150,9 +150,14 @@ def evaluate(req: EvaluateRequest):
     score = int(word_accuracy * 0.60 + tajweed_score * 0.25 + completeness * 0.15)
 
     feedback: list[str] = []
-    wrong_count = sum(1 for w in raw_word_results if w.status == "wrong")
-    if wrong_count > 0:
-        feedback.append(f"Ada {wrong_count} kata yang perlu diperbaiki pengucapannya.")
+
+    wrong_words = [w.word for w in raw_word_results if w.status == "wrong"]
+    missing_words = [w.word for w in raw_word_results if w.status == "missing"]
+
+    if wrong_words:
+        feedback.append(f"Kata yang perlu diperbaiki: {', '.join(wrong_words)}")
+    if missing_words:
+        feedback.append(f"Kata yang tidak terdengar: {', '.join(missing_words)} — coba ucapkan lebih jelas.")
     feedback.extend(tajweed_feedback)
 
     if score >= 85:

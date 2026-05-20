@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Platform,
   Modal,
 } from 'react-native'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,6 +21,7 @@ import { Audio } from 'expo-av'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
 import { getSurahVerses } from '../../../services/quran'
 import { useLastActivityStore } from '../../../stores/last-activity-store'
+import { RiIcon } from '../../../components/RiIcon'
 
 interface Verse {
   verse_number: number
@@ -123,7 +124,7 @@ const sheetStyles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#1E1B3A',
+    backgroundColor: '#27100A',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -146,7 +147,7 @@ const sheetStyles = StyleSheet.create({
     marginBottom: 6,
   },
   subtitle: {
-    color: '#8B8BAA',
+    color: '#9A6548',
     fontSize: 13,
     marginBottom: 16,
     lineHeight: 20,
@@ -162,11 +163,11 @@ const sheetStyles = StyleSheet.create({
   },
   waveBar: {
     width: 4,
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     borderRadius: 2,
   },
   waveLabel: {
-    color: '#BDB8FF',
+    color: '#FED7AA',
     fontSize: 12,
     marginLeft: 8,
     flex: 1,
@@ -190,17 +191,17 @@ const sheetStyles = StyleSheet.create({
     alignItems: 'center',
   },
   skipText: {
-    color: '#BDB8FF',
+    color: '#FED7AA',
     fontWeight: '600',
     fontSize: 15,
   },
   playBtn: {
     flex: 2,
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
-    shadowColor: '#7C6FF1',
+    shadowColor: '#EA580C',
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 6,
@@ -235,8 +236,17 @@ export default function TilawahLatihanScreen() {
   const verses = getSurahVerses(Number(id)) as Verse[]
   const isLoading = false
 
-  const { recordingState, currentEval, error, retryCount, startRecording, stopAndEvaluate, reset, resetVerse } =
+  const { recordingState, currentEval, error, retryCount, startRecording, stopAndEvaluate, resetVerse } =
     useTilawah(Number(id))
+
+  useFocusEffect(
+    useCallback(() => {
+      setCurrentIndex(0)
+      setVerseResults([])
+      setSheetDismissed(false)
+      resetVerse()
+    }, [])
+  )
 
   const currentVerse = verses[currentIndex]
   const isRecording = recordingState === 'recording'
@@ -351,7 +361,7 @@ export default function TilawahLatihanScreen() {
   if (isLoading || !currentVerse) {
     return (
       <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color="#7C6FF1" size="large" />
+        <ActivityIndicator color="#EA580C" size="large" />
       </View>
     )
   }
@@ -435,7 +445,7 @@ export default function TilawahLatihanScreen() {
 
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           {isDone && (
-            <TouchableOpacity style={styles.retryBtn} onPress={() => { reset(); startRecording() }}>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => { resetVerse(); startRecording() }}>
               <Text style={styles.retryBtnText}>Ulangi</Text>
             </TouchableOpacity>
           )}
@@ -453,7 +463,7 @@ export default function TilawahLatihanScreen() {
               {isAnalyzing ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={{ fontSize: 32 }}>{isRecording ? '⏹' : '🎙️'}</Text>
+                <RiIcon name={isRecording ? 'stop-circle-fill' : 'mic-fill'} size={30} color="#fff" />
               )}
             </TouchableOpacity>
           )}
@@ -461,7 +471,7 @@ export default function TilawahLatihanScreen() {
           {isDone && (
             <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
               <Text style={styles.nextBtnText}>
-                {currentIndex + 1 >= verses.length ? 'Selesai 🎉' : 'Ayat Berikutnya →'}
+                {currentIndex + 1 >= verses.length ? 'Selesai' : 'Ayat Berikutnya'}
               </Text>
             </TouchableOpacity>
           )}
@@ -490,7 +500,7 @@ export default function TilawahLatihanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1A1A2E' },
+  container: { flex: 1, backgroundColor: '#1C0A00' },
   progressBar: {
     height: 4,
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -498,8 +508,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 2,
   },
-  progressFill: { height: 4, backgroundColor: '#7C6FF1', borderRadius: 2 },
-  progressLabel: { color: '#BDB8FF', fontSize: 12, textAlign: 'center', marginTop: 6 },
+  progressFill: { height: 4, backgroundColor: '#EA580C', borderRadius: 2 },
+  progressLabel: { color: '#FED7AA', fontSize: 12, textAlign: 'center', marginTop: 6 },
   verseCard: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 20,
@@ -508,7 +518,7 @@ const styles = StyleSheet.create({
   },
   verseBadge: {
     alignSelf: 'flex-end',
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -538,8 +548,8 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
   },
-  feedbackScore: { color: '#7C6FF1', fontWeight: '700', fontSize: 15, marginBottom: 8 },
-  feedbackItem: { color: '#D4D0FF', fontSize: 13, marginBottom: 4 },
+  feedbackScore: { color: '#EA580C', fontWeight: '700', fontSize: 15, marginBottom: 8 },
+  feedbackItem: { color: '#FFEDD5', fontSize: 13, marginBottom: 4 },
   recordArea: {
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderTopLeftRadius: 24,
@@ -549,18 +559,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  recordStatus: { color: '#D4D0FF', fontSize: 14 },
+  recordStatus: { color: '#FFEDD5', fontSize: 14 },
   errorText: { color: '#EF4444', fontSize: 13 },
   waveform: { flexDirection: 'row', gap: 4, alignItems: 'center', height: 48 },
-  waveBar: { width: 4, borderRadius: 2, backgroundColor: '#7C6FF1', minHeight: 8 },
+  waveBar: { width: 4, borderRadius: 2, backgroundColor: '#EA580C', minHeight: 8 },
   micBtn: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#7C6FF1',
+    shadowColor: '#EA580C',
     shadowOpacity: 0.5,
     shadowRadius: 12,
     elevation: 8,
@@ -579,7 +589,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   hintBtnText: {
-    color: '#BDB8FF',
+    color: '#FED7AA',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -588,12 +598,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#7C6FF1',
+    borderColor: '#EA580C',
   },
-  retryBtnText: { color: '#7C6FF1', fontWeight: '700', fontSize: 14 },
+  retryBtnText: { color: '#EA580C', fontWeight: '700', fontSize: 14 },
   nextBtn: {
     flex: 1,
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
