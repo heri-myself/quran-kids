@@ -51,12 +51,13 @@ class WordResult:
 def normalize_arabic(text: str) -> str:
     # Normalize alef variants to plain alef (Whisper always outputs plain ا)
     text = text.replace('ٱ', 'ا').replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
+    # Normalize alef maqsura ى (U+0649) → yeh ي (U+064A): visually identical but different codepoints
+    text = text.replace('ى', 'ي')
     # Strip harakat, tatweel, and superscript alef ٰ (U+0670) — all absent from Whisper output
     harakat = 'ًٌٍَُِّْٕٓٔـٰ'
     text = ''.join(c for c in text if c not in harakat)
     # Collapse consecutive duplicate Arabic letters:
     # Whisper sometimes writes shadda as doubled letter (e.g. اللذي for الَّذِي)
-    # while the expected text after shadda-stripping has single letter (الذي)
     text = re.sub(r'([؀-ۿ])\1+', r'\1', text)
     return text
 
