@@ -57,7 +57,7 @@ const D = {
   // Misc
   line:      '#E2EEE8',
   starOn:    '#FFB800',
-  starOff:   '#D9EDE3',
+  starOff:   '#A8C8B8',
 }
 
 const { width: SW } = Dimensions.get('window')
