@@ -506,7 +506,7 @@ export default function TilawahLatihanScreen() {
                 ? <ActivityIndicator color={D.white} size="large" />
                 : isRecording
                   ? <StopCircle size={28} color={D.white} weight="fill" />
-                  : <Microphone  size={28} color={D.panel} weight="regular" />
+                  : <Microphone  size={28} color={D.white} weight="regular" />
               }
             </TouchableOpacity>
           </View>
@@ -698,7 +698,7 @@ const s = StyleSheet.create({
   micOuter: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center' },
   micBtn: {
     width: 64, height: 64, borderRadius: 32,
-    backgroundColor: D.white,
+    backgroundColor: D.panel,
     alignItems: 'center', justifyContent: 'center',
   },
   micBtnRec: { backgroundColor: D.coral },
