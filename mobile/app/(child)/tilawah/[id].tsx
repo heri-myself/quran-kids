@@ -122,7 +122,7 @@ function WaveBar({ idx, active }: { idx: number; active: boolean }) {
   return (
     <Animated.View style={[anim, {
       width: 4, borderRadius: 2,
-      backgroundColor: 'rgba(255,255,255,0.75)',
+      backgroundColor: D.coral,
       marginHorizontal: 1.5,
     }]} />
   )
@@ -469,11 +469,11 @@ export default function TilawahLatihanScreen() {
           isDone      && s.chipDone,
           recordingState === 'error' && s.chipErr,
         ]}>
-          {recordingState === 'idle'      && <Microphone    size={15} color={D.white} weight="regular" />}
+          {recordingState === 'idle'      && <Microphone    size={15} color={D.panel} weight="regular" />}
           {recordingState === 'recording' && <View style={s.recDot} />}
-          {recordingState === 'analyzing' && <ArrowsClockwise size={15} color={D.white} weight="regular" />}
-          {recordingState === 'done'      && <CheckCircle   size={15} color={D.white} weight="fill" />}
-          {recordingState === 'error'     && <XCircle       size={15} color={D.white} weight="fill" />}
+          {recordingState === 'analyzing' && <ArrowsClockwise size={15} color={D.amber} weight="regular" />}
+          {recordingState === 'done'      && <CheckCircle   size={15} color={D.panel} weight="fill" />}
+          {recordingState === 'error'     && <XCircle       size={15} color={D.coral} weight="fill" />}
           <Text style={s.chipTxt}>
             {recordingState === 'idle'      && 'Tap mic untuk mulai membaca'}
             {recordingState === 'recording' && 'Sedang merekam...'}
@@ -520,7 +520,7 @@ export default function TilawahLatihanScreen() {
               onPress={() => { resetVerse(); currentVerse && startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}
               accessibilityLabel="Ulangi"
             >
-              <ArrowCounterClockwise size={20} color={D.white} weight="regular" />
+              <ArrowCounterClockwise size={20} color={D.panel} weight="regular" />
               <Text style={s.retryTxt}>Ulangi</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -548,7 +548,7 @@ export default function TilawahLatihanScreen() {
             onPress={() => setSheetDismissed(false)}
             accessibilityLabel="Dengar contoh Syeikh"
           >
-            <Headphones size={16} color={D.white} weight="regular" />
+            <Headphones size={16} color={D.panel} weight="regular" />
             <Text style={s.hintTxt}>Dengar Contoh Syeikh</Text>
           </TouchableOpacity>
         )}
@@ -668,27 +668,28 @@ const s = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 38 : 22,
     alignItems: 'center',
     gap: 12,
+    backgroundColor: D.card,
   },
 
   /* Status chip */
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: D.greenBg,
     paddingHorizontal: 18, paddingVertical: 10,
     borderRadius: 24,
     minWidth: 240, justifyContent: 'center',
   },
-  chipRec:  { backgroundColor: 'rgba(232,69,60,0.3)' },
-  chipDone: { backgroundColor: 'rgba(255,255,255,0.22)' },
-  chipErr:  { backgroundColor: 'rgba(232,69,60,0.3)' },
-  chipTxt:  { color: D.white, fontWeight: '700', fontSize: 14 },
-  recDot:   { width: 10, height: 10, borderRadius: 5, backgroundColor: D.white },
+  chipRec:  { backgroundColor: D.coralBg },
+  chipDone: { backgroundColor: D.greenBg },
+  chipErr:  { backgroundColor: D.coralBg },
+  chipTxt:  { color: D.inkMid, fontWeight: '700', fontSize: 14 },
+  recDot:   { width: 10, height: 10, borderRadius: 5, backgroundColor: D.coral },
 
   /* Waveform */
   waveRow: {
     flexDirection: 'row', alignItems: 'center',
     height: 50,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: D.coralBg,
     borderRadius: 18,
     paddingHorizontal: 12,
     width: '100%', justifyContent: 'center',
@@ -707,11 +708,11 @@ const s = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 10, width: '100%' },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: D.greenBg,
     borderRadius: 22, paddingVertical: 16, paddingHorizontal: 20,
     minHeight: 54,
   },
-  retryTxt: { color: D.white, fontWeight: '700', fontSize: 15 },
+  retryTxt: { color: D.panel, fontWeight: '700', fontSize: 15 },
   nextBtn: {
     flex: 1,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -724,10 +725,10 @@ const s = StyleSheet.create({
   /* Hint */
   hintBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: D.greenBg,
     borderRadius: 22, paddingVertical: 12, paddingHorizontal: 20,
     minHeight: 44,
   },
-  hintTxt:  { color: D.white, fontSize: 14, fontWeight: '600' },
-  errTxt:   { color: '#FFD0CC', fontSize: 13, textAlign: 'center' },
+  hintTxt:  { color: D.panel, fontSize: 14, fontWeight: '600' },
+  errTxt:   { color: D.coral, fontSize: 13, textAlign: 'center' },
 })
