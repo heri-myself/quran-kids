@@ -36,8 +36,8 @@ function WaveformBar({ index, isActive }: { index: number; isActive: boolean }) 
     if (isActive) {
       height.value = withRepeat(
         withSequence(
-          withTiming(8 + (index % 5) * 5, { duration: 200 + index * 40 }),
-          withTiming(8, { duration: 200 + index * 40 })
+          withTiming(12 + (index % 5) * 8, { duration: 180 + index * 35 }),
+          withTiming(8, { duration: 180 + index * 35 })
         ),
         -1,
         true
@@ -120,61 +120,64 @@ function AudioSampleSheet({
 const sheetStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#27100A',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 40,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(124,111,241,0.3)',
+    backgroundColor: '#0D1B12',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 28,
+    paddingBottom: 44,
+    borderTopWidth: 1.5,
+    borderTopColor: 'rgba(34,197,94,0.3)',
   },
   handle: {
-    width: 40,
-    height: 4,
+    width: 48,
+    height: 5,
     backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 2,
+    borderRadius: 3,
     alignSelf: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 20,
     fontWeight: '800',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   subtitle: {
-    color: '#9A6548',
-    fontSize: 13,
-    marginBottom: 16,
-    lineHeight: 20,
+    color: '#86EFAC',
+    fontSize: 15,
+    marginBottom: 18,
+    lineHeight: 22,
   },
   waveform: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(124,111,241,0.1)',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    gap: 5,
+    backgroundColor: 'rgba(34,197,94,0.08)',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.15)',
   },
   waveBar: {
-    width: 4,
-    backgroundColor: '#EA580C',
-    borderRadius: 2,
+    width: 5,
+    backgroundColor: '#22C55E',
+    borderRadius: 3,
   },
   waveLabel: {
-    color: '#FED7AA',
-    fontSize: 12,
-    marginLeft: 8,
+    color: '#A7F3D0',
+    fontSize: 14,
+    marginLeft: 10,
     flex: 1,
+    fontWeight: '600',
   },
   errorText: {
-    color: '#EF4444',
-    fontSize: 12,
+    color: '#FCA5A5',
+    fontSize: 14,
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -186,30 +189,30 @@ const sheetStyles = StyleSheet.create({
   skipBtn: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 18,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   skipText: {
-    color: '#FED7AA',
-    fontWeight: '600',
-    fontSize: 15,
+    color: '#A7F3D0',
+    fontWeight: '700',
+    fontSize: 16,
   },
   playBtn: {
     flex: 2,
-    backgroundColor: '#EA580C',
-    borderRadius: 14,
-    paddingVertical: 14,
+    backgroundColor: '#22C55E',
+    borderRadius: 18,
+    paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#EA580C',
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowColor: '#22C55E',
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
   },
   playText: {
     color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 15,
+    fontWeight: '800',
+    fontSize: 16,
   },
 })
 
@@ -417,10 +420,13 @@ export default function TilawahLatihanScreen() {
 
         {isDone && currentEval && (
           <View style={styles.feedbackCard}>
-            <Text style={styles.feedbackScore}>Skor: {currentEval.score}/100</Text>
+            <Text style={styles.feedbackScore}>
+              {currentEval.score >= 85 ? '⭐⭐⭐' : currentEval.score >= 65 ? '⭐⭐' : '⭐'}
+              {'  '}Skor: {currentEval.score}/100
+            </Text>
             {currentEval.feedback.map((f, i) => (
               <Text key={i} style={styles.feedbackItem}>
-                • {f}
+                {f}
               </Text>
             ))}
           </View>
@@ -432,11 +438,11 @@ export default function TilawahLatihanScreen() {
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
         <Text style={styles.recordStatus}>
-          {recordingState === 'idle' && 'Tap untuk mulai rekam'}
+          {recordingState === 'idle' && '🎤 Tap untuk mulai membaca'}
           {recordingState === 'recording' && '🔴 Sedang merekam...'}
-          {recordingState === 'analyzing' && '⏳ Menganalisis...'}
+          {recordingState === 'analyzing' && '⏳ Sedang dinilai...'}
           {recordingState === 'done' && `✅ Skor: ${currentEval?.score ?? 0}`}
-          {recordingState === 'error' && '❌ Coba lagi'}
+          {recordingState === 'error' && '❌ Coba lagi ya!'}
         </Text>
 
         {isRecording && (
@@ -450,7 +456,7 @@ export default function TilawahLatihanScreen() {
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           {isDone && (
             <TouchableOpacity style={styles.retryBtn} onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}>
-              <Text style={styles.retryBtnText}>Ulangi</Text>
+              <Text style={styles.retryBtnText}>🔄 Ulangi</Text>
             </TouchableOpacity>
           )}
 
@@ -475,7 +481,7 @@ export default function TilawahLatihanScreen() {
           {isDone && (
             <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
               <Text style={styles.nextBtnText}>
-                {currentIndex + 1 >= verses.length ? 'Selesai' : 'Ayat Berikutnya'}
+                {currentIndex + 1 >= verses.length ? '🎉 Selesai!' : 'Ayat Berikutnya →'}
               </Text>
             </TouchableOpacity>
           )}
@@ -504,113 +510,150 @@ export default function TilawahLatihanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1C0A00' },
+  container: { flex: 1, backgroundColor: '#0D1B12' },
   progressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginTop: Platform.OS === 'ios' ? 52 : 32,
+    height: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginTop: Platform.OS === 'ios' ? 56 : 36,
     marginHorizontal: 20,
-    borderRadius: 2,
+    borderRadius: 5,
   },
-  progressFill: { height: 4, backgroundColor: '#EA580C', borderRadius: 2 },
-  progressLabel: { color: '#FED7AA', fontSize: 12, textAlign: 'center', marginTop: 6 },
+  progressFill: { height: 10, backgroundColor: '#22C55E', borderRadius: 5 },
+  progressLabel: {
+    color: '#86EFAC',
+    fontSize: 15,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 8,
+    letterSpacing: 0.5,
+  },
   verseCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 20,
-    padding: 20,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 28,
+    padding: 24,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.15)',
   },
   verseBadge: {
     alignSelf: 'flex-end',
-    backgroundColor: '#EA580C',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginBottom: 12,
+    backgroundColor: '#22C55E',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginBottom: 14,
   },
-  verseBadgeText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+  verseBadgeText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
   arabicRow: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    gap: 8,
-    marginBottom: 16,
+    gap: 10,
+    marginBottom: 18,
   },
-  arabicWord: { fontSize: 30, lineHeight: 56, fontFamily: 'ScheherazadeNew-Regular' },
+  arabicWord: { fontSize: 40, lineHeight: 72, fontFamily: 'ScheherazadeNew-Regular' },
   arabicFull: {
-    fontSize: 30,
+    fontSize: 40,
     color: '#FFFFFF',
     textAlign: 'right',
-    lineHeight: 56,
+    lineHeight: 72,
     writingDirection: 'rtl',
     fontFamily: 'ScheherazadeNew-Regular',
   },
-  translation: { color: '#94A3B8', fontSize: 13, fontStyle: 'italic', lineHeight: 20 },
+  translation: {
+    color: '#A7F3D0',
+    fontSize: 16,
+    fontStyle: 'italic',
+    lineHeight: 24,
+    marginTop: 4,
+  },
   feedbackCard: {
-    backgroundColor: 'rgba(124,111,241,0.15)',
-    borderRadius: 14,
-    padding: 16,
+    backgroundColor: 'rgba(34,197,94,0.1)',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.25)',
   },
-  feedbackScore: { color: '#EA580C', fontWeight: '700', fontSize: 15, marginBottom: 8 },
-  feedbackItem: { color: '#FFEDD5', fontSize: 13, marginBottom: 4 },
+  feedbackScore: {
+    color: '#22C55E',
+    fontWeight: '800',
+    fontSize: 20,
+    marginBottom: 10,
+  },
+  feedbackItem: { color: '#ECFDF5', fontSize: 15, marginBottom: 6, lineHeight: 22 },
   recordArea: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 100,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 28,
+    paddingBottom: 108,
     alignItems: 'center',
-    gap: 16,
+    gap: 18,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(34,197,94,0.2)',
   },
-  recordStatus: { color: '#FFEDD5', fontSize: 14 },
-  errorText: { color: '#EF4444', fontSize: 13 },
-  waveform: { flexDirection: 'row', gap: 4, alignItems: 'center', height: 48 },
-  waveBar: { width: 4, borderRadius: 2, backgroundColor: '#EA580C', minHeight: 8 },
+  recordStatus: {
+    color: '#ECFDF5',
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  errorText: { color: '#FCA5A5', fontSize: 15, textAlign: 'center' },
+  waveform: { flexDirection: 'row', gap: 5, alignItems: 'center', height: 60 },
+  waveBar: { width: 5, borderRadius: 3, backgroundColor: '#22C55E', minHeight: 8 },
   micBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#EA580C',
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: '#22C55E',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#EA580C',
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: '#22C55E',
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 10,
   },
-  micBtnActive: { backgroundColor: '#EF4444' },
+  micBtnActive: {
+    backgroundColor: '#DC2626',
+    shadowColor: '#DC2626',
+  },
   hintBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(124,111,241,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(124,111,241,0.4)',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(34,197,94,0.1)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(34,197,94,0.35)',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     marginBottom: 10,
   },
   hintBtnText: {
-    color: '#FED7AA',
-    fontSize: 13,
-    fontWeight: '600',
+    color: '#86EFAC',
+    fontSize: 15,
+    fontWeight: '700',
   },
   retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#EA580C',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#22C55E',
   },
-  retryBtnText: { color: '#EA580C', fontWeight: '700', fontSize: 14 },
+  retryBtnText: { color: '#22C55E', fontWeight: '800', fontSize: 16 },
   nextBtn: {
     flex: 1,
     backgroundColor: '#EA580C',
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 18,
+    paddingVertical: 16,
     alignItems: 'center',
+    shadowColor: '#EA580C',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  nextBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  nextBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 17 },
 })
