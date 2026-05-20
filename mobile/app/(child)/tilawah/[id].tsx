@@ -22,6 +22,11 @@ import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/u
 import { getSurahVerses } from '../../../services/quran'
 import { useLastActivityStore } from '../../../stores/last-activity-store'
 import { RiIcon } from '../../../components/RiIcon'
+import {
+  ArrowCounterClockwise, ArrowRight, CheckCircle,
+  Headphones, Play, Microphone, StopCircle,
+  RecordFill, CircleNotch, XCircle,
+} from 'phosphor-react-native'
 
 interface Verse {
   verse_number: number
@@ -107,7 +112,10 @@ function AudioSampleSheet({
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
-                <Text style={sheetStyles.playText}>▶ Dengar Contoh</Text>
+                <>
+                  <Play size={18} color="#FFFFFF" weight="regular" />
+                  <Text style={sheetStyles.playText}>Dengar Contoh</Text>
+                </>
               )}
             </TouchableOpacity>
           </View>
@@ -203,7 +211,10 @@ const sheetStyles = StyleSheet.create({
     backgroundColor: '#22C55E',
     borderRadius: 18,
     paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     shadowColor: '#22C55E',
     shadowOpacity: 0.5,
     shadowRadius: 12,
@@ -447,13 +458,20 @@ export default function TilawahLatihanScreen() {
       <View style={styles.recordArea}>
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-        <Text style={styles.recordStatus}>
-          {recordingState === 'idle' && '🎤 Tap untuk mulai membaca'}
-          {recordingState === 'recording' && '🔴 Sedang merekam...'}
-          {recordingState === 'analyzing' && '⏳ Sedang dinilai...'}
-          {recordingState === 'done' && `✅ Skor: ${currentEval?.score ?? 0}`}
-          {recordingState === 'error' && '❌ Coba lagi ya!'}
-        </Text>
+        <View style={styles.recordStatusRow}>
+          {recordingState === 'idle' && <Microphone size={20} color="#86EFAC" weight="regular" />}
+          {recordingState === 'recording' && <RecordFill size={20} color="#F87171" weight="regular" />}
+          {recordingState === 'analyzing' && <CircleNotch size={20} color="#FCD34D" weight="regular" />}
+          {recordingState === 'done' && <CheckCircle size={20} color="#4ADE80" weight="regular" />}
+          {recordingState === 'error' && <XCircle size={20} color="#F87171" weight="regular" />}
+          <Text style={styles.recordStatus}>
+            {recordingState === 'idle' && 'Tap untuk mulai membaca'}
+            {recordingState === 'recording' && 'Sedang merekam...'}
+            {recordingState === 'analyzing' && 'Sedang dinilai...'}
+            {recordingState === 'done' && `Skor: ${currentEval?.score ?? 0}`}
+            {recordingState === 'error' && 'Coba lagi ya!'}
+          </Text>
+        </View>
 
         {isRecording && (
           <View style={styles.waveform}>
@@ -466,7 +484,8 @@ export default function TilawahLatihanScreen() {
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           {isDone && (
             <TouchableOpacity style={styles.retryBtn} onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}>
-              <Text style={styles.retryBtnText}>🔄 Ulangi</Text>
+              <ArrowCounterClockwise size={20} color="#22C55E" weight="regular" />
+              <Text style={styles.retryBtnText}>Ulangi</Text>
             </TouchableOpacity>
           )}
 
@@ -482,17 +501,25 @@ export default function TilawahLatihanScreen() {
             >
               {isAnalyzing ? (
                 <ActivityIndicator color="#FFFFFF" />
+              ) : isRecording ? (
+                <StopCircle size={32} color="#fff" weight="regular" />
               ) : (
-                <RiIcon name={isRecording ? 'stop-circle-fill' : 'mic-fill'} size={30} color="#fff" />
+                <Microphone size={32} color="#fff" weight="regular" />
               )}
             </TouchableOpacity>
           )}
 
           {isDone && (
             <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+              {currentIndex + 1 >= verses.length
+                ? <CheckCircle size={20} color="#fff" weight="regular" />
+                : null}
               <Text style={styles.nextBtnText}>
-                {currentIndex + 1 >= verses.length ? '🎉 Selesai!' : 'Ayat Berikutnya →'}
+                {currentIndex + 1 >= verses.length ? 'Selesai' : 'Ayat Berikutnya'}
               </Text>
+              {currentIndex + 1 < verses.length
+                ? <ArrowRight size={20} color="#fff" weight="regular" />
+                : null}
             </TouchableOpacity>
           )}
         </View>
@@ -501,7 +528,8 @@ export default function TilawahLatihanScreen() {
           style={styles.hintBtn}
           onPress={() => setSheetDismissed(false)}
         >
-          <Text style={styles.hintBtnText}>🎧 Dengar Contoh Syeikh</Text>
+          <Headphones size={18} color="#86EFAC" weight="regular" />
+          <Text style={styles.hintBtnText}>Dengar Contoh Syeikh</Text>
         </TouchableOpacity>
       )}
 
@@ -603,6 +631,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(34,197,94,0.2)',
   },
+  recordStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   recordStatus: {
     color: '#ECFDF5',
     fontSize: 18,
@@ -647,6 +680,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   retryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 16,
@@ -659,7 +695,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#EA580C',
     borderRadius: 18,
     paddingVertical: 16,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     shadowColor: '#EA580C',
     shadowOpacity: 0.4,
     shadowRadius: 10,
