@@ -459,7 +459,7 @@ export default function TilawahLatihanScreen() {
       </ScrollView>
 
       {/* ── Control panel ───────────────────────────────── */}
-      <View style={[s.panel, { backgroundColor: accentColor }]}>
+      <View style={s.panel}>
 
         {!!error && <Text style={s.errTxt}>{error}</Text>}
 
