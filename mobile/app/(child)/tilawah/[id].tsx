@@ -670,7 +670,7 @@ const s = StyleSheet.create({
     borderTopLeftRadius: 36, borderTopRightRadius: 36,
     paddingTop: 14,
     paddingHorizontal: 22,
-    paddingBottom: Platform.OS === 'ios' ? 38 : 22,
+    paddingBottom: Platform.OS === 'ios' ? 56 : 40,
     alignItems: 'center',
     gap: 12,
   },
