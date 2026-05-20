@@ -461,17 +461,12 @@ export default function TilawahLatihanScreen() {
           isDone && styles.statusChipDone,
           recordingState === 'error' && styles.statusChipError,
         ]}>
-          {recordingState === 'idle'      && <Microphone size={18} color={C.peach} weight="regular" />}
+          {recordingState === 'idle'      && <Microphone size={18} color="#FFFFFF" weight="regular" />}
           {recordingState === 'recording' && <View style={styles.recordingDot} />}
-          {recordingState === 'analyzing' && <ArrowsClockwise size={18} color={C.gold} weight="regular" />}
-          {recordingState === 'done'      && <CheckCircle size={18} color={C.sage} weight="fill" />}
-          {recordingState === 'error'     && <XCircle size={18} color={C.red} weight="fill" />}
-          <Text style={[
-            styles.statusText,
-            isRecording               && { color: C.red },
-            isDone                    && { color: C.sageDark },
-            recordingState === 'error' && { color: C.red },
-          ]}>
+          {recordingState === 'analyzing' && <ArrowsClockwise size={18} color="#FFFFFF" weight="regular" />}
+          {recordingState === 'done'      && <CheckCircle size={18} color="#FFFFFF" weight="fill" />}
+          {recordingState === 'error'     && <XCircle size={18} color="#FFE0D0" weight="fill" />}
+          <Text style={styles.statusText}>
             {recordingState === 'idle'      && 'Tap tombol untuk membaca'}
             {recordingState === 'recording' && 'Sedang merekam...'}
             {recordingState === 'analyzing' && 'Sedang dinilai...'}
@@ -517,7 +512,7 @@ export default function TilawahLatihanScreen() {
               style={styles.retryBtn}
               onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}
             >
-              <ArrowCounterClockwise size={20} color={C.peach} weight="regular" />
+              <ArrowCounterClockwise size={20} color="#FFFFFF" weight="regular" />
               <Text style={styles.retryBtnText}>Ulangi</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
@@ -537,7 +532,7 @@ export default function TilawahLatihanScreen() {
         {/* Hint button */}
         {wrongCount >= 3 && (
           <TouchableOpacity style={styles.hintBtn} onPress={() => setSheetDismissed(false)}>
-            <Headphones size={17} color={C.peachDark} weight="regular" />
+            <Headphones size={17} color="#FFFFFF" weight="regular" />
             <Text style={styles.hintBtnText}>Dengar Contoh Syeikh</Text>
           </TouchableOpacity>
         )}
@@ -679,9 +674,9 @@ const styles = StyleSheet.create({
   feedbackFirst: { fontWeight: '700', fontSize: 16, color: C.text, marginBottom: 8 },
   feedbackItem: { color: C.textSoft, fontSize: 14, marginBottom: 5, lineHeight: 21 },
 
-  /* Record area */
+  /* Record area — green background like reference image */
   recordArea: {
-    backgroundColor: C.card,
+    backgroundColor: C.sage,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     paddingTop: 10,
@@ -699,35 +694,35 @@ const styles = StyleSheet.create({
   },
   decorDot: {
     width: 8, height: 8, borderRadius: 4,
-    opacity: 0.5,
+    opacity: 0.4,
   },
 
   /* Status chip */
   statusChip: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: C.cardPeach,
+    backgroundColor: 'rgba(255,255,255,0.22)',
     paddingHorizontal: 18, paddingVertical: 10,
     borderRadius: 24,
   },
-  statusChipRecording: { backgroundColor: '#FFF0F0' },
-  statusChipDone:      { backgroundColor: C.cardSage },
-  statusChipError:     { backgroundColor: '#FFF0F0' },
-  statusText: { color: C.peachDark, fontSize: 15, fontWeight: '700' },
+  statusChipRecording: { backgroundColor: 'rgba(255,255,255,0.18)' },
+  statusChipDone:      { backgroundColor: 'rgba(255,255,255,0.22)' },
+  statusChipError:     { backgroundColor: 'rgba(255,255,255,0.18)' },
+  statusText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   recordingDot: {
     width: 12, height: 12, borderRadius: 6,
-    backgroundColor: C.red,
+    backgroundColor: '#FFFFFF',
   },
-  errorText: { color: C.red, fontSize: 14, textAlign: 'center' },
+  errorText: { color: '#FFE0D0', fontSize: 14, textAlign: 'center' },
 
   /* Waveform */
   waveform: {
     flexDirection: 'row', gap: 4, alignItems: 'center',
     height: 56,
-    backgroundColor: '#FFF0F0',
+    backgroundColor: 'rgba(255,255,255,0.18)',
     paddingHorizontal: 16, borderRadius: 20,
     width: '100%', justifyContent: 'center',
   },
-  waveBar: { width: 5, borderRadius: 3, backgroundColor: C.red, minHeight: 6 },
+  waveBar: { width: 5, borderRadius: 3, backgroundColor: '#FFFFFF', minHeight: 6 },
 
   /* Mic button */
   micWrapper: { alignItems: 'center', justifyContent: 'center', width: 104, height: 104 },
@@ -749,11 +744,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 20, paddingVertical: 14,
     borderRadius: 22,
-    backgroundColor: C.cardPeach,
+    backgroundColor: 'rgba(255,255,255,0.22)',
   },
-  retryBtnText: { color: C.peach, fontWeight: '800', fontSize: 15 },
+  retryBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
   nextBtn: {
-    flex: 1, backgroundColor: C.sage,
+    flex: 1, backgroundColor: C.sageDark,
     borderRadius: 22, paddingVertical: 16, paddingHorizontal: 16,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
@@ -762,8 +757,8 @@ const styles = StyleSheet.create({
   /* Hint */
   hintBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: C.cardPeach,
+    backgroundColor: 'rgba(255,255,255,0.22)',
     borderRadius: 22, paddingVertical: 11, paddingHorizontal: 20,
   },
-  hintBtnText: { color: C.peachDark, fontSize: 14, fontWeight: '700' },
+  hintBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 })
