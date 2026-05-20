@@ -132,7 +132,7 @@ const sheetStyles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#150800',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 28,
@@ -143,19 +143,19 @@ const sheetStyles = StyleSheet.create({
   handle: {
     width: 48,
     height: 5,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.15)',
     borderRadius: 3,
     alignSelf: 'center',
     marginBottom: 20,
   },
   title: {
-    color: '#FFFFFF',
+    color: '#1A0800',
     fontSize: 20,
     fontWeight: '800',
     marginBottom: 8,
   },
   subtitle: {
-    color: '#FFB899',
+    color: '#C4500A',
     fontSize: 15,
     marginBottom: 18,
     lineHeight: 22,
@@ -177,7 +177,7 @@ const sheetStyles = StyleSheet.create({
     borderRadius: 3,
   },
   waveLabel: {
-    color: '#FFCBA9',
+    color: '#C4500A',
     fontSize: 14,
     marginLeft: 10,
     flex: 1,
@@ -196,13 +196,13 @@ const sheetStyles = StyleSheet.create({
   },
   skipBtn: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     borderRadius: 18,
     paddingVertical: 16,
     alignItems: 'center',
   },
   skipText: {
-    color: '#FFCBA9',
+    color: '#1A0800',
     fontWeight: '700',
     fontSize: 16,
   },
@@ -459,7 +459,7 @@ export default function TilawahLatihanScreen() {
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
         <View style={styles.recordStatusRow}>
-          {recordingState === 'idle' && <Microphone size={20} color="#FFB899" weight="regular" />}
+          {recordingState === 'idle' && <Microphone size={20} color="#FF6B35" weight="regular" />}
           {recordingState === 'recording' && <View style={styles.recordingDot} />}
           {recordingState === 'analyzing' && <ArrowsClockwise size={20} color="#FCD34D" weight="regular" />}
           {recordingState === 'done' && <CheckCircle size={20} color="#4ADE80" weight="regular" />}
@@ -528,7 +528,7 @@ export default function TilawahLatihanScreen() {
           style={styles.hintBtn}
           onPress={() => setSheetDismissed(false)}
         >
-          <Headphones size={18} color="#FFB899" weight="regular" />
+          <Headphones size={18} color="#C4500A" weight="regular" />
           <Text style={styles.hintBtnText}>Dengar Contoh Syeikh</Text>
         </TouchableOpacity>
       )}
@@ -548,17 +548,17 @@ export default function TilawahLatihanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#150800' },
+  container: { flex: 1, backgroundColor: '#FFF8F4' },
   progressBar: {
     height: 10,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
     marginTop: Platform.OS === 'ios' ? 56 : 36,
     marginHorizontal: 20,
     borderRadius: 5,
   },
   progressFill: { height: 10, backgroundColor: '#FF6B35', borderRadius: 5 },
   progressLabel: {
-    color: '#FFB899',
+    color: '#C4500A',
     fontSize: 15,
     fontWeight: '700',
     textAlign: 'center',
@@ -566,12 +566,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   verseCard: {
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 28,
     padding: 24,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,107,53,0.15)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,107,53,0.25)',
+    shadowColor: '#FF6B35',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   verseBadge: {
     alignSelf: 'flex-end',
@@ -592,26 +597,30 @@ const styles = StyleSheet.create({
   arabicWord: { fontSize: 40, lineHeight: 72, fontFamily: 'ScheherazadeNew-Regular' },
   arabicFull: {
     fontSize: 40,
-    color: '#FFFFFF',
+    color: '#1A0800',
     textAlign: 'right',
     lineHeight: 72,
     writingDirection: 'rtl',
     fontFamily: 'ScheherazadeNew-Regular',
   },
   translation: {
-    color: '#FFD4B8',
+    color: '#7C3A10',
     fontSize: 16,
     fontStyle: 'italic',
     lineHeight: 24,
     marginTop: 4,
   },
   feedbackCard: {
-    backgroundColor: 'rgba(255,107,53,0.1)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,107,53,0.25)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,107,53,0.3)',
+    shadowColor: '#FF6B35',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   feedbackScore: {
     color: '#FF6B35',
@@ -619,17 +628,21 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 10,
   },
-  feedbackItem: { color: '#FFF2ED', fontSize: 15, marginBottom: 6, lineHeight: 22 },
+  feedbackItem: { color: '#3D1A08', fontSize: 15, marginBottom: 6, lineHeight: 22 },
   recordArea: {
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 28,
     paddingBottom: 108,
     alignItems: 'center',
     gap: 18,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,107,53,0.2)',
+    borderTopWidth: 1.5,
+    borderTopColor: 'rgba(255,107,53,0.25)',
+    shadowColor: '#FF6B35',
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
   },
   recordStatusRow: {
     flexDirection: 'row',
@@ -643,12 +656,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F87171',
   },
   recordStatus: {
-    color: '#FFF2ED',
+    color: '#1A0800',
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
   },
-  errorText: { color: '#FCA5A5', fontSize: 15, textAlign: 'center' },
+  errorText: { color: '#DC2626', fontSize: 15, textAlign: 'center' },
   waveform: { flexDirection: 'row', gap: 5, alignItems: 'center', height: 60 },
   waveBar: { width: 5, borderRadius: 3, backgroundColor: '#FF6B35', minHeight: 8 },
   micBtn: {
@@ -672,16 +685,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,107,53,0.1)',
+    backgroundColor: '#FFF2ED',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,107,53,0.35)',
+    borderColor: '#FF6B35',
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 20,
     marginBottom: 10,
   },
   hintBtnText: {
-    color: '#FFB899',
+    color: '#C4500A',
     fontSize: 15,
     fontWeight: '700',
   },
