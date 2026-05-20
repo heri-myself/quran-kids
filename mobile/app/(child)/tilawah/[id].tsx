@@ -502,7 +502,7 @@ export default function TilawahLatihanScreen() {
               {isAnalyzing ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : isRecording ? (
-                <StopCircle size={32} color="#fff" weight="regular" />
+                <StopCircle size={32} color="#fff" weight="fill" />
               ) : (
                 <Microphone size={32} color="#fff" weight="regular" />
               )}
