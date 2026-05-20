@@ -132,13 +132,13 @@ const sheetStyles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#0D1B12',
+    backgroundColor: '#1C0800',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 28,
     paddingBottom: 44,
     borderTopWidth: 1.5,
-    borderTopColor: 'rgba(34,197,94,0.3)',
+    borderTopColor: 'rgba(255,107,53,0.3)',
   },
   handle: {
     width: 48,
@@ -155,7 +155,7 @@ const sheetStyles = StyleSheet.create({
     marginBottom: 8,
   },
   subtitle: {
-    color: '#86EFAC',
+    color: '#FFB899',
     fontSize: 15,
     marginBottom: 18,
     lineHeight: 22,
@@ -164,20 +164,20 @@ const sheetStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(34,197,94,0.08)',
+    backgroundColor: 'rgba(255,107,53,0.08)',
     borderRadius: 16,
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(34,197,94,0.15)',
+    borderColor: 'rgba(255,107,53,0.15)',
   },
   waveBar: {
     width: 5,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#FF6B35',
     borderRadius: 3,
   },
   waveLabel: {
-    color: '#A7F3D0',
+    color: '#FFCBA9',
     fontSize: 14,
     marginLeft: 10,
     flex: 1,
@@ -202,20 +202,20 @@ const sheetStyles = StyleSheet.create({
     alignItems: 'center',
   },
   skipText: {
-    color: '#A7F3D0',
+    color: '#FFCBA9',
     fontWeight: '700',
     fontSize: 16,
   },
   playBtn: {
     flex: 2,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#FF6B35',
     borderRadius: 18,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#22C55E',
+    shadowColor: '#FF6B35',
     shadowOpacity: 0.5,
     shadowRadius: 12,
     elevation: 8,
@@ -389,7 +389,7 @@ export default function TilawahLatihanScreen() {
   if (isLoading || !currentVerse) {
     return (
       <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color="#EA580C" size="large" />
+        <ActivityIndicator color="#FF6B35" size="large" />
       </View>
     )
   }
@@ -459,7 +459,7 @@ export default function TilawahLatihanScreen() {
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
         <View style={styles.recordStatusRow}>
-          {recordingState === 'idle' && <Microphone size={20} color="#86EFAC" weight="regular" />}
+          {recordingState === 'idle' && <Microphone size={20} color="#FFB899" weight="regular" />}
           {recordingState === 'recording' && <View style={styles.recordingDot} />}
           {recordingState === 'analyzing' && <ArrowsClockwise size={20} color="#FCD34D" weight="regular" />}
           {recordingState === 'done' && <CheckCircle size={20} color="#4ADE80" weight="regular" />}
@@ -484,7 +484,7 @@ export default function TilawahLatihanScreen() {
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           {isDone && (
             <TouchableOpacity style={styles.retryBtn} onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}>
-              <ArrowCounterClockwise size={20} color="#22C55E" weight="regular" />
+              <ArrowCounterClockwise size={20} color="#FF6B35" weight="regular" />
               <Text style={styles.retryBtnText}>Ulangi</Text>
             </TouchableOpacity>
           )}
@@ -528,7 +528,7 @@ export default function TilawahLatihanScreen() {
           style={styles.hintBtn}
           onPress={() => setSheetDismissed(false)}
         >
-          <Headphones size={18} color="#86EFAC" weight="regular" />
+          <Headphones size={18} color="#FFB899" weight="regular" />
           <Text style={styles.hintBtnText}>Dengar Contoh Syeikh</Text>
         </TouchableOpacity>
       )}
@@ -548,7 +548,7 @@ export default function TilawahLatihanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B12' },
+  container: { flex: 1, backgroundColor: '#1C0800' },
   progressBar: {
     height: 10,
     backgroundColor: 'rgba(255,255,255,0.12)',
@@ -556,9 +556,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 5,
   },
-  progressFill: { height: 10, backgroundColor: '#22C55E', borderRadius: 5 },
+  progressFill: { height: 10, backgroundColor: '#FF6B35', borderRadius: 5 },
   progressLabel: {
-    color: '#86EFAC',
+    color: '#FFB899',
     fontSize: 15,
     fontWeight: '700',
     textAlign: 'center',
@@ -571,11 +571,11 @@ const styles = StyleSheet.create({
     padding: 24,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(34,197,94,0.15)',
+    borderColor: 'rgba(255,107,53,0.15)',
   },
   verseBadge: {
     alignSelf: 'flex-end',
-    backgroundColor: '#22C55E',
+    backgroundColor: '#FF6B35',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 6,
@@ -599,27 +599,27 @@ const styles = StyleSheet.create({
     fontFamily: 'ScheherazadeNew-Regular',
   },
   translation: {
-    color: '#A7F3D0',
+    color: '#FFD4B8',
     fontSize: 16,
     fontStyle: 'italic',
     lineHeight: 24,
     marginTop: 4,
   },
   feedbackCard: {
-    backgroundColor: 'rgba(34,197,94,0.1)',
+    backgroundColor: 'rgba(255,107,53,0.1)',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(34,197,94,0.25)',
+    borderColor: 'rgba(255,107,53,0.25)',
   },
   feedbackScore: {
-    color: '#22C55E',
+    color: '#FF6B35',
     fontWeight: '800',
     fontSize: 20,
     marginBottom: 10,
   },
-  feedbackItem: { color: '#ECFDF5', fontSize: 15, marginBottom: 6, lineHeight: 22 },
+  feedbackItem: { color: '#FFF2ED', fontSize: 15, marginBottom: 6, lineHeight: 22 },
   recordArea: {
     backgroundColor: 'rgba(0,0,0,0.35)',
     borderTopLeftRadius: 32,
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 18,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(34,197,94,0.2)',
+    borderTopColor: 'rgba(255,107,53,0.2)',
   },
   recordStatusRow: {
     flexDirection: 'row',
@@ -643,22 +643,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#F87171',
   },
   recordStatus: {
-    color: '#ECFDF5',
+    color: '#FFF2ED',
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
   },
   errorText: { color: '#FCA5A5', fontSize: 15, textAlign: 'center' },
   waveform: { flexDirection: 'row', gap: 5, alignItems: 'center', height: 60 },
-  waveBar: { width: 5, borderRadius: 3, backgroundColor: '#22C55E', minHeight: 8 },
+  waveBar: { width: 5, borderRadius: 3, backgroundColor: '#FF6B35', minHeight: 8 },
   micBtn: {
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: '#22C55E',
+    backgroundColor: '#FF6B35',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#22C55E',
+    shadowColor: '#FF6B35',
     shadowOpacity: 0.6,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 4 },
@@ -672,16 +672,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(34,197,94,0.1)',
+    backgroundColor: 'rgba(255,107,53,0.1)',
     borderWidth: 1.5,
-    borderColor: 'rgba(34,197,94,0.35)',
+    borderColor: 'rgba(255,107,53,0.35)',
     borderRadius: 16,
     paddingVertical: 12,
     paddingHorizontal: 20,
     marginBottom: 10,
   },
   hintBtnText: {
-    color: '#86EFAC',
+    color: '#FFB899',
     fontSize: 15,
     fontWeight: '700',
   },
@@ -693,12 +693,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#22C55E',
+    borderColor: '#FF6B35',
   },
-  retryBtnText: { color: '#22C55E', fontWeight: '800', fontSize: 16 },
+  retryBtnText: { color: '#FF6B35', fontWeight: '800', fontSize: 16 },
   nextBtn: {
     flex: 1,
-    backgroundColor: '#EA580C',
+    backgroundColor: '#FF6B35',
     borderRadius: 18,
     paddingVertical: 16,
     paddingHorizontal: 16,
@@ -706,7 +706,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#EA580C',
+    shadowColor: '#FF6B35',
     shadowOpacity: 0.4,
     shadowRadius: 10,
     elevation: 6,
