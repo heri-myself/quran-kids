@@ -28,27 +28,27 @@ import {
 } from 'phosphor-react-native'
 
 const C = {
-  bg:           '#FEF7E8',   // warm parchment cream
-  bgAccent:     '#FDF0D0',   // slightly deeper parchment
-  card:         '#FFFCF4',   // very soft warm white
-  cardSage:     '#EEF6EF',   // soft sage card
-  cardPeach:    '#FFF1E6',   // soft peach card
-  sage:         '#5C9E7A',   // muted sage green
+  bg:           '#F5EAD0',   // warm parchment (reference image background)
+  bgAccent:     '#EDE0C4',   // deeper parchment
+  card:         '#EDE0C4',   // parchment card — matches reference image
+  cardSage:     '#D8EBD8',   // soft sage card
+  cardPeach:    '#F2DBC8',   // warm peach card
+  sage:         '#5C9E7A',
   sageDark:     '#3D7055',
-  sageLight:    '#D4EDDA',
-  peach:        '#E8855A',   // warm peach (softer than orange)
+  sageLight:    '#B8D8C0',
+  peach:        '#E8855A',
   peachDark:    '#B85A32',
-  peachLight:   '#FAE0D4',
-  peachMid:     '#F2C0A8',
-  green:        '#3EB97A',   // mic button green (kept bright as user requested)
+  peachLight:   '#F2DBC8',
+  peachMid:     '#DEB89A',
+  green:        '#3EB97A',
   greenDark:    '#228C56',
   red:          '#D95555',
-  text:         '#3D2314',   // warm dark brown
-  textSoft:     '#7A4A28',   // medium warm brown
-  textMuted:    '#A67C5A',   // light warm brown
-  gold:         '#D4921E',   // warm gold
-  goldLight:    '#FFF0C0',
-  cream:        '#F5E8CC',   // decorative cream
+  text:         '#3D2314',
+  textSoft:     '#7A4A28',
+  textMuted:    '#9A6840',
+  gold:         '#C4840E',
+  goldLight:    '#F0D898',
+  cream:        '#D8C8A8',
 }
 
 interface Verse {
