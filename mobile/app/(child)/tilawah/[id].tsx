@@ -132,7 +132,7 @@ const sheetStyles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#000000',
+    backgroundColor: '#150800',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 28,
@@ -548,7 +548,7 @@ export default function TilawahLatihanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+  container: { flex: 1, backgroundColor: '#150800' },
   progressBar: {
     height: 10,
     backgroundColor: 'rgba(255,255,255,0.12)',
