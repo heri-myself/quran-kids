@@ -599,14 +599,14 @@ const s = StyleSheet.create({
   /* Verse card */
   verseCard: {
     backgroundColor: D.card,
-    borderRadius: 28,
+    borderRadius: 22,
     overflow: 'hidden',
     marginBottom: 14,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
   cardCap: {
     height: 56,
