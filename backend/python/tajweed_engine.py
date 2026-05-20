@@ -31,6 +31,116 @@ MAD_PATTERNS = [
 
 GHUNNAH_PATTERN = re.compile(f'[{NUN}{MIM}]{SHADDA}')
 
+SUKUN           = 'ْ'
+TANWIN          = 'ًٌٍ'
+
+IKHFA_LETTERS       = set('تثجدذزسشصضطظفقك')
+IDGHAM_GHUNNAH      = set('ينمو')
+IDGHAM_BILA_GHUNNAH = set('لر')
+IQLAB_LETTERS       = set('ب')
+IZHHAR_LETTERS      = set('أهعغحخء')
+QALQALAH_LETTERS    = set('قطبجد')
+MIM_IKHFA_LETTERS   = set('ب')    # ikhfa syafawi
+MIM_IDGHAM_LETTERS  = set('م')    # idgham mitslain
+
+
+_HARAKAT = set('ًٌٍَُِّْٕٓٔـٰ')
+_ARABIC_LETTERS = set('ابتثجحخدذرزسشصضطظعغفقكلمنهويءىآأإٱ')
+
+
+def _first_consonant(word: str) -> str:
+    """Return first Arabic consonant letter of word, skipping harakat/diacritics."""
+    for c in word:
+        if c in _ARABIC_LETTERS:
+            return c
+    return ''
+
+
+def _nun_rule(rules: list, after: str) -> None:
+    if after in IKHFA_LETTERS:
+        rules.append(('Ikhfa', f'Nun sukun + {after} → Ikhfa, bacaan didengungkan samar (antara jelas dan masuk)'))
+    elif after in IDGHAM_GHUNNAH:
+        rules.append(('Idgham Bighunnah', f'Nun sukun + {after} → Idgham Bighunnah, masukkan ke huruf berikutnya dengan dengung'))
+    elif after in IDGHAM_BILA_GHUNNAH:
+        rules.append(('Idgham Bilaghunnah', f'Nun sukun + {after} → Idgham Bilaghunnah, masukkan tanpa dengung'))
+    elif after in IQLAB_LETTERS:
+        rules.append(('Iqlab', 'Nun sukun + ب → Iqlab, ubah menjadi mim dan dengungkan'))
+    elif after in IZHHAR_LETTERS:
+        rules.append(('Izhhar Halqi', f'Nun sukun + huruf halq ({after}) → Izhhar, ucapkan nun dengan jelas'))
+
+
+def _mim_rule(rules: list, after: str) -> None:
+    if after in MIM_IKHFA_LETTERS:
+        rules.append(('Ikhfa Syafawi', 'Mim sukun + ب → Ikhfa Syafawi, dengungkan samar'))
+    elif after in MIM_IDGHAM_LETTERS:
+        rules.append(('Idgham Mitslain', 'Mim sukun + م → Idgham Mitslain dengan ghunnah'))
+    elif after:
+        rules.append(('Izhhar Syafawi', f'Mim sukun + {after} → Izhhar Syafawi, ucapkan mim dengan jelas'))
+
+
+def detect_tajweed_rules(word: str, next_word: str = '') -> list[tuple[str, str]]:
+    """Deteksi hukum tajweed pada sebuah kata (dengan harakat).
+    Handles both explicit sukun and implicit sukun on word-final NUN/MIM.
+    Returns list of (nama_hukum, penjelasan).
+    """
+    rules: list[tuple[str, str]] = []
+    chars = list(word)
+    n = len(chars)
+    first_next = _first_consonant(next_word)
+
+    for i, c in enumerate(chars):
+        nxt = chars[i + 1] if i + 1 < n else ''
+
+        # Ghunnah: nun atau mim + tasydid
+        if c in (NUN, MIM) and nxt == SHADDA:
+            huruf = 'Nun' if c == NUN else 'Mim'
+            rules.append(('Ghunnah', f'{huruf} tasydid → Ghunnah, harus didengungkan 2 harakat'))
+
+        # Qalqalah: huruf qalqalah + sukun eksplisit atau akhir kata
+        if c in QALQALAH_LETTERS and (nxt == SUKUN or (i == n - 1 and nxt == '')):
+            rules.append(('Qalqalah', f'Huruf {c} sukun → Qalqalah, suara dipantulkan'))
+
+        # Nun sukun eksplisit (dalam kata)
+        if c == NUN and nxt == SUKUN:
+            after_idx = i + 2
+            after = chars[after_idx] if after_idx < n else first_next
+            # skip harakat to get the actual next consonant
+            while after in _HARAKAT and after_idx + 1 < n:
+                after_idx += 1
+                after = chars[after_idx]
+            _nun_rule(rules, after)
+
+        # Nun di akhir kata → sukun implisit, cek kata berikutnya
+        if c == NUN and i == n - 1 and first_next:
+            _nun_rule(rules, first_next)
+
+        # Tanwin di akhir kata → cek huruf pertama kata berikutnya
+        if c in TANWIN and (i == n - 1 or nxt not in TANWIN):
+            if first_next in IKHFA_LETTERS:
+                rules.append(('Ikhfa', f'Tanwin + {first_next} → Ikhfa, dengungkan samar'))
+            elif first_next in IDGHAM_GHUNNAH:
+                rules.append(('Idgham Bighunnah', f'Tanwin + {first_next} → Idgham Bighunnah'))
+            elif first_next in IDGHAM_BILA_GHUNNAH:
+                rules.append(('Idgham Bilaghunnah', f'Tanwin + {first_next} → Idgham Bilaghunnah'))
+            elif first_next in IQLAB_LETTERS:
+                rules.append(('Iqlab', 'Tanwin + ب → Iqlab, ubah menjadi mim'))
+
+        # Mim sukun eksplisit (dalam kata)
+        if c == MIM and nxt == SUKUN:
+            after_idx = i + 2
+            after = chars[after_idx] if after_idx < n else first_next
+            while after in _HARAKAT and after_idx + 1 < n:
+                after_idx += 1
+                after = chars[after_idx]
+            _mim_rule(rules, after)
+
+        # Mim di akhir kata → sukun implisit, cek kata berikutnya
+        if c == MIM and i == n - 1 and first_next:
+            _mim_rule(rules, first_next)
+
+    return rules
+
+
 # Empirically calibrated: full-word duration threshold for mad 2-harakat.
 # stable-whisper word timestamps cover the entire word, not just the vowel,
 # so the threshold must account for consonants. Adjust based on real data.
