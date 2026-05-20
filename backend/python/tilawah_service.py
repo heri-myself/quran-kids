@@ -15,7 +15,7 @@ def get_pipe():
     if _pipe is None:
         import torch
         from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline as hf_pipeline
-        MODEL_ID = "InkBest/whisper-quran-juz30-husary"
+        MODEL_ID = "naazimsnh02/whisper-large-v3-turbo-ar-quran"
         print(f"Loading {MODEL_ID} ...")
         device = "mps" if torch.backends.mps.is_available() else "cpu"
         dtype = torch.float32  # float16 on MPS produces garbage output
@@ -26,8 +26,11 @@ def get_pipe():
             use_safetensors=True,
         ).to(device)
         _processor = AutoProcessor.from_pretrained(MODEL_ID)
-        # Force Arabic transcription
+        # Force Arabic: prefix_tokens = [startoftranscript, ar, transcribe, notimestamps]
+        # decoder_start_token_id already adds startoftranscript, so skip it (index 1 onwards)
         _processor.tokenizer.set_prefix_tokens(language="arabic", task="transcribe")
+        prefix = _processor.tokenizer.prefix_tokens[1:]  # skip <|startoftranscript|>
+        model.generation_config.forced_decoder_ids = [(i + 1, tok) for i, tok in enumerate(prefix)]
         _pipe = hf_pipeline(
             "automatic-speech-recognition",
             model=model,
@@ -43,8 +46,10 @@ def get_pipe():
 def transcribe_audio(audio_bytes: bytes) -> str:
     pipe = get_pipe()
     audio_array = audio_bytes_to_array(audio_bytes)
+    duration = len(audio_array) / 16000
+    print(f"[AUDIO] size={len(audio_bytes)}B  duration={duration:.2f}s  samples={len(audio_array)}")
     inputs = {"raw": audio_array, "sampling_rate": 16000}
-    result = pipe(inputs, generate_kwargs={"num_beams": 1})
+    result = pipe(inputs, generate_kwargs={"num_beams": 1, "max_new_tokens": 128})
     return result["text"].strip()
 
 
@@ -59,15 +64,20 @@ def audio_bytes_to_array(audio_bytes: bytes) -> "np.ndarray":
     """Convert raw audio bytes (any format) to float32 numpy array at 16kHz mono."""
     import subprocess
     import numpy as np
-    cmd = [
-        'ffmpeg', '-hide_banner', '-loglevel', 'error',
-        '-i', 'pipe:0',
-        '-ar', '16000', '-ac', '1', '-f', 'f32le', 'pipe:1',
-    ]
-    proc = subprocess.run(cmd, input=audio_bytes, capture_output=True)
-    if proc.returncode != 0:
-        raise ValueError(f"ffmpeg error: {proc.stderr.decode()}")
-    return np.frombuffer(proc.stdout, dtype=np.float32)
+    # Use temp file because M4A/AAC containers require seeking — cannot pipe from stdin
+    tmp_path = load_audio_to_tempfile(audio_bytes)
+    try:
+        cmd = [
+            'ffmpeg', '-hide_banner', '-loglevel', 'error',
+            '-i', tmp_path,
+            '-ar', '16000', '-ac', '1', '-f', 'f32le', 'pipe:1',
+        ]
+        proc = subprocess.run(cmd, capture_output=True)
+        if proc.returncode != 0:
+            raise ValueError(f"ffmpeg error: {proc.stderr.decode()}")
+        return np.frombuffer(proc.stdout, dtype=np.float32)
+    finally:
+        os.unlink(tmp_path)
 
 
 class EvaluateRequest(BaseModel):
