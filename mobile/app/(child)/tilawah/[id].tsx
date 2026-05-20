@@ -21,12 +21,35 @@ import { Audio } from 'expo-av'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
 import { getSurahVerses } from '../../../services/quran'
 import { useLastActivityStore } from '../../../stores/last-activity-store'
-import { RiIcon } from '../../../components/RiIcon'
 import {
   ArrowCounterClockwise, ArrowRight, CheckCircle,
   Headphones, Play, Microphone, StopCircle, XCircle,
-  ArrowsClockwise,
+  ArrowsClockwise, Star, Sparkle,
 } from 'phosphor-react-native'
+
+const C = {
+  bg:           '#FEF7E8',   // warm parchment cream
+  bgAccent:     '#FDF0D0',   // slightly deeper parchment
+  card:         '#FFFCF4',   // very soft warm white
+  cardSage:     '#EEF6EF',   // soft sage card
+  cardPeach:    '#FFF1E6',   // soft peach card
+  sage:         '#5C9E7A',   // muted sage green
+  sageDark:     '#3D7055',
+  sageLight:    '#D4EDDA',
+  peach:        '#E8855A',   // warm peach (softer than orange)
+  peachDark:    '#B85A32',
+  peachLight:   '#FAE0D4',
+  peachMid:     '#F2C0A8',
+  green:        '#3EB97A',   // mic button green (kept bright as user requested)
+  greenDark:    '#228C56',
+  red:          '#D95555',
+  text:         '#3D2314',   // warm dark brown
+  textSoft:     '#7A4A28',   // medium warm brown
+  textMuted:    '#A67C5A',   // light warm brown
+  gold:         '#D4921E',   // warm gold
+  goldLight:    '#FFF0C0',
+  cream:        '#F5E8CC',   // decorative cream
+}
 
 interface Verse {
   verse_number: number
@@ -35,71 +58,101 @@ interface Verse {
   words: { text_uthmani: string; position: number }[]
 }
 
+// Scattered sparkle decoration
+function Sparkles({ style }: { style?: any }) {
+  return (
+    <View style={[{ position: 'absolute', width: 70, height: 36 }, style]} pointerEvents="none">
+      <View style={{ position: 'absolute', top: 0, left: 0, opacity: 0.5 }}>
+        <Sparkle size={13} color={C.gold} weight="fill" />
+      </View>
+      <View style={{ position: 'absolute', top: 18, left: 28, opacity: 0.4 }}>
+        <Sparkle size={9} color={C.sage} weight="fill" />
+      </View>
+      <View style={{ position: 'absolute', top: 4, left: 52, opacity: 0.45 }}>
+        <Sparkle size={11} color={C.peach} weight="fill" />
+      </View>
+    </View>
+  )
+}
+
 function WaveformBar({ index, isActive }: { index: number; isActive: boolean }) {
-  const height = useSharedValue(8)
+  const height = useSharedValue(6)
   useEffect(() => {
     if (isActive) {
       height.value = withRepeat(
         withSequence(
-          withTiming(12 + (index % 5) * 8, { duration: 180 + index * 35 }),
-          withTiming(8, { duration: 180 + index * 35 })
+          withTiming(10 + (index % 5) * 9, { duration: 160 + index * 30 }),
+          withTiming(6, { duration: 160 + index * 30 })
         ),
-        -1,
-        true
+        -1, true
       )
     } else {
-      height.value = withTiming(8)
+      height.value = withTiming(6)
     }
   }, [isActive])
   const style = useAnimatedStyle(() => ({ height: height.value }))
   return <Animated.View style={[styles.waveBar, style]} />
 }
 
+function PulsingRing({ isActive }: { isActive: boolean }) {
+  const scale = useSharedValue(1)
+  const opacity = useSharedValue(0)
+  useEffect(() => {
+    if (isActive) {
+      scale.value = withRepeat(withSequence(withTiming(1.8, { duration: 1000 }), withTiming(1, { duration: 1000 })), -1, true)
+      opacity.value = withRepeat(withSequence(withTiming(0.3, { duration: 1000 }), withTiming(0, { duration: 1000 })), -1, true)
+    } else {
+      scale.value = withTiming(1)
+      opacity.value = withTiming(0)
+    }
+  }, [isActive])
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }], opacity: opacity.value }))
+  return <Animated.View style={[styles.pulsingRing, style]} />
+}
+
+function StarRow({ score }: { score: number }) {
+  const count = score >= 85 ? 3 : score >= 65 ? 2 : 1
+  return (
+    <View style={styles.starRow}>
+      {[1, 2, 3].map((s) => (
+        <Star key={s} size={30} color={s <= count ? C.gold : '#DDD0B8'} weight={s <= count ? 'fill' : 'regular'} />
+      ))}
+    </View>
+  )
+}
+
 function AudioSampleSheet({
-  visible,
-  chapterId,
-  verseNumber,
-  onDismiss,
-  onPlay,
-  isLoading,
-  audioError,
+  visible, chapterId, verseNumber, onDismiss, onPlay, isLoading, audioError,
 }: {
-  visible: boolean
-  chapterId: string
-  verseNumber: number
-  onDismiss: () => void
-  onPlay: () => void
-  isLoading: boolean
-  audioError: string | null
+  visible: boolean; chapterId: string; verseNumber: number
+  onDismiss: () => void; onPlay: () => void; isLoading: boolean; audioError: string | null
 }) {
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onDismiss}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
       <View style={sheetStyles.overlay}>
         <View style={sheetStyles.sheet}>
           <View style={sheetStyles.handle} />
-          <Text style={sheetStyles.title}>🎧 Mau dengar contoh bacaan?</Text>
+          {/* Decorative sparkles */}
+          <View style={{ position: 'absolute', top: 24, right: 32, opacity: 0.5 }}>
+            <Sparkle size={14} color={C.gold} weight="fill" />
+          </View>
+          <View style={{ position: 'absolute', top: 40, right: 56, opacity: 0.4 }}>
+            <Sparkle size={9} color={C.sage} weight="fill" />
+          </View>
+          <View style={sheetStyles.iconBadge}>
+            <Headphones size={28} color={C.peach} weight="regular" />
+          </View>
+          <Text style={sheetStyles.title}>Mau dengar contoh bacaan?</Text>
           <Text style={sheetStyles.subtitle}>
             Sudah 3x mencoba. Yuk dengar dulu cara yang benar!
           </Text>
           <View style={sheetStyles.waveform}>
-            {Array.from({ length: 12 }).map((_, i) => (
-              <View
-                key={i}
-                style={[sheetStyles.waveBar, { height: 8 + (i % 5) * 4 }]}
-              />
+            {Array.from({ length: 14 }).map((_, i) => (
+              <View key={i} style={[sheetStyles.waveBar, { height: 8 + (i % 5) * 5 }]} />
             ))}
-            <Text style={sheetStyles.waveLabel}>
-              Surah {chapterId} : {verseNumber}
-            </Text>
+            <Text style={sheetStyles.waveLabel}>Surah {chapterId} : {verseNumber}</Text>
           </View>
-          {audioError && (
-            <Text style={sheetStyles.errorText}>{audioError}</Text>
-          )}
+          {audioError && <Text style={sheetStyles.errorText}>{audioError}</Text>}
           <View style={sheetStyles.actions}>
             <TouchableOpacity style={sheetStyles.skipBtn} onPress={onDismiss}>
               <Text style={sheetStyles.skipText}>Lewati</Text>
@@ -113,7 +166,7 @@ function AudioSampleSheet({
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <>
-                  <Play size={18} color="#FFFFFF" weight="regular" />
+                  <Play size={18} color="#FFFFFF" weight="fill" />
                   <Text style={sheetStyles.playText}>Dengar Contoh</Text>
                 </>
               )}
@@ -126,105 +179,56 @@ function AudioSampleSheet({
 }
 
 const sheetStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
+  overlay: { flex: 1, backgroundColor: 'rgba(61,35,20,0.35)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    backgroundColor: C.card,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
     padding: 28,
-    paddingBottom: 44,
-    borderTopWidth: 1.5,
-    borderTopColor: 'rgba(255,107,53,0.3)',
+    paddingBottom: 52,
+    alignItems: 'center',
+    borderTopWidth: 3,
+    borderColor: C.cream,
   },
   handle: {
-    width: 48,
-    height: 5,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    width: 40, height: 5,
+    backgroundColor: C.peachMid,
     borderRadius: 3,
-    alignSelf: 'center',
     marginBottom: 20,
   },
-  title: {
-    color: '#1A0800',
-    fontSize: 20,
-    fontWeight: '800',
-    marginBottom: 8,
+  iconBadge: {
+    width: 68, height: 68, borderRadius: 34,
+    backgroundColor: C.cardPeach,
+    borderWidth: 2.5, borderColor: C.peachMid,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 14,
   },
-  subtitle: {
-    color: '#C4500A',
-    fontSize: 15,
-    marginBottom: 18,
-    lineHeight: 22,
-  },
+  title: { color: C.text, fontSize: 21, fontWeight: '800', marginBottom: 6, textAlign: 'center' },
+  subtitle: { color: C.textSoft, fontSize: 14, marginBottom: 18, lineHeight: 22, textAlign: 'center' },
   waveform: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,107,53,0.08)',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,107,53,0.15)',
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: C.cardPeach,
+    borderRadius: 20, padding: 14, marginBottom: 20,
+    width: '100%',
+    borderWidth: 1.5, borderColor: C.peachMid,
   },
-  waveBar: {
-    width: 5,
-    backgroundColor: '#FF6B35',
-    borderRadius: 3,
-  },
-  waveLabel: {
-    color: '#C4500A',
-    fontSize: 14,
-    marginLeft: 10,
-    flex: 1,
-    fontWeight: '600',
-  },
-  errorText: {
-    color: '#FCA5A5',
-    fontSize: 14,
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 4,
-  },
+  waveBar: { width: 5, backgroundColor: C.peach, borderRadius: 3 },
+  waveLabel: { color: C.peachDark, fontSize: 13, marginLeft: 8, flex: 1, fontWeight: '600' },
+  errorText: { color: C.red, fontSize: 13, marginBottom: 10, textAlign: 'center' },
+  actions: { flexDirection: 'row', gap: 12, width: '100%' },
   skipBtn: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    borderRadius: 18,
-    paddingVertical: 16,
-    alignItems: 'center',
+    flex: 1, backgroundColor: C.cardPeach,
+    borderRadius: 22, paddingVertical: 16, alignItems: 'center',
+    borderWidth: 1.5, borderColor: C.peachMid,
   },
-  skipText: {
-    color: '#1A0800',
-    fontWeight: '700',
-    fontSize: 16,
-  },
+  skipText: { color: C.peachDark, fontWeight: '700', fontSize: 16 },
   playBtn: {
-    flex: 2,
-    backgroundColor: '#FF6B35',
-    borderRadius: 18,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#FF6B35',
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
+    flex: 2, backgroundColor: C.peach,
+    borderRadius: 22, paddingVertical: 16,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    shadowColor: C.peach, shadowOpacity: 0.35, shadowRadius: 12, elevation: 8,
   },
-  playText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 16,
-  },
+  playText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
 })
 
 export default function TilawahLatihanScreen() {
@@ -241,14 +245,10 @@ export default function TilawahLatihanScreen() {
 
   useEffect(() => {
     return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync().catch(() => {})
-        soundRef.current = null
-      }
+      if (soundRef.current) { soundRef.current.unloadAsync().catch(() => {}); soundRef.current = null }
     }
   }, [])
 
-  // Update verseResults dan wrongCount saat evaluasi selesai — handle auto-stop maupun manual stop
   useEffect(() => {
     if (recordingState !== 'done' || !currentEval || !currentVerse) return
     setVerseResults((prev) => {
@@ -279,17 +279,12 @@ export default function TilawahLatihanScreen() {
 
   const verses = getSurahVerses(Number(id)) as Verse[]
   const isLoading = false
-
-  const { recordingState, currentEval, error, startRecording, stopAndEvaluate, resetVerse } =
-    useTilawah(Number(id))
+  const { recordingState, currentEval, error, startRecording, stopAndEvaluate, resetVerse } = useTilawah(Number(id))
 
   useFocusEffect(
     useCallback(() => {
-      setCurrentIndex(0)
-      setVerseResults([])
-      setWrongCount(0)
-      setSheetDismissed(false)
-      resetVerse()
+      setCurrentIndex(0); setVerseResults([]); setWrongCount(0)
+      setSheetDismissed(false); resetVerse()
     }, [])
   )
 
@@ -311,109 +306,92 @@ export default function TilawahLatihanScreen() {
   const handleNext = () => {
     if (currentIndex + 1 >= verses.length) {
       const allResults = [...verseResults]
-      const avg =
-        allResults.length > 0
-          ? Math.round(allResults.reduce((s, v) => s + v.score, 0) / allResults.length)
-          : 0
+      const avg = allResults.length > 0
+        ? Math.round(allResults.reduce((s, v) => s + v.score, 0) / allResults.length)
+        : 0
       const stars = calcStars(avg)
       const points = calcPoints(stars, avg)
       router.replace({
         pathname: '/(child)/tilawah/result',
-        params: {
-          chapterId: String(id),
-          totalScore: String(avg),
-          stars: String(stars),
-          pointsEarned: String(points),
-          verseResults: JSON.stringify(allResults),
-        },
+        params: { chapterId: String(id), totalScore: String(avg), stars: String(stars), pointsEarned: String(points), verseResults: JSON.stringify(allResults) },
       })
     } else {
-      setCurrentIndex((i) => i + 1)
-      setWrongCount(0)
-      setSheetDismissed(false)
-      setAudioError(null)
-      resetVerse()
+      setCurrentIndex((i) => i + 1); setWrongCount(0)
+      setSheetDismissed(false); setAudioError(null); resetVerse()
     }
   }
 
   const playAudioSample = async () => {
     if (!currentVerse) return
-    setAudioLoading(true)
-    setAudioError(null)
+    setAudioLoading(true); setAudioError(null)
     try {
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync()
-        soundRef.current = null
-      }
+      if (soundRef.current) { await soundRef.current.unloadAsync(); soundRef.current = null }
       const verseKey = `${id}:${currentVerse.verse_number}`
-      const res = await fetch(
-        `https://api.quran.com/api/v4/recitations/12/by_ayah/${verseKey}`
-      )
+      const res = await fetch(`https://api.quran.com/api/v4/recitations/12/by_ayah/${verseKey}`)
       if (!res.ok) throw new Error('Gagal mengambil audio')
       const data = await res.json()
       const rawUrl = data?.audio_files?.[0]?.url
       if (!rawUrl) throw new Error('URL audio tidak tersedia')
       const audioUrl = rawUrl.startsWith('http') ? rawUrl : rawUrl.startsWith('//') ? `https:${rawUrl}` : `https://verses.quran.com${rawUrl}`
-
       await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, allowsRecordingIOS: false })
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: true }
-      )
+      const { sound } = await Audio.Sound.createAsync({ uri: audioUrl }, { shouldPlay: true })
       soundRef.current = sound
       sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.didJustFinish) {
-          setSheetDismissed(true)
-          soundRef.current = null
-        }
+        if (status.didJustFinish) { setSheetDismissed(true); soundRef.current = null }
       })
     } catch (e: any) {
-      if (soundRef.current) {
-        await soundRef.current.unloadAsync().catch(() => {})
-        soundRef.current = null
-      }
+      if (soundRef.current) { await soundRef.current.unloadAsync().catch(() => {}); soundRef.current = null }
       setAudioError(e.message ?? 'Audio tidak tersedia')
-    } finally {
-      setAudioLoading(false)
-    }
+    } finally { setAudioLoading(false) }
   }
 
   const dismissSheet = async () => {
-    if (soundRef.current) {
-      await soundRef.current.unloadAsync().catch(() => {})
-      soundRef.current = null
-    }
+    if (soundRef.current) { await soundRef.current.unloadAsync().catch(() => {}); soundRef.current = null }
     setSheetDismissed(true)
   }
 
   if (isLoading || !currentVerse) {
     return (
       <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color="#FF6B35" size="large" />
+        <ActivityIndicator color={C.peach} size="large" />
       </View>
     )
   }
 
   const words = currentVerse.words ?? []
-  const translation =
-    currentVerse.translations?.[0]?.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? ''
-
-  const progressWidth = `${((currentIndex + 1) / verses.length) * 100}%`
+  const translation = currentVerse.translations?.[0]?.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? ''
+  const progress = (currentIndex + 1) / verses.length
 
   return (
     <View style={styles.container}>
-      {/* Progress Bar */}
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: progressWidth as any }]} />
-      </View>
-      <Text style={styles.progressLabel}>
-        Ayat {currentIndex + 1} / {verses.length}
-      </Text>
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 16 }}>
+      {/* ── Header ─────────────────────────────────── */}
+      <View style={styles.header}>
+        {/* Sparkle decoration */}
+        <Sparkles style={{ top: 8, right: 28 }} />
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progress * 100}%` as any }]} />
+          <View style={[styles.progressDot, { left: `${Math.max(progress * 100 - 2, 0)}%` as any }]} />
+        </View>
+        <Text style={styles.progressLabel}>Ayat {currentIndex + 1} dari {verses.length}</Text>
+      </View>
+
+      {/* ── Scrollable content ─────────────────────── */}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* Verse card */}
         <View style={styles.verseCard}>
-          <View style={styles.verseBadge}>
-            <Text style={styles.verseBadgeText}>{currentVerse.verse_number}</Text>
+          {/* Watercolor header banner */}
+          <View style={styles.verseCardBanner}>
+            <View style={styles.verseBadge}>
+              <Text style={styles.verseBadgeText}>{currentVerse.verse_number}</Text>
+            </View>
+            <View style={{ position: 'absolute', right: 28, top: 10, opacity: 0.65 }}>
+              <Sparkle size={11} color="#FFFFFF" weight="fill" />
+            </View>
+            <View style={{ position: 'absolute', right: 52, top: 22, opacity: 0.5 }}>
+              <Sparkle size={8} color="#FFFFFF" weight="fill" />
+            </View>
           </View>
 
           <View style={styles.arabicRow}>
@@ -421,12 +399,12 @@ export default function TilawahLatihanScreen() {
               words.map((w, i) => {
                 const wordResult = currentEval.wordResults?.[i]
                 const status = wordResult?.status ?? (wordResult?.correct === false ? 'wrong' : 'correct')
-                const wordColor = status === 'mad_short' ? '#EAB308' : status === 'correct' ? '#10B981' : '#EF4444'
+                const wordColor =
+                  status === 'mad_short' ? C.gold
+                  : status === 'correct'  ? C.sage
+                  : C.red
                 return (
-                  <Text
-                    key={i}
-                    style={[styles.arabicWord, { color: wordColor }]}
-                  >
+                  <Text key={i} style={[styles.arabicWord, { color: wordColor }]}>
                     {w.text_uthmani}
                   </Text>
                 )
@@ -435,18 +413,35 @@ export default function TilawahLatihanScreen() {
               <Text style={styles.arabicFull}>{currentVerse.text_uthmani}</Text>
             )}
           </View>
-
+          <View style={styles.divider} />
           <Text style={styles.translation}>{translation}</Text>
         </View>
 
+        {/* Feedback card */}
         {isDone && currentEval && (
-          <View style={styles.feedbackCard}>
-            <Text style={styles.feedbackScore}>
-              {currentEval.score >= 85 ? '⭐⭐⭐' : currentEval.score >= 65 ? '⭐⭐' : '⭐'}
-              {'  '}Skor: {currentEval.score}/100
-            </Text>
+          <View style={[
+            styles.feedbackCard,
+            currentEval.score >= 85
+              ? styles.feedbackCardGreen
+              : currentEval.score >= 65
+              ? styles.feedbackCardGold
+              : styles.feedbackCardRed,
+          ]}>
+            <View style={styles.feedbackHeader}>
+              <StarRow score={currentEval.score} />
+              <View style={[
+                styles.scorePill,
+                currentEval.score >= 85 ? styles.scorePillGreen : currentEval.score >= 65 ? styles.scorePillGold : styles.scorePillRed,
+              ]}>
+                <Text style={[
+                  styles.scoreText,
+                  { color: currentEval.score >= 85 ? C.sage : currentEval.score >= 65 ? C.gold : C.red },
+                ]}>{currentEval.score}</Text>
+                <Text style={styles.scoreMax}>/100</Text>
+              </View>
+            </View>
             {currentEval.feedback.map((f, i) => (
-              <Text key={i} style={styles.feedbackItem}>
+              <Text key={i} style={[styles.feedbackItem, i === 0 && styles.feedbackFirst]}>
                 {f}
               </Text>
             ))}
@@ -454,62 +449,83 @@ export default function TilawahLatihanScreen() {
         )}
       </ScrollView>
 
-      {/* Recording Area */}
+      {/* ── Record area ────────────────────────────── */}
       <View style={styles.recordArea}>
+        {/* Decorative dots row */}
+        <View style={styles.dotRow}>
+          {[C.sage, C.peach, C.gold, C.peach, C.sage].map((col, i) => (
+            <View key={i} style={[styles.decorDot, { backgroundColor: col }]} />
+          ))}
+        </View>
+
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-        <View style={styles.recordStatusRow}>
-          {recordingState === 'idle' && <Microphone size={20} color="#FF6B35" weight="regular" />}
+        {/* Status label */}
+        <View style={[
+          styles.statusChip,
+          isRecording && styles.statusChipRecording,
+          isDone && styles.statusChipDone,
+          recordingState === 'error' && styles.statusChipError,
+        ]}>
+          {recordingState === 'idle'      && <Microphone size={18} color={C.peach} weight="regular" />}
           {recordingState === 'recording' && <View style={styles.recordingDot} />}
-          {recordingState === 'analyzing' && <ArrowsClockwise size={20} color="#FCD34D" weight="regular" />}
-          {recordingState === 'done' && <CheckCircle size={20} color="#4ADE80" weight="regular" />}
-          {recordingState === 'error' && <XCircle size={20} color="#F87171" weight="regular" />}
-          <Text style={styles.recordStatus}>
-            {recordingState === 'idle' && 'Tap untuk mulai membaca'}
+          {recordingState === 'analyzing' && <ArrowsClockwise size={18} color={C.gold} weight="regular" />}
+          {recordingState === 'done'      && <CheckCircle size={18} color={C.sage} weight="fill" />}
+          {recordingState === 'error'     && <XCircle size={18} color={C.red} weight="fill" />}
+          <Text style={[
+            styles.statusText,
+            isRecording               && { color: C.red },
+            isDone                    && { color: C.sageDark },
+            recordingState === 'error' && { color: C.red },
+          ]}>
+            {recordingState === 'idle'      && 'Tap tombol untuk membaca'}
             {recordingState === 'recording' && 'Sedang merekam...'}
             {recordingState === 'analyzing' && 'Sedang dinilai...'}
-            {recordingState === 'done' && `Skor: ${currentEval?.score ?? 0}`}
-            {recordingState === 'error' && 'Coba lagi ya!'}
+            {recordingState === 'done'      && `Skor kamu: ${currentEval?.score ?? 0}`}
+            {recordingState === 'error'     && 'Coba lagi ya!'}
           </Text>
         </View>
 
+        {/* Waveform */}
         {isRecording && (
           <View style={styles.waveform}>
-            {Array.from({ length: 20 }).map((_, i) => (
+            {Array.from({ length: 22 }).map((_, i) => (
               <WaveformBar key={i} index={i} isActive={isRecording} />
             ))}
           </View>
         )}
 
-        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          {isDone && (
-            <TouchableOpacity style={styles.retryBtn} onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}>
-              <ArrowCounterClockwise size={20} color="#FF6B35" weight="regular" />
-              <Text style={styles.retryBtnText}>Ulangi</Text>
-            </TouchableOpacity>
-          )}
-
-          {!isDone && (
+        {/* Mic button */}
+        {!isDone && (
+          <View style={styles.micWrapper}>
+            <PulsingRing isActive={isRecording} />
             <TouchableOpacity
-              style={[
-                styles.micBtn,
-                isRecording && styles.micBtnActive,
-                isAnalyzing && { opacity: 0.6 },
-              ]}
+              style={[styles.micBtn, isRecording && styles.micBtnActive, isAnalyzing && { opacity: 0.7 }]}
               onPress={handleMicPress}
               disabled={isAnalyzing}
+              activeOpacity={0.85}
             >
               {isAnalyzing ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="#FFFFFF" size="large" />
               ) : isRecording ? (
-                <StopCircle size={32} color="#fff" weight="fill" />
+                <StopCircle size={36} color="#fff" weight="fill" />
               ) : (
-                <Microphone size={32} color="#fff" weight="regular" />
+                <Microphone size={36} color="#fff" weight="regular" />
               )}
             </TouchableOpacity>
-          )}
+          </View>
+        )}
 
-          {isDone && (
+        {/* Done actions */}
+        {isDone && (
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}
+            >
+              <ArrowCounterClockwise size={20} color={C.peach} weight="regular" />
+              <Text style={styles.retryBtnText}>Ulangi</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
               {currentIndex + 1 >= verses.length
                 ? <CheckCircle size={20} color="#fff" weight="regular" />
@@ -521,17 +537,17 @@ export default function TilawahLatihanScreen() {
                 ? <ArrowRight size={20} color="#fff" weight="regular" />
                 : null}
             </TouchableOpacity>
-          )}
-        </View>
-      {wrongCount >= 3 && (
-        <TouchableOpacity
-          style={styles.hintBtn}
-          onPress={() => setSheetDismissed(false)}
-        >
-          <Headphones size={18} color="#C4500A" weight="regular" />
-          <Text style={styles.hintBtnText}>Dengar Contoh Syeikh</Text>
-        </TouchableOpacity>
-      )}
+          </View>
+        )}
+
+        {/* Hint button */}
+        {wrongCount >= 3 && (
+          <TouchableOpacity style={styles.hintBtn} onPress={() => setSheetDismissed(false)}>
+            <Headphones size={17} color={C.peachDark} weight="regular" />
+            <Text style={styles.hintBtnText}>Dengar Contoh Syeikh</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       <AudioSampleSheet
         visible={wrongCount >= 3 && !sheetDismissed && !!currentVerse}
@@ -542,187 +558,253 @@ export default function TilawahLatihanScreen() {
         isLoading={audioLoading}
         audioError={audioError}
       />
-      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF8F4' },
-  progressBar: {
-    height: 10,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    marginTop: Platform.OS === 'ios' ? 56 : 36,
-    marginHorizontal: 20,
-    borderRadius: 5,
+  container: { flex: 1, backgroundColor: C.bg },
+
+  /* Header */
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 58 : 38,
+    paddingHorizontal: 24,
+    paddingBottom: 4,
   },
-  progressFill: { height: 10, backgroundColor: '#FF6B35', borderRadius: 5 },
+  progressTrack: {
+    height: 14,
+    backgroundColor: C.cream,
+    borderRadius: 7,
+    overflow: 'hidden',
+    marginBottom: 8,
+    borderWidth: 1.5,
+    borderColor: C.peachMid,
+  },
+  progressFill: {
+    height: 14,
+    backgroundColor: C.sage,
+    borderRadius: 7,
+  },
+  progressDot: {
+    position: 'absolute',
+    top: 3,
+    width: 8, height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FFFFFF',
+    shadowColor: C.sage,
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+  },
   progressLabel: {
-    color: '#C4500A',
-    fontSize: 15,
+    color: C.textSoft,
+    fontSize: 13,
     fontWeight: '700',
     textAlign: 'center',
-    marginTop: 8,
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
+
+  /* Scroll content */
+  scrollContent: { flexGrow: 1, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 8 },
+
+  /* Verse card */
   verseCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
-    padding: 24,
-    marginBottom: 16,
+    backgroundColor: C.card,
+    borderRadius: 32,
+    paddingHorizontal: 22,
+    paddingBottom: 22,
+    paddingTop: 0,
+    marginBottom: 14,
+    shadowColor: C.peach,
+    shadowOpacity: 0.15,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 6,
+    overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,107,53,0.25)',
-    shadowColor: '#FF6B35',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    borderColor: C.peachMid,
+  },
+  /* Watercolor banner at top of verse card */
+  verseCardBanner: {
+    height: 52,
+    backgroundColor: C.sage,
+    marginHorizontal: -22,
+    marginBottom: 16,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    justifyContent: 'flex-end',
+    paddingHorizontal: 18,
+    paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
   },
   verseBadge: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#FF6B35',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginBottom: 14,
+    width: 36, height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  verseBadgeText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
+  verseBadgeText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15 },
   arabicRow: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 10,
-    marginBottom: 18,
+    marginBottom: 14,
   },
   arabicWord: { fontSize: 40, lineHeight: 72, fontFamily: 'ScheherazadeNew-Regular' },
   arabicFull: {
-    fontSize: 40,
-    color: '#1A0800',
-    textAlign: 'right',
-    lineHeight: 72,
+    fontSize: 40, color: C.text,
+    textAlign: 'right', lineHeight: 72,
     writingDirection: 'rtl',
     fontFamily: 'ScheherazadeNew-Regular',
+    width: '100%',
+  },
+  divider: {
+    height: 1.5,
+    backgroundColor: C.cream,
+    marginBottom: 12,
+    borderRadius: 1,
   },
   translation: {
-    color: '#7C3A10',
-    fontSize: 16,
-    fontStyle: 'italic',
-    lineHeight: 24,
-    marginTop: 4,
+    color: C.textMuted, fontSize: 15, fontStyle: 'italic', lineHeight: 23,
   },
+
+  /* Feedback card */
   feedbackCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,107,53,0.3)',
-    shadowColor: '#FF6B35',
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  feedbackScore: {
-    color: '#FF6B35',
-    fontWeight: '800',
-    fontSize: 20,
-    marginBottom: 10,
-  },
-  feedbackItem: { color: '#3D1A08', fontSize: 15, marginBottom: 6, lineHeight: 22 },
-  recordArea: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 28,
-    paddingBottom: 108,
-    alignItems: 'center',
-    gap: 18,
-    borderTopWidth: 1.5,
-    borderTopColor: 'rgba(255,107,53,0.25)',
-    shadowColor: '#FF6B35',
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  recordStatusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  recordingDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#F87171',
-  },
-  recordStatus: {
-    color: '#1A0800',
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  errorText: { color: '#DC2626', fontSize: 15, textAlign: 'center' },
-  waveform: { flexDirection: 'row', gap: 5, alignItems: 'center', height: 60 },
-  waveBar: { width: 5, borderRadius: 3, backgroundColor: '#FF6B35', minHeight: 8 },
-  micBtn: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: '#22C55E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#22C55E',
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 10,
-  },
-  micBtnActive: {
-    backgroundColor: '#DC2626',
-    shadowColor: '#DC2626',
-  },
-  hintBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF2ED',
-    borderWidth: 1.5,
-    borderColor: '#FF6B35',
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  hintBtnText: {
-    color: '#C4500A',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  retryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 16,
+    backgroundColor: C.card,
+    borderRadius: 24, padding: 20,
+    marginBottom: 14,
     borderWidth: 2,
-    borderColor: '#FF6B35',
+    shadowColor: '#000',
+    shadowOpacity: 0.06, shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  retryBtnText: { color: '#FF6B35', fontWeight: '800', fontSize: 16 },
-  nextBtn: {
-    flex: 1,
-    backgroundColor: '#FF6B35',
-    borderRadius: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
+  feedbackCardGreen: { borderColor: C.sageLight, backgroundColor: C.cardSage },
+  feedbackCardGold:  { borderColor: '#F0DAA0', backgroundColor: C.goldLight },
+  feedbackCardRed:   { borderColor: '#F5C0C0', backgroundColor: '#FFF5F5' },
+  feedbackHeader: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', marginBottom: 12,
+  },
+  starRow: { flexDirection: 'row', gap: 4 },
+  scorePill: {
+    flexDirection: 'row', alignItems: 'baseline', gap: 2,
+    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  scorePillGreen: { backgroundColor: C.cardSage,  borderColor: C.sageLight },
+  scorePillGold:  { backgroundColor: C.goldLight, borderColor: '#F0DAA0' },
+  scorePillRed:   { backgroundColor: '#FFF5F5',   borderColor: '#F5C0C0' },
+  scoreText: { fontWeight: '900', fontSize: 22 },
+  scoreMax: { color: C.textMuted, fontWeight: '600', fontSize: 13 },
+  feedbackFirst: { fontWeight: '700', fontSize: 16, color: C.text, marginBottom: 8 },
+  feedbackItem: { color: C.textSoft, fontSize: 14, marginBottom: 5, lineHeight: 21 },
+
+  /* Record area */
+  recordArea: {
+    backgroundColor: C.card,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingTop: 10,
+    paddingHorizontal: 24,
+    paddingBottom: 100,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#FF6B35',
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
+    gap: 14,
+    shadowColor: C.peach,
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 14,
+    borderTopWidth: 2,
+    borderColor: C.cream,
   },
-  nextBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 17 },
+
+  /* Decorative dots */
+  dotRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingTop: 6,
+  },
+  decorDot: {
+    width: 8, height: 8, borderRadius: 4,
+    opacity: 0.5,
+  },
+
+  /* Status chip */
+  statusChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: C.cardPeach,
+    borderWidth: 1.5, borderColor: C.peachMid,
+    paddingHorizontal: 18, paddingVertical: 10,
+    borderRadius: 24,
+  },
+  statusChipRecording: { backgroundColor: '#FFF0F0', borderColor: '#F5C0C0' },
+  statusChipDone:      { backgroundColor: C.cardSage, borderColor: C.sageLight },
+  statusChipError:     { backgroundColor: '#FFF0F0', borderColor: '#F5C0C0' },
+  statusText: { color: C.peachDark, fontSize: 15, fontWeight: '700' },
+  recordingDot: {
+    width: 12, height: 12, borderRadius: 6,
+    backgroundColor: C.red,
+  },
+  errorText: { color: C.red, fontSize: 14, textAlign: 'center' },
+
+  /* Waveform */
+  waveform: {
+    flexDirection: 'row', gap: 4, alignItems: 'center',
+    height: 56,
+    backgroundColor: '#FFF0F0',
+    paddingHorizontal: 16, borderRadius: 20,
+    width: '100%', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: '#F5C0C0',
+  },
+  waveBar: { width: 5, borderRadius: 3, backgroundColor: C.red, minHeight: 6 },
+
+  /* Mic button */
+  micWrapper: { alignItems: 'center', justifyContent: 'center', width: 104, height: 104 },
+  pulsingRing: {
+    position: 'absolute',
+    width: 104, height: 104, borderRadius: 52,
+    backgroundColor: C.green,
+  },
+  micBtn: {
+    width: 96, height: 96, borderRadius: 48,
+    backgroundColor: C.green,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: C.green,
+    shadowOpacity: 0.45, shadowRadius: 18,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 12,
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  micBtnActive: { backgroundColor: C.red, shadowColor: C.red, borderColor: 'rgba(255,255,255,0.3)' },
+
+  /* Done actions */
+  actionRow: { flexDirection: 'row', gap: 12, alignItems: 'center', width: '100%' },
+  retryBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 20, paddingVertical: 14,
+    borderRadius: 22, borderWidth: 2, borderColor: C.peachMid,
+    backgroundColor: C.cardPeach,
+  },
+  retryBtnText: { color: C.peach, fontWeight: '800', fontSize: 15 },
+  nextBtn: {
+    flex: 1, backgroundColor: C.sage,
+    borderRadius: 22, paddingVertical: 16, paddingHorizontal: 16,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    shadowColor: C.sage, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8,
+  },
+  nextBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
+
+  /* Hint */
+  hintBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: C.cardPeach,
+    borderWidth: 1.5, borderColor: C.peachMid,
+    borderRadius: 22, paddingVertical: 11, paddingHorizontal: 20,
+  },
+  hintBtnText: { color: C.peachDark, fontSize: 14, fontWeight: '700' },
 })
