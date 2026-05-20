@@ -122,7 +122,7 @@ function WaveBar({ idx, active }: { idx: number; active: boolean }) {
   return (
     <Animated.View style={[anim, {
       width: 4, borderRadius: 2,
-      backgroundColor: D.coral,
+      backgroundColor: D.panel,
       marginHorizontal: 1.5,
     }]} />
   )
@@ -688,8 +688,6 @@ const s = StyleSheet.create({
   waveRow: {
     flexDirection: 'row', alignItems: 'center',
     height: 50,
-    backgroundColor: D.coralBg,
-    borderRadius: 18,
     paddingHorizontal: 12,
     width: '100%', justifyContent: 'center',
   },
