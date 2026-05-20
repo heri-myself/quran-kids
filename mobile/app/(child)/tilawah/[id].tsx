@@ -668,7 +668,6 @@ const s = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 38 : 22,
     alignItems: 'center',
     gap: 12,
-    backgroundColor: D.card,
   },
 
   /* Status chip */
