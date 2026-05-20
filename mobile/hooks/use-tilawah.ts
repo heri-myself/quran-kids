@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { Audio } from 'expo-av'
 import * as FileSystem from 'expo-file-system/legacy'
 import { evaluateVerse, EvaluateResponse } from '../services/tilawah'
+import { playStartSound, playStopSound } from '../utils/sound-fx'
 
 export type RecordingState = 'idle' | 'recording' | 'analyzing' | 'done' | 'error'
 
@@ -44,6 +45,7 @@ export function useTilawah(chapterId: number) {
     if (!recordingRef.current || isStoppingRef.current) return null
     isStoppingRef.current = true
     try {
+      playStopSound()
       setRecordingState('analyzing')
       await recordingRef.current.stopAndUnloadAsync()
       const uri = recordingRef.current.getURI()
@@ -92,6 +94,7 @@ export function useTilawah(chapterId: number) {
       })
       recordingRef.current = recording
       setRecordingState('recording')
+      playStartSound()
 
       const startTime = Date.now()
       let silenceStart: number | null = null
