@@ -24,8 +24,8 @@ import { useLastActivityStore } from '../../../stores/last-activity-store'
 import { RiIcon } from '../../../components/RiIcon'
 import {
   ArrowCounterClockwise, ArrowRight, CheckCircle,
-  Headphones, Play, Microphone, StopCircle,
-  RecordFill, CircleNotch, XCircle,
+  Headphones, Play, Microphone, StopCircle, XCircle,
+  ArrowsClockwise,
 } from 'phosphor-react-native'
 
 interface Verse {
@@ -460,8 +460,8 @@ export default function TilawahLatihanScreen() {
 
         <View style={styles.recordStatusRow}>
           {recordingState === 'idle' && <Microphone size={20} color="#86EFAC" weight="regular" />}
-          {recordingState === 'recording' && <RecordFill size={20} color="#F87171" weight="regular" />}
-          {recordingState === 'analyzing' && <CircleNotch size={20} color="#FCD34D" weight="regular" />}
+          {recordingState === 'recording' && <View style={styles.recordingDot} />}
+          {recordingState === 'analyzing' && <ArrowsClockwise size={20} color="#FCD34D" weight="regular" />}
           {recordingState === 'done' && <CheckCircle size={20} color="#4ADE80" weight="regular" />}
           {recordingState === 'error' && <XCircle size={20} color="#F87171" weight="regular" />}
           <Text style={styles.recordStatus}>
@@ -635,6 +635,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  recordingDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#F87171',
   },
   recordStatus: {
     color: '#ECFDF5',
