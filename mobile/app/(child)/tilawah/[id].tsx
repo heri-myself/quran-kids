@@ -255,7 +255,8 @@ export default function TilawahLatihanScreen() {
 
   const handleMicPress = async () => {
     if (recordingState === 'idle' || recordingState === 'error') {
-      await startRecording()
+      if (!currentVerse) return
+      await startRecording(currentVerse.verse_number, currentVerse.text_uthmani)
     } else if (recordingState === 'recording') {
       if (!currentVerse) return
       const result = await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
@@ -445,7 +446,7 @@ export default function TilawahLatihanScreen() {
 
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           {isDone && (
-            <TouchableOpacity style={styles.retryBtn} onPress={() => { resetVerse(); startRecording() }}>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}>
               <Text style={styles.retryBtnText}>Ulangi</Text>
             </TouchableOpacity>
           )}
