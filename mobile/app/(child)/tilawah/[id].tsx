@@ -421,13 +421,6 @@ export default function TilawahLatihanScreen() {
         {/* Verse card */}
         <View style={s.verseCard}>
 
-          {/* Colored top cap */}
-          <View style={[s.cardCap, { backgroundColor: accentColor }]}>
-            <View style={[s.ayatBadge, { backgroundColor: 'rgba(255,255,255,0.22)' }]}>
-              <Text style={s.ayatNum}>{currentVerse.verse_number}</Text>
-            </View>
-          </View>
-
           {/* Arabic */}
           <View style={s.arabicArea}>
             {isDone && currentEval && words.length > 0 ? (
@@ -623,7 +616,7 @@ const s = StyleSheet.create({
   ayatNum:   { color: D.white, fontSize: 15, fontWeight: '900' },
   arabicArea: {
     paddingHorizontal: 20,
-    paddingTop: 6,
+    paddingTop: 20,
     paddingBottom: 16,
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
