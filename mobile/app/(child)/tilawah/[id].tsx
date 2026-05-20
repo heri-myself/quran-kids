@@ -1,23 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-  Platform,
-  Modal,
-  Dimensions,
+  View, Text, TouchableOpacity, ScrollView,
+  ActivityIndicator, StyleSheet, Platform, Modal, Dimensions,
 } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withSequence,
-  Easing,
+  useSharedValue, useAnimatedStyle,
+  withRepeat, withTiming, withSequence, withSpring,
+  Easing, interpolate,
 } from 'react-native-reanimated'
 import { Audio } from 'expo-av'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
@@ -25,43 +15,50 @@ import { getSurahVerses } from '../../../services/quran'
 import { useLastActivityStore } from '../../../stores/last-activity-store'
 import {
   ArrowCounterClockwise, ArrowRight, CheckCircle,
-  Headphones, Play, Microphone, StopCircle, XCircle,
-  ArrowsClockwise, Star,
+  Headphones, Play, Microphone, StopCircle,
+  XCircle, ArrowsClockwise, Star,
 } from 'phosphor-react-native'
 
-// ── Design tokens ─────────────────────────────────────────────
-const T = {
-  // Base palette
-  bg:          '#F7F3EB',   // warm ivory
-  surface:     '#FFFFFF',   // card surface
-  surfaceAlt:  '#F0EBE1',   // alternate surface
+// ─────────────────────────────────────────────────────────────
+//  DESIGN TOKENS
+// ─────────────────────────────────────────────────────────────
+const D = {
+  // Background
+  bg:        '#F4FAF6',
 
-  // Primary — deep emerald (Islamic, trustworthy, ≥4.5:1 on white)
-  primary:     '#1A7A50',
-  primaryMid:  '#2D9E6A',
-  primaryLight:'#C8EDD8',
-  primaryBg:   '#E8F6EE',
+  // Surfaces
+  card:      '#FFFFFF',
+  panel:     '#22A66A',   // cheerful emerald panel
+  panelDark: '#178A55',   // pressed / deep
 
-  // Accent — warm amber
-  amber:       '#C47E0A',
-  amberLight:  '#FFF0C0',
-  amberBg:     '#FFF8E6',
+  // States
+  correct:   '#22A66A',
+  partial:   '#F5A623',
+  wrong:     '#E8453C',
+  idle:      '#22A66A',
 
-  // Coral for errors/recording
-  coral:       '#D94F35',
-  coralLight:  '#FFE8E4',
+  // Text
+  ink:       '#0F2319',   // 12:1 on white
+  inkMid:    '#3A6652',   // 5.8:1 on white
+  inkSoft:   '#6B9E86',   // 4.6:1 on white
+  white:     '#FFFFFF',
 
-  // Neutrals
-  ink:         '#1A2820',   // primary text — 10.5:1 on white
-  inkMid:      '#3D5248',   // secondary text — 7.2:1
-  inkSoft:     '#6B8070',   // tertiary — 4.5:1
-  line:        '#DDE8E2',
+  // Accents
+  amber:     '#F5A623',
+  amberBg:   '#FFF7E6',
+  coral:     '#E8453C',
+  coralBg:   '#FFF0EF',
+  greenBg:   '#E8F8F0',
+  greenMid:  '#B2E4CA',
 
-  // Star gold
-  star:        '#F0A500',
+  // Progress dots
+  dotOn:     '#FFFFFF',
+  dotOff:    'rgba(255,255,255,0.35)',
 
-  // White
-  white:       '#FFFFFF',
+  // Misc
+  line:      '#E2EEE8',
+  starOn:    '#FFB800',
+  starOff:   '#D9EDE3',
 }
 
 const { width: SW } = Dimensions.get('window')
@@ -73,95 +70,159 @@ interface Verse {
   words: { text_uthmani: string; position: number }[]
 }
 
-// ── Waveform bar ───────────────────────────────────────────────
-function WaveBar({ index, active }: { index: number; active: boolean }) {
-  const h = useSharedValue(4)
+// ─────────────────────────────────────────────────────────────
+//  PROGRESS DOTS
+// ─────────────────────────────────────────────────────────────
+function ProgressDots({ total, current }: { total: number; current: number }) {
+  const MAX = 12
+  const show = Math.min(total, MAX)
+  return (
+    <View style={pd.row}>
+      {Array.from({ length: show }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            pd.dot,
+            i < current   && pd.done,
+            i === current  && pd.active,
+          ]}
+        />
+      ))}
+      {total > MAX && (
+        <Text style={pd.more}>+{total - MAX}</Text>
+      )}
+    </View>
+  )
+}
+const pd = StyleSheet.create({
+  row:    { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  dot:    { width: 8, height: 8, borderRadius: 4, backgroundColor: D.dotOff },
+  done:   { backgroundColor: D.dotOn, opacity: 0.6 },
+  active: { width: 22, borderRadius: 4, backgroundColor: D.dotOn },
+  more:   { color: D.dotOn, fontSize: 12, fontWeight: '700', marginLeft: 2 },
+})
+
+// ─────────────────────────────────────────────────────────────
+//  WAVEFORM
+// ─────────────────────────────────────────────────────────────
+function WaveBar({ idx, active }: { idx: number; active: boolean }) {
+  const h = useSharedValue(5)
   useEffect(() => {
     if (active) {
       h.value = withRepeat(
         withSequence(
-          withTiming(6 + (index % 6) * 7, { duration: 180 + index * 25, easing: Easing.inOut(Easing.sine) }),
-          withTiming(4, { duration: 180 + index * 25, easing: Easing.inOut(Easing.sine) }),
+          withTiming(8 + (idx % 5) * 8, { duration: 160 + idx * 22, easing: Easing.inOut(Easing.sine) }),
+          withTiming(5, { duration: 160 + idx * 22, easing: Easing.inOut(Easing.sine) }),
         ), -1, true,
       )
     } else {
-      h.value = withTiming(4, { duration: 200 })
+      h.value = withTiming(5)
     }
   }, [active])
-  const s = useAnimatedStyle(() => ({ height: h.value }))
-  return <Animated.View style={[s, { width: 4, borderRadius: 2, backgroundColor: T.white, opacity: 0.8, marginHorizontal: 2 }]} />
+  const anim = useAnimatedStyle(() => ({ height: h.value }))
+  return (
+    <Animated.View style={[anim, {
+      width: 4, borderRadius: 2,
+      backgroundColor: 'rgba(255,255,255,0.75)',
+      marginHorizontal: 1.5,
+    }]} />
+  )
 }
 
-// ── Pulsing ring around mic ────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  PULSE RING
+// ─────────────────────────────────────────────────────────────
 function PulseRing({ active }: { active: boolean }) {
   const sc = useSharedValue(1)
   const op = useSharedValue(0)
   useEffect(() => {
     if (active) {
-      sc.value = withRepeat(withSequence(withTiming(1.85, { duration: 900, easing: Easing.out(Easing.ease) }), withTiming(1, { duration: 900 })), -1, true)
-      op.value = withRepeat(withSequence(withTiming(0.28, { duration: 900 }), withTiming(0, { duration: 900 })), -1, true)
+      sc.value = withRepeat(withSequence(
+        withTiming(1.9, { duration: 950, easing: Easing.out(Easing.ease) }),
+        withTiming(1,   { duration: 950 }),
+      ), -1, true)
+      op.value = withRepeat(withSequence(
+        withTiming(0.3, { duration: 950 }),
+        withTiming(0,   { duration: 950 }),
+      ), -1, true)
     } else {
       sc.value = withTiming(1); op.value = withTiming(0)
     }
   }, [active])
-  const s = useAnimatedStyle(() => ({ transform: [{ scale: sc.value }], opacity: op.value }))
-  return <Animated.View style={[StyleSheet.absoluteFillObject, { borderRadius: 999, backgroundColor: T.coral }, s]} />
+  const anim = useAnimatedStyle(() => ({
+    transform: [{ scale: sc.value }],
+    opacity: op.value,
+  }))
+  return (
+    <Animated.View style={[
+      StyleSheet.absoluteFillObject,
+      { borderRadius: 999, backgroundColor: D.white },
+      anim,
+    ]} />
+  )
 }
 
-// ── Star rating ────────────────────────────────────────────────
-function Stars({ score }: { score: number }) {
+// ─────────────────────────────────────────────────────────────
+//  STAR ROW
+// ─────────────────────────────────────────────────────────────
+function StarRow({ score }: { score: number }) {
   const n = score >= 85 ? 3 : score >= 65 ? 2 : 1
   return (
-    <View style={{ flexDirection: 'row', gap: 6 }}>
+    <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
       {[1, 2, 3].map(i => (
-        <Star key={i} size={26} color={i <= n ? T.star : T.line} weight={i <= n ? 'fill' : 'regular'} />
+        <Star key={i} size={30} color={i <= n ? D.starOn : D.starOff} weight={i <= n ? 'fill' : 'regular'} />
       ))}
     </View>
   )
 }
 
-// ── Audio sample bottom sheet ──────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  AUDIO SHEET
+// ─────────────────────────────────────────────────────────────
 function AudioSheet({
-  visible, chapterId, verseNumber, onDismiss, onPlay, loading, error,
+  visible, chapterId, verseNumber,
+  onDismiss, onPlay, loading, error,
 }: {
   visible: boolean; chapterId: string; verseNumber: number
-  onDismiss: () => void; onPlay: () => void; loading: boolean; error: string | null
+  onDismiss: () => void; onPlay: () => void
+  loading: boolean; error: string | null
 }) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
-      <View style={sh.overlay}>
-        <View style={sh.sheet}>
-          <View style={sh.pill} />
+      <View style={as.overlay}>
+        <View style={as.sheet}>
+          <View style={as.handle} />
 
-          <View style={sh.iconWrap}>
-            <Headphones size={30} color={T.primary} weight="regular" />
+          <View style={as.iconRing}>
+            <Headphones size={32} color={D.panel} weight="regular" />
           </View>
 
-          <Text style={sh.title}>Dengar contoh bacaan</Text>
-          <Text style={sh.sub}>Sudah 3× mencoba. Yuk dengar dulu!</Text>
+          <Text style={as.title}>Dengar Contoh Bacaan</Text>
+          <Text style={as.sub}>
+            Sudah 3× mencoba.{'\n'}Yuk dengar dulu cara yang benar!
+          </Text>
 
-          <View style={sh.track}>
-            {Array.from({ length: 16 }).map((_, i) => (
-              <View key={i} style={[sh.tBar, { height: 6 + (i % 5) * 5, opacity: 0.5 + (i % 3) * 0.15 }]} />
+          <View style={as.track}>
+            {Array.from({ length: 18 }).map((_, i) => (
+              <View key={i} style={[as.tBar, { height: 7 + (i % 5) * 5, opacity: 0.4 + (i % 3) * 0.2 }]} />
             ))}
-            <Text style={sh.trackLabel}>Surah {chapterId} · {verseNumber}</Text>
           </View>
+          <Text style={as.trackLabel}>Surah {chapterId} · Ayat {verseNumber}</Text>
 
-          {error ? <Text style={sh.err}>{error}</Text> : null}
+          {error ? <Text style={as.err}>{error}</Text> : null}
 
-          <View style={sh.row}>
-            <TouchableOpacity style={sh.skip} onPress={onDismiss} accessibilityLabel="Lewati">
-              <Text style={sh.skipTxt}>Lewati</Text>
+          <View style={as.btnRow}>
+            <TouchableOpacity style={as.skipBtn} onPress={onDismiss}>
+              <Text style={as.skipTxt}>Lewati</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[sh.play, (loading || !!error) && { opacity: 0.55 }]}
+              style={[as.playBtn, (loading || !!error) && { opacity: 0.5 }]}
               onPress={onPlay}
               disabled={loading || !!error}
-              accessibilityLabel="Dengar contoh bacaan"
             >
               {loading
-                ? <ActivityIndicator color={T.white} size="small" />
-                : <><Play size={18} color={T.white} weight="fill" /><Text style={sh.playTxt}>Dengar Contoh</Text></>
+                ? <ActivityIndicator color={D.white} size="small" />
+                : <><Play size={18} color={D.white} weight="fill" /><Text style={as.playTxt}>Dengar Sekarang</Text></>
               }
             </TouchableOpacity>
           </View>
@@ -170,29 +231,53 @@ function AudioSheet({
     </Modal>
   )
 }
-
-const sh = StyleSheet.create({
-  overlay:    { flex: 1, backgroundColor: 'rgba(26,40,32,0.5)', justifyContent: 'flex-end' },
-  sheet:      { backgroundColor: T.surface, borderTopLeftRadius: 36, borderTopRightRadius: 36, padding: 28, paddingBottom: Platform.OS === 'ios' ? 44 : 28, alignItems: 'center' },
-  pill:       { width: 36, height: 4, borderRadius: 2, backgroundColor: T.line, marginBottom: 24 },
-  iconWrap:   { width: 64, height: 64, borderRadius: 32, backgroundColor: T.primaryBg, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  title:      { fontSize: 20, fontWeight: '800', color: T.ink, marginBottom: 6 },
-  sub:        { fontSize: 14, color: T.inkSoft, marginBottom: 20, textAlign: 'center', lineHeight: 21 },
-  track:      { flexDirection: 'row', alignItems: 'center', backgroundColor: T.primaryBg, borderRadius: 16, padding: 14, marginBottom: 22, width: '100%', gap: 3 },
-  tBar:       { width: 5, backgroundColor: T.primary, borderRadius: 3 },
-  trackLabel: { flex: 1, marginLeft: 10, fontSize: 13, color: T.primary, fontWeight: '700' },
-  err:        { color: T.coral, fontSize: 13, marginBottom: 10 },
-  row:        { flexDirection: 'row', gap: 12, width: '100%' },
-  skip:       { flex: 1, backgroundColor: T.primaryBg, borderRadius: 20, paddingVertical: 16, alignItems: 'center' },
-  skipTxt:    { color: T.primary, fontWeight: '700', fontSize: 15 },
-  play:       { flex: 2, backgroundColor: T.primary, borderRadius: 20, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  playTxt:    { color: T.white, fontWeight: '800', fontSize: 16 },
+const as = StyleSheet.create({
+  overlay:    { flex: 1, backgroundColor: 'rgba(15,35,25,0.55)', justifyContent: 'flex-end' },
+  sheet:      {
+    backgroundColor: D.card,
+    borderTopLeftRadius: 40, borderTopRightRadius: 40,
+    paddingHorizontal: 24, paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 42 : 26,
+    alignItems: 'center',
+  },
+  handle:     { width: 36, height: 4, borderRadius: 2, backgroundColor: D.line, marginBottom: 22 },
+  iconRing:   {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: D.greenBg,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title:      { fontSize: 22, fontWeight: '800', color: D.ink, marginBottom: 6, textAlign: 'center' },
+  sub:        { fontSize: 15, color: D.inkSoft, lineHeight: 22, textAlign: 'center', marginBottom: 20 },
+  track:      {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: D.greenBg,
+    borderRadius: 20, paddingVertical: 14, paddingHorizontal: 16,
+    width: '100%', marginBottom: 8,
+  },
+  tBar:       { width: 5, backgroundColor: D.panel, borderRadius: 3 },
+  trackLabel: { fontSize: 13, color: D.inkSoft, fontWeight: '600', marginBottom: 20 },
+  err:        { color: D.coral, fontSize: 13, marginBottom: 12 },
+  btnRow:     { flexDirection: 'row', gap: 12, width: '100%' },
+  skipBtn:    {
+    flex: 1, backgroundColor: D.greenBg,
+    borderRadius: 22, paddingVertical: 16, alignItems: 'center',
+  },
+  skipTxt:    { color: D.panel, fontWeight: '700', fontSize: 16 },
+  playBtn:    {
+    flex: 2, backgroundColor: D.panel,
+    borderRadius: 22, paddingVertical: 16,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+  },
+  playTxt:    { color: D.white, fontWeight: '800', fontSize: 16 },
 })
 
-// ── Main screen ────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  MAIN SCREEN
+// ─────────────────────────────────────────────────────────────
 export default function TilawahLatihanScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>()
-  const router  = useRouter()
+  const { id }         = useLocalSearchParams<{ id: string }>()
+  const router         = useRouter()
   const setLastTilawah = useLastActivityStore((s) => s.setLastTilawah)
 
   const [currentIndex,   setCurrentIndex]   = useState(0)
@@ -206,9 +291,7 @@ export default function TilawahLatihanScreen() {
   const verses = getSurahVerses(Number(id)) as Verse[]
   const { recordingState, currentEval, error, startRecording, stopAndEvaluate, resetVerse } = useTilawah(Number(id))
 
-  useEffect(() => () => {
-    soundRef.current?.unloadAsync().catch(() => {})
-  }, [])
+  useEffect(() => () => { soundRef.current?.unloadAsync().catch(() => {}) }, [])
 
   useEffect(() => {
     if (recordingState !== 'done' || !currentEval || !currentVerse) return
@@ -239,8 +322,8 @@ export default function TilawahLatihanScreen() {
   }, [recordingState, currentEval])
 
   useFocusEffect(useCallback(() => {
-    setCurrentIndex(0); setVerseResults([]); setWrongCount(0)
-    setSheetDismissed(false); resetVerse()
+    setCurrentIndex(0); setVerseResults([])
+    setWrongCount(0); setSheetDismissed(false); resetVerse()
   }, []))
 
   const currentVerse = verses[currentIndex]
@@ -248,23 +331,32 @@ export default function TilawahLatihanScreen() {
   const isAnalyzing  = recordingState === 'analyzing'
   const isDone       = recordingState === 'done'
 
+  const accentColor = !isDone || !currentEval ? D.correct
+    : currentEval.score >= 85 ? D.correct
+    : currentEval.score >= 65 ? D.amber
+    : D.coral
+
   const handleMic = async () => {
     if (!currentVerse) return
-    if (recordingState === 'idle' || recordingState === 'error') {
+    if (recordingState === 'idle' || recordingState === 'error')
       await startRecording(currentVerse.verse_number, currentVerse.text_uthmani)
-    } else if (isRecording) {
+    else if (isRecording)
       await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
-    }
   }
 
   const handleNext = () => {
     if (currentIndex + 1 >= verses.length) {
-      const avg    = verseResults.length > 0 ? Math.round(verseResults.reduce((s, v) => s + v.score, 0) / verseResults.length) : 0
+      const avg    = verseResults.length > 0
+        ? Math.round(verseResults.reduce((s, v) => s + v.score, 0) / verseResults.length) : 0
       const stars  = calcStars(avg)
       const points = calcPoints(stars, avg)
-      router.replace({ pathname: '/(child)/tilawah/result', params: { chapterId: String(id), totalScore: String(avg), stars: String(stars), pointsEarned: String(points), verseResults: JSON.stringify(verseResults) } })
+      router.replace({
+        pathname: '/(child)/tilawah/result',
+        params: { chapterId: String(id), totalScore: String(avg), stars: String(stars), pointsEarned: String(points), verseResults: JSON.stringify(verseResults) },
+      })
     } else {
-      setCurrentIndex(i => i + 1); setWrongCount(0); setSheetDismissed(false); setAudioError(null); resetVerse()
+      setCurrentIndex(i => i + 1)
+      setWrongCount(0); setSheetDismissed(false); setAudioError(null); resetVerse()
     }
   }
 
@@ -282,7 +374,9 @@ export default function TilawahLatihanScreen() {
       await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, allowsRecordingIOS: false })
       const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: true })
       soundRef.current = sound
-      sound.setOnPlaybackStatusUpdate((s: any) => { if (s.didJustFinish) { setSheetDismissed(true); soundRef.current = null } })
+      sound.setOnPlaybackStatusUpdate((s: any) => {
+        if (s.didJustFinish) { setSheetDismissed(true); soundRef.current = null }
+      })
     } catch (e: any) {
       await soundRef.current?.unloadAsync().catch(() => {}); soundRef.current = null
       setAudioError(e.message ?? 'Audio tidak tersedia')
@@ -295,57 +389,53 @@ export default function TilawahLatihanScreen() {
   }
 
   if (!currentVerse) {
-    return <View style={s.fill}><ActivityIndicator color={T.primary} size="large" /></View>
+    return (
+      <View style={[s.root, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator color={D.panel} size="large" />
+      </View>
+    )
   }
 
   const words       = currentVerse.words ?? []
   const translation = currentVerse.translations?.[0]?.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? ''
-  const progress    = (currentIndex + 1) / verses.length
-
-  // Score-based accent
-  const scoreAccent = !currentEval ? T.primary
-    : currentEval.score >= 85 ? T.primary
-    : currentEval.score >= 65 ? T.amber
-    : T.coral
 
   return (
     <View style={s.root}>
 
-      {/* ── Top bar ────────────────────────────────────────── */}
-      <View style={s.topBar}>
-        <Text style={s.surahLabel}>Surah {id}</Text>
-        <Text style={s.verseCounter}>{currentIndex + 1} / {verses.length}</Text>
+      {/* ── Emerald top bar ─────────────────────────────── */}
+      <View style={[s.topBar, { backgroundColor: accentColor }]}>
+        <View style={s.topLeft}>
+          <Text style={s.surahName}>Surah {id}</Text>
+          <ProgressDots total={verses.length} current={currentIndex} />
+        </View>
+        <View style={s.versePill}>
+          <Text style={s.versePillTxt}>{currentIndex + 1}<Text style={{ opacity: 0.65 }}>/{verses.length}</Text></Text>
+        </View>
       </View>
 
-      {/* ── Progress strip ─────────────────────────────────── */}
-      <View style={s.progressTrack}>
-        <View style={[s.progressFill, { width: `${progress * 100}%` as any }]} />
-      </View>
-
-      {/* ── Scrollable body ────────────────────────────────── */}
+      {/* ── Scrollable body ─────────────────────────────── */}
       <ScrollView
         style={s.scroll}
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-
         {/* Verse card */}
         <View style={s.verseCard}>
-          {/* Colored top strip */}
-          <View style={[s.cardStrip, { backgroundColor: scoreAccent }]} />
 
-          {/* Verse badge */}
-          <View style={[s.badge, { backgroundColor: scoreAccent }]}>
-            <Text style={s.badgeNum}>{currentVerse.verse_number}</Text>
+          {/* Colored top cap */}
+          <View style={[s.cardCap, { backgroundColor: accentColor }]}>
+            <View style={[s.ayatBadge, { backgroundColor: 'rgba(255,255,255,0.22)' }]}>
+              <Text style={s.ayatNum}>{currentVerse.verse_number}</Text>
+            </View>
           </View>
 
-          {/* Arabic text */}
-          <View style={s.arabicWrap}>
+          {/* Arabic */}
+          <View style={s.arabicArea}>
             {isDone && currentEval && words.length > 0 ? (
               words.map((w, i) => {
                 const wr     = currentEval.wordResults?.[i]
                 const status = wr?.status ?? (wr?.correct === false ? 'wrong' : 'correct')
-                const col    = status === 'mad_short' ? T.amber : status === 'correct' ? T.primary : T.coral
+                const col    = status === 'mad_short' ? D.amber : status === 'correct' ? D.correct : D.coral
                 return <Text key={i} style={[s.arabicWord, { color: col }]}>{w.text_uthmani}</Text>
               })
             ) : (
@@ -353,8 +443,7 @@ export default function TilawahLatihanScreen() {
             )}
           </View>
 
-          {/* Divider */}
-          <View style={s.divider} />
+          <View style={s.cardDivider} />
 
           {/* Translation */}
           <Text style={s.translation}>{translation}</Text>
@@ -362,39 +451,38 @@ export default function TilawahLatihanScreen() {
 
         {/* Feedback card */}
         {isDone && currentEval && (
-          <View style={[s.feedbackCard, { borderLeftColor: scoreAccent }]}>
+          <View style={[s.feedbackCard, { backgroundColor: accentColor + '12' }]}>
             <View style={s.feedbackTop}>
-              <Stars score={currentEval.score} />
-              <View style={[s.scoreBadge, { backgroundColor: scoreAccent + '1A' }]}>
-                <Text style={[s.scoreNum, { color: scoreAccent }]}>{currentEval.score}</Text>
-                <Text style={s.scoreDen}>/100</Text>
+              <StarRow score={currentEval.score} />
+              <View style={[s.scorePill, { backgroundColor: accentColor }]}>
+                <Text style={s.scoreNum}>{currentEval.score}</Text>
+                <Text style={s.scoreSub}>/100</Text>
               </View>
             </View>
             {currentEval.feedback.map((f, i) => (
-              <Text key={i} style={[s.feedbackLine, i === 0 && s.feedbackBold]}>{f}</Text>
+              <Text key={i} style={[s.fbLine, i === 0 && s.fbBold]}>{f}</Text>
             ))}
           </View>
         )}
       </ScrollView>
 
-      {/* ── Control panel ──────────────────────────────────── */}
-      <View style={s.panel}>
+      {/* ── Control panel ───────────────────────────────── */}
+      <View style={[s.panel, { backgroundColor: accentColor }]}>
 
-        {/* Error */}
-        {!!error && <Text style={s.errorMsg}>{error}</Text>}
+        {!!error && <Text style={s.errTxt}>{error}</Text>}
 
-        {/* Status pill */}
-        <View style={[s.statusPill,
-          isRecording && s.statusRecording,
-          isDone      && s.statusDone,
-          recordingState === 'error' && s.statusError,
+        {/* Status chip */}
+        <View style={[s.chip,
+          isRecording && s.chipRec,
+          isDone      && s.chipDone,
+          recordingState === 'error' && s.chipErr,
         ]}>
-          {recordingState === 'idle'      && <Microphone    size={16} color={T.white} weight="regular" />}
+          {recordingState === 'idle'      && <Microphone    size={15} color={D.white} weight="regular" />}
           {recordingState === 'recording' && <View style={s.recDot} />}
-          {recordingState === 'analyzing' && <ArrowsClockwise size={16} color={T.white} weight="regular" />}
-          {recordingState === 'done'      && <CheckCircle   size={16} color={T.white} weight="fill" />}
-          {recordingState === 'error'     && <XCircle       size={16} color={T.white} weight="fill" />}
-          <Text style={s.statusTxt}>
+          {recordingState === 'analyzing' && <ArrowsClockwise size={15} color={D.white} weight="regular" />}
+          {recordingState === 'done'      && <CheckCircle   size={15} color={D.white} weight="fill" />}
+          {recordingState === 'error'     && <XCircle       size={15} color={D.white} weight="fill" />}
+          <Text style={s.chipTxt}>
             {recordingState === 'idle'      && 'Tap mic untuk mulai membaca'}
             {recordingState === 'recording' && 'Sedang merekam...'}
             {recordingState === 'analyzing' && 'Sedang dinilai...'}
@@ -403,36 +491,36 @@ export default function TilawahLatihanScreen() {
           </Text>
         </View>
 
-        {/* Waveform — only while recording */}
+        {/* Waveform */}
         {isRecording && (
-          <View style={s.waveWrap}>
-            {Array.from({ length: 24 }).map((_, i) => <WaveBar key={i} index={i} active={isRecording} />)}
+          <View style={s.waveRow}>
+            {Array.from({ length: 26 }).map((_, i) => <WaveBar key={i} idx={i} active />)}
           </View>
         )}
 
-        {/* Mic button */}
+        {/* Mic */}
         {!isDone && (
           <View style={s.micOuter}>
             <PulseRing active={isRecording} />
             <TouchableOpacity
-              style={[s.micBtn, isRecording && s.micBtnActive, isAnalyzing && { opacity: 0.65 }]}
+              style={[s.micBtn, isRecording && s.micBtnRec, isAnalyzing && { opacity: 0.6 }]}
               onPress={handleMic}
               disabled={isAnalyzing}
-              activeOpacity={0.82}
-              accessibilityLabel={isRecording ? 'Stop rekaman' : 'Mulai rekaman'}
+              activeOpacity={0.8}
+              accessibilityLabel={isRecording ? 'Berhenti merekam' : 'Mulai merekam'}
               accessibilityRole="button"
             >
               {isAnalyzing
-                ? <ActivityIndicator color={T.white} size="large" />
+                ? <ActivityIndicator color={D.white} size="large" />
                 : isRecording
-                  ? <StopCircle size={40} color={T.white} weight="fill" />
-                  : <Microphone  size={40} color={T.white} weight="regular" />
+                  ? <StopCircle size={42} color={D.white} weight="fill" />
+                  : <Microphone  size={42} color={D.panel} weight="regular" />
               }
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Done — retry + next */}
+        {/* Done actions */}
         {isDone && (
           <View style={s.actionRow}>
             <TouchableOpacity
@@ -440,26 +528,35 @@ export default function TilawahLatihanScreen() {
               onPress={() => { resetVerse(); currentVerse && startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}
               accessibilityLabel="Ulangi"
             >
-              <ArrowCounterClockwise size={20} color={T.white} weight="regular" />
+              <ArrowCounterClockwise size={20} color={D.white} weight="regular" />
               <Text style={s.retryTxt}>Ulangi</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={s.nextBtn} onPress={handleNext} accessibilityLabel="Lanjut">
+            <TouchableOpacity
+              style={s.nextBtn}
+              onPress={handleNext}
+              accessibilityLabel={currentIndex + 1 >= verses.length ? 'Selesai' : 'Ayat berikutnya'}
+            >
               {currentIndex + 1 >= verses.length
-                ? <CheckCircle size={20} color={T.white} weight="regular" />
+                ? <CheckCircle size={20} color={D.panel} weight="fill" />
                 : null}
-              <Text style={s.nextTxt}>{currentIndex + 1 >= verses.length ? 'Selesai' : 'Berikutnya'}</Text>
+              <Text style={s.nextTxt}>
+                {currentIndex + 1 >= verses.length ? 'Selesai!' : 'Berikutnya'}
+              </Text>
               {currentIndex + 1 < verses.length
-                ? <ArrowRight size={20} color={T.white} weight="regular" />
+                ? <ArrowRight size={20} color={D.panel} weight="regular" />
                 : null}
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Hint button */}
+        {/* Hint */}
         {wrongCount >= 3 && (
-          <TouchableOpacity style={s.hintBtn} onPress={() => setSheetDismissed(false)} accessibilityLabel="Dengar contoh Syeikh">
-            <Headphones size={16} color={T.white} weight="regular" />
+          <TouchableOpacity
+            style={s.hintBtn}
+            onPress={() => setSheetDismissed(false)}
+            accessibilityLabel="Dengar contoh Syeikh"
+          >
+            <Headphones size={16} color={D.white} weight="regular" />
             <Text style={s.hintTxt}>Dengar Contoh Syeikh</Text>
           </TouchableOpacity>
         )}
@@ -478,160 +575,167 @@ export default function TilawahLatihanScreen() {
   )
 }
 
-// ── Styles ────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  STYLES
+// ─────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
 
-  fill:   { flex: 1, backgroundColor: T.bg, alignItems: 'center', justifyContent: 'center' },
-  root:   { flex: 1, backgroundColor: T.bg },
+  root: { flex: 1, backgroundColor: D.bg },
 
   /* Top bar */
   topBar: {
+    paddingTop: Platform.OS === 'ios' ? 56 : 38,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: Platform.OS === 'ios' ? 58 : 40,
-    paddingHorizontal: 22,
-    paddingBottom: 10,
+    justifyContent: 'space-between',
   },
-  surahLabel:   { fontSize: 17, fontWeight: '800', color: T.ink },
-  verseCounter: { fontSize: 14, fontWeight: '700', color: T.inkSoft, backgroundColor: T.primaryBg, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
-
-  /* Progress */
-  progressTrack: { height: 6, backgroundColor: T.line, marginHorizontal: 22, borderRadius: 3, overflow: 'hidden', marginBottom: 16 },
-  progressFill:  { height: 6, backgroundColor: T.primary, borderRadius: 3 },
+  topLeft:     { gap: 8 },
+  surahName:   { fontSize: 18, fontWeight: '800', color: D.white, letterSpacing: 0.2 },
+  versePill:   {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    paddingHorizontal: 14, paddingVertical: 6,
+    borderRadius: 20,
+  },
+  versePillTxt: { fontSize: 15, fontWeight: '800', color: D.white },
 
   /* Scroll */
   scroll:        { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 12 },
+  scrollContent: { padding: 16, paddingBottom: 12 },
 
   /* Verse card */
   verseCard: {
-    backgroundColor: T.surface,
+    backgroundColor: D.card,
     borderRadius: 28,
     overflow: 'hidden',
     marginBottom: 14,
   },
-  cardStrip: { height: 8, width: '100%' },
-  badge: {
-    position: 'absolute',
-    top: 16, right: 20,
-    width: 36, height: 36,
-    borderRadius: 18,
+  cardCap: {
+    height: 56,
+    paddingHorizontal: 18,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  },
+  ayatBadge: {
+    width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
   },
-  badgeNum:  { color: T.white, fontWeight: '900', fontSize: 14 },
-  arabicWrap: {
+  ayatNum:   { color: D.white, fontSize: 15, fontWeight: '900' },
+  arabicArea: {
     paddingHorizontal: 20,
-    paddingTop: 48,
-    paddingBottom: 14,
+    paddingTop: 6,
+    paddingBottom: 16,
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 8,
   },
-  arabicWord: { fontSize: 42, lineHeight: 76, fontFamily: 'ScheherazadeNew-Regular', color: T.ink },
-  arabicFull: {
-    fontSize: 42, lineHeight: 76,
+  arabicWord: {
+    fontSize: 44, lineHeight: 78,
     fontFamily: 'ScheherazadeNew-Regular',
-    color: T.ink,
+    color: D.ink,
+  },
+  arabicFull: {
+    fontSize: 44, lineHeight: 78,
+    fontFamily: 'ScheherazadeNew-Regular',
+    color: D.ink,
     textAlign: 'right',
     writingDirection: 'rtl',
     width: '100%',
   },
-  divider:     { height: 1, backgroundColor: T.line, marginHorizontal: 20, marginBottom: 14 },
-  translation: { color: T.inkSoft, fontSize: 15, lineHeight: 23, paddingHorizontal: 20, paddingBottom: 20, fontStyle: 'italic' },
+  cardDivider: { height: 1, backgroundColor: D.line, marginHorizontal: 20, marginBottom: 14 },
+  translation: {
+    color: D.inkSoft, fontSize: 15, lineHeight: 24,
+    paddingHorizontal: 20, paddingBottom: 20,
+    fontStyle: 'italic',
+  },
 
   /* Feedback */
   feedbackCard: {
-    backgroundColor: T.surface,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 14,
-    borderLeftWidth: 4,
+    borderRadius: 24, padding: 20, marginBottom: 14,
   },
-  feedbackTop:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  scoreBadge:   { flexDirection: 'row', alignItems: 'baseline', gap: 2, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 },
-  scoreNum:     { fontSize: 24, fontWeight: '900' },
-  scoreDen:     { fontSize: 13, color: T.inkSoft, fontWeight: '600' },
-  feedbackBold: { fontWeight: '700', fontSize: 16, color: T.ink, marginBottom: 6 },
-  feedbackLine: { color: T.inkMid, fontSize: 14, lineHeight: 21, marginBottom: 4 },
+  feedbackTop: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 14,
+  },
+  scorePill: {
+    flexDirection: 'row', alignItems: 'baseline', gap: 2,
+    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
+  },
+  scoreNum:  { fontSize: 24, fontWeight: '900', color: D.white },
+  scoreSub:  { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.75)' },
+  fbBold:    { fontSize: 16, fontWeight: '700', color: D.ink, marginBottom: 6 },
+  fbLine:    { fontSize: 14, color: D.inkMid, lineHeight: 21, marginBottom: 4 },
 
   /* Panel */
   panel: {
-    backgroundColor: T.primary,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    paddingTop: 12,
+    borderTopLeftRadius: 36, borderTopRightRadius: 36,
+    paddingTop: 14,
     paddingHorizontal: 22,
     paddingBottom: Platform.OS === 'ios' ? 38 : 22,
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
 
-  /* Status pill */
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+  /* Status chip */
+  chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 18, paddingVertical: 10,
     borderRadius: 24,
-    minWidth: 220,
-    justifyContent: 'center',
+    minWidth: 240, justifyContent: 'center',
   },
-  statusRecording: { backgroundColor: 'rgba(217,79,53,0.35)' },
-  statusDone:      { backgroundColor: 'rgba(255,255,255,0.22)' },
-  statusError:     { backgroundColor: 'rgba(217,79,53,0.35)' },
-  statusTxt: { color: T.white, fontWeight: '700', fontSize: 14 },
-  recDot:    { width: 10, height: 10, borderRadius: 5, backgroundColor: T.white },
+  chipRec:  { backgroundColor: 'rgba(232,69,60,0.3)' },
+  chipDone: { backgroundColor: 'rgba(255,255,255,0.22)' },
+  chipErr:  { backgroundColor: 'rgba(232,69,60,0.3)' },
+  chipTxt:  { color: D.white, fontWeight: '700', fontSize: 14 },
+  recDot:   { width: 10, height: 10, borderRadius: 5, backgroundColor: D.white },
 
   /* Waveform */
-  waveWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 52,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+  waveRow: {
+    flexDirection: 'row', alignItems: 'center',
+    height: 50,
+    backgroundColor: 'rgba(255,255,255,0.14)',
     borderRadius: 18,
-    paddingHorizontal: 14,
-    width: '100%',
-    justifyContent: 'center',
+    paddingHorizontal: 12,
+    width: '100%', justifyContent: 'center',
   },
 
   /* Mic */
   micOuter: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center' },
   micBtn: {
     width: 92, height: 92, borderRadius: 46,
-    backgroundColor: T.primaryMid,
+    backgroundColor: D.white,
     alignItems: 'center', justifyContent: 'center',
   },
-  micBtnActive: { backgroundColor: T.coral },
+  micBtnRec: { backgroundColor: D.coral },
 
-  /* Done actions */
+  /* Actions */
   actionRow: { flexDirection: 'row', gap: 10, width: '100%' },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    borderRadius: 20, paddingVertical: 16, paddingHorizontal: 20,
-    minHeight: 52,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 22, paddingVertical: 16, paddingHorizontal: 20,
+    minHeight: 54,
   },
-  retryTxt: { color: T.white, fontWeight: '700', fontSize: 15 },
+  retryTxt: { color: D.white, fontWeight: '700', fontSize: 15 },
   nextBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: T.white,
-    borderRadius: 20, paddingVertical: 16, paddingHorizontal: 16,
-    minHeight: 52,
+    flex: 1,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: D.white,
+    borderRadius: 22, paddingVertical: 16, paddingHorizontal: 16,
+    minHeight: 54,
   },
-  nextTxt: { color: T.primary, fontWeight: '800', fontSize: 16 },
+  nextTxt: { color: D.panel, fontWeight: '900', fontSize: 16 },
 
   /* Hint */
   hintBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 20, paddingVertical: 12, paddingHorizontal: 20,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 22, paddingVertical: 12, paddingHorizontal: 20,
     minHeight: 44,
   },
-  hintTxt: { color: T.white, fontSize: 14, fontWeight: '600' },
-
-  errorMsg: { color: '#FFD0C8', fontSize: 13, textAlign: 'center' },
+  hintTxt:  { color: D.white, fontSize: 14, fontWeight: '600' },
+  errTxt:   { color: '#FFD0CC', fontSize: 13, textAlign: 'center' },
 })
