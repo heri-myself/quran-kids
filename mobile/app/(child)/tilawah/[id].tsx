@@ -233,6 +233,28 @@ export default function TilawahLatihanScreen() {
     }
   }, [])
 
+  // Update verseResults saat evaluasi selesai — handle auto-stop maupun manual stop
+  useEffect(() => {
+    if (recordingState !== 'done' || !currentEval || !currentVerse) return
+    setVerseResults((prev) => {
+      const newEntry: VerseResult = {
+        verseNumber: currentVerse.verse_number,
+        score: currentEval.score,
+        wordAccuracy: currentEval.wordAccuracy,
+        tajweedScore: currentEval.tajweedScore,
+        feedback: currentEval.feedback,
+        evaluation: currentEval,
+      }
+      const existing = prev.findIndex((v) => v.verseNumber === currentVerse.verse_number)
+      if (existing >= 0) {
+        const updated = [...prev]
+        if (currentEval.score > prev[existing].score) updated[existing] = newEntry
+        return updated
+      }
+      return [...prev, newEntry]
+    })
+  }, [recordingState, currentEval])
+
   const verses = getSurahVerses(Number(id)) as Verse[]
   const isLoading = false
 
@@ -259,26 +281,7 @@ export default function TilawahLatihanScreen() {
       await startRecording(currentVerse.verse_number, currentVerse.text_uthmani)
     } else if (recordingState === 'recording') {
       if (!currentVerse) return
-      const result = await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
-      if (result) {
-        setVerseResults((prev) => {
-          const newEntry: VerseResult = {
-            verseNumber: currentVerse.verse_number,
-            score: result.score,
-            wordAccuracy: result.wordAccuracy,
-            tajweedScore: result.tajweedScore,
-            feedback: result.feedback,
-            evaluation: result,
-          }
-          const existing = prev.findIndex((v) => v.verseNumber === currentVerse.verse_number)
-          if (existing >= 0) {
-            const updated = [...prev]
-            if (result.score > prev[existing].score) updated[existing] = newEntry
-            return updated
-          }
-          return [...prev, newEntry]
-        })
-      }
+      await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
     }
   }
 
