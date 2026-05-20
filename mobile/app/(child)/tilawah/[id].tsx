@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Platform,
   Modal,
+  Dimensions,
 } from 'react-native'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import Animated, {
@@ -16,6 +17,7 @@ import Animated, {
   withRepeat,
   withTiming,
   withSequence,
+  Easing,
 } from 'react-native-reanimated'
 import { Audio } from 'expo-av'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
@@ -24,32 +26,45 @@ import { useLastActivityStore } from '../../../stores/last-activity-store'
 import {
   ArrowCounterClockwise, ArrowRight, CheckCircle,
   Headphones, Play, Microphone, StopCircle, XCircle,
-  ArrowsClockwise, Star, Sparkle,
+  ArrowsClockwise, Star,
 } from 'phosphor-react-native'
 
-const C = {
-  bg:           '#F5EAD0',   // warm parchment (reference image background)
-  bgAccent:     '#EDE0C4',   // deeper parchment
-  card:         '#EDE0C4',   // parchment card — matches reference image
-  cardSage:     '#D8EBD8',   // soft sage card
-  cardPeach:    '#F2DBC8',   // warm peach card
-  sage:         '#5C9E7A',
-  sageDark:     '#3D7055',
-  sageLight:    '#B8D8C0',
-  peach:        '#E8855A',
-  peachDark:    '#B85A32',
-  peachLight:   '#F2DBC8',
-  peachMid:     '#DEB89A',
-  green:        '#3EB97A',
-  greenDark:    '#228C56',
-  red:          '#D95555',
-  text:         '#3D2314',
-  textSoft:     '#7A4A28',
-  textMuted:    '#9A6840',
-  gold:         '#C4840E',
-  goldLight:    '#F0D898',
-  cream:        '#D8C8A8',
+// ── Design tokens ─────────────────────────────────────────────
+const T = {
+  // Base palette
+  bg:          '#F7F3EB',   // warm ivory
+  surface:     '#FFFFFF',   // card surface
+  surfaceAlt:  '#F0EBE1',   // alternate surface
+
+  // Primary — deep emerald (Islamic, trustworthy, ≥4.5:1 on white)
+  primary:     '#1A7A50',
+  primaryMid:  '#2D9E6A',
+  primaryLight:'#C8EDD8',
+  primaryBg:   '#E8F6EE',
+
+  // Accent — warm amber
+  amber:       '#C47E0A',
+  amberLight:  '#FFF0C0',
+  amberBg:     '#FFF8E6',
+
+  // Coral for errors/recording
+  coral:       '#D94F35',
+  coralLight:  '#FFE8E4',
+
+  // Neutrals
+  ink:         '#1A2820',   // primary text — 10.5:1 on white
+  inkMid:      '#3D5248',   // secondary text — 7.2:1
+  inkSoft:     '#6B8070',   // tertiary — 4.5:1
+  line:        '#DDE8E2',
+
+  // Star gold
+  star:        '#F0A500',
+
+  // White
+  white:       '#FFFFFF',
 }
+
+const { width: SW } = Dimensions.get('window')
 
 interface Verse {
   verse_number: number
@@ -58,118 +73,96 @@ interface Verse {
   words: { text_uthmani: string; position: number }[]
 }
 
-// Scattered sparkle decoration
-function Sparkles({ style }: { style?: any }) {
-  return (
-    <View style={[{ position: 'absolute', width: 70, height: 36 }, style]} pointerEvents="none">
-      <View style={{ position: 'absolute', top: 0, left: 0, opacity: 0.5 }}>
-        <Sparkle size={13} color={C.gold} weight="fill" />
-      </View>
-      <View style={{ position: 'absolute', top: 18, left: 28, opacity: 0.4 }}>
-        <Sparkle size={9} color={C.sage} weight="fill" />
-      </View>
-      <View style={{ position: 'absolute', top: 4, left: 52, opacity: 0.45 }}>
-        <Sparkle size={11} color={C.peach} weight="fill" />
-      </View>
-    </View>
-  )
-}
-
-function WaveformBar({ index, isActive }: { index: number; isActive: boolean }) {
-  const height = useSharedValue(6)
+// ── Waveform bar ───────────────────────────────────────────────
+function WaveBar({ index, active }: { index: number; active: boolean }) {
+  const h = useSharedValue(4)
   useEffect(() => {
-    if (isActive) {
-      height.value = withRepeat(
+    if (active) {
+      h.value = withRepeat(
         withSequence(
-          withTiming(10 + (index % 5) * 9, { duration: 160 + index * 30 }),
-          withTiming(6, { duration: 160 + index * 30 })
-        ),
-        -1, true
+          withTiming(6 + (index % 6) * 7, { duration: 180 + index * 25, easing: Easing.inOut(Easing.sine) }),
+          withTiming(4, { duration: 180 + index * 25, easing: Easing.inOut(Easing.sine) }),
+        ), -1, true,
       )
     } else {
-      height.value = withTiming(6)
+      h.value = withTiming(4, { duration: 200 })
     }
-  }, [isActive])
-  const style = useAnimatedStyle(() => ({ height: height.value }))
-  return <Animated.View style={[styles.waveBar, style]} />
+  }, [active])
+  const s = useAnimatedStyle(() => ({ height: h.value }))
+  return <Animated.View style={[s, { width: 4, borderRadius: 2, backgroundColor: T.white, opacity: 0.8, marginHorizontal: 2 }]} />
 }
 
-function PulsingRing({ isActive }: { isActive: boolean }) {
-  const scale = useSharedValue(1)
-  const opacity = useSharedValue(0)
+// ── Pulsing ring around mic ────────────────────────────────────
+function PulseRing({ active }: { active: boolean }) {
+  const sc = useSharedValue(1)
+  const op = useSharedValue(0)
   useEffect(() => {
-    if (isActive) {
-      scale.value = withRepeat(withSequence(withTiming(1.8, { duration: 1000 }), withTiming(1, { duration: 1000 })), -1, true)
-      opacity.value = withRepeat(withSequence(withTiming(0.3, { duration: 1000 }), withTiming(0, { duration: 1000 })), -1, true)
+    if (active) {
+      sc.value = withRepeat(withSequence(withTiming(1.85, { duration: 900, easing: Easing.out(Easing.ease) }), withTiming(1, { duration: 900 })), -1, true)
+      op.value = withRepeat(withSequence(withTiming(0.28, { duration: 900 }), withTiming(0, { duration: 900 })), -1, true)
     } else {
-      scale.value = withTiming(1)
-      opacity.value = withTiming(0)
+      sc.value = withTiming(1); op.value = withTiming(0)
     }
-  }, [isActive])
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }], opacity: opacity.value }))
-  return <Animated.View style={[styles.pulsingRing, style]} />
+  }, [active])
+  const s = useAnimatedStyle(() => ({ transform: [{ scale: sc.value }], opacity: op.value }))
+  return <Animated.View style={[StyleSheet.absoluteFillObject, { borderRadius: 999, backgroundColor: T.coral }, s]} />
 }
 
-function StarRow({ score }: { score: number }) {
-  const count = score >= 85 ? 3 : score >= 65 ? 2 : 1
+// ── Star rating ────────────────────────────────────────────────
+function Stars({ score }: { score: number }) {
+  const n = score >= 85 ? 3 : score >= 65 ? 2 : 1
   return (
-    <View style={styles.starRow}>
-      {[1, 2, 3].map((s) => (
-        <Star key={s} size={30} color={s <= count ? C.gold : '#DDD0B8'} weight={s <= count ? 'fill' : 'regular'} />
+    <View style={{ flexDirection: 'row', gap: 6 }}>
+      {[1, 2, 3].map(i => (
+        <Star key={i} size={26} color={i <= n ? T.star : T.line} weight={i <= n ? 'fill' : 'regular'} />
       ))}
     </View>
   )
 }
 
-function AudioSampleSheet({
-  visible, chapterId, verseNumber, onDismiss, onPlay, isLoading, audioError,
+// ── Audio sample bottom sheet ──────────────────────────────────
+function AudioSheet({
+  visible, chapterId, verseNumber, onDismiss, onPlay, loading, error,
 }: {
   visible: boolean; chapterId: string; verseNumber: number
-  onDismiss: () => void; onPlay: () => void; isLoading: boolean; audioError: string | null
+  onDismiss: () => void; onPlay: () => void; loading: boolean; error: string | null
 }) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onDismiss}>
-      <View style={sheetStyles.overlay}>
-        <View style={sheetStyles.sheet}>
-          <View style={sheetStyles.handle} />
-          {/* Decorative sparkles */}
-          <View style={{ position: 'absolute', top: 24, right: 32, opacity: 0.5 }}>
-            <Sparkle size={14} color={C.gold} weight="fill" />
+      <View style={sh.overlay}>
+        <View style={sh.sheet}>
+          <View style={sh.pill} />
+
+          <View style={sh.iconWrap}>
+            <Headphones size={30} color={T.primary} weight="regular" />
           </View>
-          <View style={{ position: 'absolute', top: 40, right: 56, opacity: 0.4 }}>
-            <Sparkle size={9} color={C.sage} weight="fill" />
-          </View>
-          <View style={sheetStyles.iconBadge}>
-            <Headphones size={28} color={C.peach} weight="regular" />
-          </View>
-          <Text style={sheetStyles.title}>Mau dengar contoh bacaan?</Text>
-          <Text style={sheetStyles.subtitle}>
-            Sudah 3x mencoba. Yuk dengar dulu cara yang benar!
-          </Text>
-          <View style={sheetStyles.waveform}>
-            {Array.from({ length: 14 }).map((_, i) => (
-              <View key={i} style={[sheetStyles.waveBar, { height: 8 + (i % 5) * 5 }]} />
+
+          <Text style={sh.title}>Dengar contoh bacaan</Text>
+          <Text style={sh.sub}>Sudah 3× mencoba. Yuk dengar dulu!</Text>
+
+          <View style={sh.track}>
+            {Array.from({ length: 16 }).map((_, i) => (
+              <View key={i} style={[sh.tBar, { height: 6 + (i % 5) * 5, opacity: 0.5 + (i % 3) * 0.15 }]} />
             ))}
-            <Text style={sheetStyles.waveLabel}>Surah {chapterId} : {verseNumber}</Text>
+            <Text style={sh.trackLabel}>Surah {chapterId} · {verseNumber}</Text>
           </View>
-          {audioError && <Text style={sheetStyles.errorText}>{audioError}</Text>}
-          <View style={sheetStyles.actions}>
-            <TouchableOpacity style={sheetStyles.skipBtn} onPress={onDismiss}>
-              <Text style={sheetStyles.skipText}>Lewati</Text>
+
+          {error ? <Text style={sh.err}>{error}</Text> : null}
+
+          <View style={sh.row}>
+            <TouchableOpacity style={sh.skip} onPress={onDismiss} accessibilityLabel="Lewati">
+              <Text style={sh.skipTxt}>Lewati</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[sheetStyles.playBtn, (isLoading || !!audioError) && { opacity: 0.6 }]}
+              style={[sh.play, (loading || !!error) && { opacity: 0.55 }]}
               onPress={onPlay}
-              disabled={isLoading || !!audioError}
+              disabled={loading || !!error}
+              accessibilityLabel="Dengar contoh bacaan"
             >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <>
-                  <Play size={18} color="#FFFFFF" weight="fill" />
-                  <Text style={sheetStyles.playText}>Dengar Contoh</Text>
-                </>
-              )}
+              {loading
+                ? <ActivityIndicator color={T.white} size="small" />
+                : <><Play size={18} color={T.white} weight="fill" /><Text style={sh.playTxt}>Dengar Contoh</Text></>
+              }
             </TouchableOpacity>
           </View>
         </View>
@@ -178,75 +171,49 @@ function AudioSampleSheet({
   )
 }
 
-const sheetStyles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(61,35,20,0.35)', justifyContent: 'flex-end' },
-  sheet: {
-    backgroundColor: C.card,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    padding: 28,
-    paddingBottom: Platform.OS === 'ios' ? 44 : 28,
-    alignItems: 'center',
-  },
-  handle: {
-    width: 40, height: 5,
-    backgroundColor: C.peachMid,
-    borderRadius: 3,
-    marginBottom: 20,
-  },
-  iconBadge: {
-    width: 68, height: 68, borderRadius: 34,
-    backgroundColor: C.cardPeach,
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 14,
-  },
-  title: { color: C.text, fontSize: 21, fontWeight: '800', marginBottom: 6, textAlign: 'center' },
-  subtitle: { color: C.textSoft, fontSize: 14, marginBottom: 18, lineHeight: 22, textAlign: 'center' },
-  waveform: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: C.cardPeach,
-    borderRadius: 20, padding: 14, marginBottom: 20,
-    width: '100%',
-  },
-  waveBar: { width: 5, backgroundColor: C.peach, borderRadius: 3 },
-  waveLabel: { color: C.peachDark, fontSize: 13, marginLeft: 8, flex: 1, fontWeight: '600' },
-  errorText: { color: C.red, fontSize: 13, marginBottom: 10, textAlign: 'center' },
-  actions: { flexDirection: 'row', gap: 12, width: '100%' },
-  skipBtn: {
-    flex: 1, backgroundColor: C.cardPeach,
-    borderRadius: 22, paddingVertical: 16, alignItems: 'center',
-  },
-  skipText: { color: C.peachDark, fontWeight: '700', fontSize: 16 },
-  playBtn: {
-    flex: 2, backgroundColor: C.peach,
-    borderRadius: 22, paddingVertical: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-  },
-  playText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
+const sh = StyleSheet.create({
+  overlay:    { flex: 1, backgroundColor: 'rgba(26,40,32,0.5)', justifyContent: 'flex-end' },
+  sheet:      { backgroundColor: T.surface, borderTopLeftRadius: 36, borderTopRightRadius: 36, padding: 28, paddingBottom: Platform.OS === 'ios' ? 44 : 28, alignItems: 'center' },
+  pill:       { width: 36, height: 4, borderRadius: 2, backgroundColor: T.line, marginBottom: 24 },
+  iconWrap:   { width: 64, height: 64, borderRadius: 32, backgroundColor: T.primaryBg, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  title:      { fontSize: 20, fontWeight: '800', color: T.ink, marginBottom: 6 },
+  sub:        { fontSize: 14, color: T.inkSoft, marginBottom: 20, textAlign: 'center', lineHeight: 21 },
+  track:      { flexDirection: 'row', alignItems: 'center', backgroundColor: T.primaryBg, borderRadius: 16, padding: 14, marginBottom: 22, width: '100%', gap: 3 },
+  tBar:       { width: 5, backgroundColor: T.primary, borderRadius: 3 },
+  trackLabel: { flex: 1, marginLeft: 10, fontSize: 13, color: T.primary, fontWeight: '700' },
+  err:        { color: T.coral, fontSize: 13, marginBottom: 10 },
+  row:        { flexDirection: 'row', gap: 12, width: '100%' },
+  skip:       { flex: 1, backgroundColor: T.primaryBg, borderRadius: 20, paddingVertical: 16, alignItems: 'center' },
+  skipTxt:    { color: T.primary, fontWeight: '700', fontSize: 15 },
+  play:       { flex: 2, backgroundColor: T.primary, borderRadius: 20, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  playTxt:    { color: T.white, fontWeight: '800', fontSize: 16 },
 })
 
+// ── Main screen ────────────────────────────────────────────────
 export default function TilawahLatihanScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  const router = useRouter()
+  const router  = useRouter()
   const setLastTilawah = useLastActivityStore((s) => s.setLastTilawah)
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [verseResults, setVerseResults] = useState<VerseResult[]>([])
-  const [wrongCount, setWrongCount] = useState(0)
+
+  const [currentIndex,   setCurrentIndex]   = useState(0)
+  const [verseResults,   setVerseResults]   = useState<VerseResult[]>([])
+  const [wrongCount,     setWrongCount]     = useState(0)
   const [sheetDismissed, setSheetDismissed] = useState(false)
-  const [audioLoading, setAudioLoading] = useState(false)
-  const [audioError, setAudioError] = useState<string | null>(null)
+  const [audioLoading,   setAudioLoading]   = useState(false)
+  const [audioError,     setAudioError]     = useState<string | null>(null)
   const soundRef = useRef<any>(null)
 
-  useEffect(() => {
-    return () => {
-      if (soundRef.current) { soundRef.current.unloadAsync().catch(() => {}); soundRef.current = null }
-    }
+  const verses = getSurahVerses(Number(id)) as Verse[]
+  const { recordingState, currentEval, error, startRecording, stopAndEvaluate, resetVerse } = useTilawah(Number(id))
+
+  useEffect(() => () => {
+    soundRef.current?.unloadAsync().catch(() => {})
   }, [])
 
   useEffect(() => {
     if (recordingState !== 'done' || !currentEval || !currentVerse) return
-    setVerseResults((prev) => {
-      const newEntry: VerseResult = {
+    setVerseResults(prev => {
+      const entry: VerseResult = {
         verseNumber: currentVerse.verse_number,
         score: currentEval.score,
         wordAccuracy: currentEval.wordAccuracy,
@@ -254,276 +221,236 @@ export default function TilawahLatihanScreen() {
         feedback: currentEval.feedback,
         evaluation: currentEval,
       }
-      const existing = prev.findIndex((v) => v.verseNumber === currentVerse.verse_number)
-      if (existing >= 0) {
-        const updated = [...prev]
-        if (currentEval.score > prev[existing].score) updated[existing] = newEntry
-        return updated
+      const idx = prev.findIndex(v => v.verseNumber === currentVerse.verse_number)
+      if (idx >= 0) {
+        const next = [...prev]
+        if (currentEval.score > prev[idx].score) next[idx] = entry
+        return next
       }
-      return [...prev, newEntry]
+      return [...prev, entry]
     })
     if (currentEval.score < 70) {
-      setWrongCount((c) => {
-        const next = c + 1
-        if (next >= 3) setSheetDismissed(false)
-        return next
+      setWrongCount(c => {
+        const n = c + 1
+        if (n >= 3) setSheetDismissed(false)
+        return n
       })
     }
   }, [recordingState, currentEval])
 
-  const verses = getSurahVerses(Number(id)) as Verse[]
-  const isLoading = false
-  const { recordingState, currentEval, error, startRecording, stopAndEvaluate, resetVerse } = useTilawah(Number(id))
-
-  useFocusEffect(
-    useCallback(() => {
-      setCurrentIndex(0); setVerseResults([]); setWrongCount(0)
-      setSheetDismissed(false); resetVerse()
-    }, [])
-  )
+  useFocusEffect(useCallback(() => {
+    setCurrentIndex(0); setVerseResults([]); setWrongCount(0)
+    setSheetDismissed(false); resetVerse()
+  }, []))
 
   const currentVerse = verses[currentIndex]
-  const isRecording = recordingState === 'recording'
-  const isAnalyzing = recordingState === 'analyzing'
-  const isDone = recordingState === 'done'
+  const isRecording  = recordingState === 'recording'
+  const isAnalyzing  = recordingState === 'analyzing'
+  const isDone       = recordingState === 'done'
 
-  const handleMicPress = async () => {
+  const handleMic = async () => {
+    if (!currentVerse) return
     if (recordingState === 'idle' || recordingState === 'error') {
-      if (!currentVerse) return
       await startRecording(currentVerse.verse_number, currentVerse.text_uthmani)
-    } else if (recordingState === 'recording') {
-      if (!currentVerse) return
+    } else if (isRecording) {
       await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
     }
   }
 
   const handleNext = () => {
     if (currentIndex + 1 >= verses.length) {
-      const allResults = [...verseResults]
-      const avg = allResults.length > 0
-        ? Math.round(allResults.reduce((s, v) => s + v.score, 0) / allResults.length)
-        : 0
-      const stars = calcStars(avg)
+      const avg    = verseResults.length > 0 ? Math.round(verseResults.reduce((s, v) => s + v.score, 0) / verseResults.length) : 0
+      const stars  = calcStars(avg)
       const points = calcPoints(stars, avg)
-      router.replace({
-        pathname: '/(child)/tilawah/result',
-        params: { chapterId: String(id), totalScore: String(avg), stars: String(stars), pointsEarned: String(points), verseResults: JSON.stringify(allResults) },
-      })
+      router.replace({ pathname: '/(child)/tilawah/result', params: { chapterId: String(id), totalScore: String(avg), stars: String(stars), pointsEarned: String(points), verseResults: JSON.stringify(verseResults) } })
     } else {
-      setCurrentIndex((i) => i + 1); setWrongCount(0)
-      setSheetDismissed(false); setAudioError(null); resetVerse()
+      setCurrentIndex(i => i + 1); setWrongCount(0); setSheetDismissed(false); setAudioError(null); resetVerse()
     }
   }
 
-  const playAudioSample = async () => {
+  const playAudio = async () => {
     if (!currentVerse) return
     setAudioLoading(true); setAudioError(null)
     try {
-      if (soundRef.current) { await soundRef.current.unloadAsync(); soundRef.current = null }
-      const verseKey = `${id}:${currentVerse.verse_number}`
-      const res = await fetch(`https://api.quran.com/api/v4/recitations/12/by_ayah/${verseKey}`)
+      await soundRef.current?.unloadAsync(); soundRef.current = null
+      const res  = await fetch(`https://api.quran.com/api/v4/recitations/12/by_ayah/${id}:${currentVerse.verse_number}`)
       if (!res.ok) throw new Error('Gagal mengambil audio')
       const data = await res.json()
-      const rawUrl = data?.audio_files?.[0]?.url
-      if (!rawUrl) throw new Error('URL audio tidak tersedia')
-      const audioUrl = rawUrl.startsWith('http') ? rawUrl : rawUrl.startsWith('//') ? `https:${rawUrl}` : `https://verses.quran.com${rawUrl}`
+      const raw  = data?.audio_files?.[0]?.url
+      if (!raw) throw new Error('URL audio tidak tersedia')
+      const url  = raw.startsWith('http') ? raw : raw.startsWith('//') ? `https:${raw}` : `https://verses.quran.com${raw}`
       await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, allowsRecordingIOS: false })
-      const { sound } = await Audio.Sound.createAsync({ uri: audioUrl }, { shouldPlay: true })
+      const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: true })
       soundRef.current = sound
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.didJustFinish) { setSheetDismissed(true); soundRef.current = null }
-      })
+      sound.setOnPlaybackStatusUpdate((s: any) => { if (s.didJustFinish) { setSheetDismissed(true); soundRef.current = null } })
     } catch (e: any) {
-      if (soundRef.current) { await soundRef.current.unloadAsync().catch(() => {}); soundRef.current = null }
+      await soundRef.current?.unloadAsync().catch(() => {}); soundRef.current = null
       setAudioError(e.message ?? 'Audio tidak tersedia')
     } finally { setAudioLoading(false) }
   }
 
   const dismissSheet = async () => {
-    if (soundRef.current) { await soundRef.current.unloadAsync().catch(() => {}); soundRef.current = null }
+    await soundRef.current?.unloadAsync().catch(() => {}); soundRef.current = null
     setSheetDismissed(true)
   }
 
-  if (isLoading || !currentVerse) {
-    return (
-      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color={C.peach} size="large" />
-      </View>
-    )
+  if (!currentVerse) {
+    return <View style={s.fill}><ActivityIndicator color={T.primary} size="large" /></View>
   }
 
-  const words = currentVerse.words ?? []
+  const words       = currentVerse.words ?? []
   const translation = currentVerse.translations?.[0]?.text?.replace(/<\/?[^>]+(>|$)/g, '') ?? ''
-  const progress = (currentIndex + 1) / verses.length
+  const progress    = (currentIndex + 1) / verses.length
+
+  // Score-based accent
+  const scoreAccent = !currentEval ? T.primary
+    : currentEval.score >= 85 ? T.primary
+    : currentEval.score >= 65 ? T.amber
+    : T.coral
 
   return (
-    <View style={styles.container}>
+    <View style={s.root}>
 
-      {/* ── Header ─────────────────────────────────── */}
-      <View style={styles.header}>
-        {/* Sparkle decoration */}
-        <Sparkles style={{ top: 8, right: 28 }} />
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${progress * 100}%` as any }]} />
-          <View style={[styles.progressDot, { left: `${Math.max(progress * 100 - 2, 0)}%` as any }]} />
-        </View>
-        <Text style={styles.progressLabel}>Ayat {currentIndex + 1} dari {verses.length}</Text>
+      {/* ── Top bar ────────────────────────────────────────── */}
+      <View style={s.topBar}>
+        <Text style={s.surahLabel}>Surah {id}</Text>
+        <Text style={s.verseCounter}>{currentIndex + 1} / {verses.length}</Text>
       </View>
 
-      {/* ── Scrollable content ─────────────────────── */}
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      {/* ── Progress strip ─────────────────────────────────── */}
+      <View style={s.progressTrack}>
+        <View style={[s.progressFill, { width: `${progress * 100}%` as any }]} />
+      </View>
+
+      {/* ── Scrollable body ────────────────────────────────── */}
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={s.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
 
         {/* Verse card */}
-        <View style={styles.verseCard}>
-          {/* Watercolor header banner */}
-          <View style={styles.verseCardBanner}>
-            <View style={styles.verseBadge}>
-              <Text style={styles.verseBadgeText}>{currentVerse.verse_number}</Text>
-            </View>
-            <View style={{ position: 'absolute', right: 28, top: 10, opacity: 0.65 }}>
-              <Sparkle size={11} color="#FFFFFF" weight="fill" />
-            </View>
-            <View style={{ position: 'absolute', right: 52, top: 22, opacity: 0.5 }}>
-              <Sparkle size={8} color="#FFFFFF" weight="fill" />
-            </View>
+        <View style={s.verseCard}>
+          {/* Colored top strip */}
+          <View style={[s.cardStrip, { backgroundColor: scoreAccent }]} />
+
+          {/* Verse badge */}
+          <View style={[s.badge, { backgroundColor: scoreAccent }]}>
+            <Text style={s.badgeNum}>{currentVerse.verse_number}</Text>
           </View>
 
-          <View style={styles.arabicRow}>
+          {/* Arabic text */}
+          <View style={s.arabicWrap}>
             {isDone && currentEval && words.length > 0 ? (
               words.map((w, i) => {
-                const wordResult = currentEval.wordResults?.[i]
-                const status = wordResult?.status ?? (wordResult?.correct === false ? 'wrong' : 'correct')
-                const wordColor =
-                  status === 'mad_short' ? C.gold
-                  : status === 'correct'  ? C.sage
-                  : C.red
-                return (
-                  <Text key={i} style={[styles.arabicWord, { color: wordColor }]}>
-                    {w.text_uthmani}
-                  </Text>
-                )
+                const wr     = currentEval.wordResults?.[i]
+                const status = wr?.status ?? (wr?.correct === false ? 'wrong' : 'correct')
+                const col    = status === 'mad_short' ? T.amber : status === 'correct' ? T.primary : T.coral
+                return <Text key={i} style={[s.arabicWord, { color: col }]}>{w.text_uthmani}</Text>
               })
             ) : (
-              <Text style={styles.arabicFull}>{currentVerse.text_uthmani}</Text>
+              <Text style={s.arabicFull}>{currentVerse.text_uthmani}</Text>
             )}
           </View>
-          <View style={styles.divider} />
-          <Text style={styles.translation}>{translation}</Text>
+
+          {/* Divider */}
+          <View style={s.divider} />
+
+          {/* Translation */}
+          <Text style={s.translation}>{translation}</Text>
         </View>
 
         {/* Feedback card */}
         {isDone && currentEval && (
-          <View style={[
-            styles.feedbackCard,
-            currentEval.score >= 85
-              ? styles.feedbackCardGreen
-              : currentEval.score >= 65
-              ? styles.feedbackCardGold
-              : styles.feedbackCardRed,
-          ]}>
-            <View style={styles.feedbackHeader}>
-              <StarRow score={currentEval.score} />
-              <View style={[
-                styles.scorePill,
-                currentEval.score >= 85 ? styles.scorePillGreen : currentEval.score >= 65 ? styles.scorePillGold : styles.scorePillRed,
-              ]}>
-                <Text style={[
-                  styles.scoreText,
-                  { color: currentEval.score >= 85 ? C.sage : currentEval.score >= 65 ? C.gold : C.red },
-                ]}>{currentEval.score}</Text>
-                <Text style={styles.scoreMax}>/100</Text>
+          <View style={[s.feedbackCard, { borderLeftColor: scoreAccent }]}>
+            <View style={s.feedbackTop}>
+              <Stars score={currentEval.score} />
+              <View style={[s.scoreBadge, { backgroundColor: scoreAccent + '1A' }]}>
+                <Text style={[s.scoreNum, { color: scoreAccent }]}>{currentEval.score}</Text>
+                <Text style={s.scoreDen}>/100</Text>
               </View>
             </View>
             {currentEval.feedback.map((f, i) => (
-              <Text key={i} style={[styles.feedbackItem, i === 0 && styles.feedbackFirst]}>
-                {f}
-              </Text>
+              <Text key={i} style={[s.feedbackLine, i === 0 && s.feedbackBold]}>{f}</Text>
             ))}
           </View>
         )}
       </ScrollView>
 
-      {/* ── Record area ────────────────────────────── */}
-      <View style={styles.recordArea}>
-        {/* Decorative dots row */}
-        <View style={styles.dotRow}>
-          {[C.sage, C.peach, C.gold, C.peach, C.sage].map((col, i) => (
-            <View key={i} style={[styles.decorDot, { backgroundColor: col }]} />
-          ))}
-        </View>
+      {/* ── Control panel ──────────────────────────────────── */}
+      <View style={s.panel}>
 
-        {!!error && <Text style={styles.errorText}>{error}</Text>}
+        {/* Error */}
+        {!!error && <Text style={s.errorMsg}>{error}</Text>}
 
-        {/* Status label */}
-        <View style={[
-          styles.statusChip,
-          isRecording && styles.statusChipRecording,
-          isDone && styles.statusChipDone,
-          recordingState === 'error' && styles.statusChipError,
+        {/* Status pill */}
+        <View style={[s.statusPill,
+          isRecording && s.statusRecording,
+          isDone      && s.statusDone,
+          recordingState === 'error' && s.statusError,
         ]}>
-          {recordingState === 'idle'      && <Microphone size={18} color="#FFFFFF" weight="regular" />}
-          {recordingState === 'recording' && <View style={styles.recordingDot} />}
-          {recordingState === 'analyzing' && <ArrowsClockwise size={18} color="#FFFFFF" weight="regular" />}
-          {recordingState === 'done'      && <CheckCircle size={18} color="#FFFFFF" weight="fill" />}
-          {recordingState === 'error'     && <XCircle size={18} color="#FFE0D0" weight="fill" />}
-          <Text style={styles.statusText}>
-            {recordingState === 'idle'      && 'Tap tombol untuk membaca'}
+          {recordingState === 'idle'      && <Microphone    size={16} color={T.white} weight="regular" />}
+          {recordingState === 'recording' && <View style={s.recDot} />}
+          {recordingState === 'analyzing' && <ArrowsClockwise size={16} color={T.white} weight="regular" />}
+          {recordingState === 'done'      && <CheckCircle   size={16} color={T.white} weight="fill" />}
+          {recordingState === 'error'     && <XCircle       size={16} color={T.white} weight="fill" />}
+          <Text style={s.statusTxt}>
+            {recordingState === 'idle'      && 'Tap mic untuk mulai membaca'}
             {recordingState === 'recording' && 'Sedang merekam...'}
             {recordingState === 'analyzing' && 'Sedang dinilai...'}
-            {recordingState === 'done'      && `Skor kamu: ${currentEval?.score ?? 0}`}
+            {recordingState === 'done'      && `Nilai kamu: ${currentEval?.score ?? 0}`}
             {recordingState === 'error'     && 'Coba lagi ya!'}
           </Text>
         </View>
 
-        {/* Waveform */}
+        {/* Waveform — only while recording */}
         {isRecording && (
-          <View style={styles.waveform}>
-            {Array.from({ length: 22 }).map((_, i) => (
-              <WaveformBar key={i} index={i} isActive={isRecording} />
-            ))}
+          <View style={s.waveWrap}>
+            {Array.from({ length: 24 }).map((_, i) => <WaveBar key={i} index={i} active={isRecording} />)}
           </View>
         )}
 
         {/* Mic button */}
         {!isDone && (
-          <View style={styles.micWrapper}>
-            <PulsingRing isActive={isRecording} />
+          <View style={s.micOuter}>
+            <PulseRing active={isRecording} />
             <TouchableOpacity
-              style={[styles.micBtn, isRecording && styles.micBtnActive, isAnalyzing && { opacity: 0.7 }]}
-              onPress={handleMicPress}
+              style={[s.micBtn, isRecording && s.micBtnActive, isAnalyzing && { opacity: 0.65 }]}
+              onPress={handleMic}
               disabled={isAnalyzing}
-              activeOpacity={0.85}
+              activeOpacity={0.82}
+              accessibilityLabel={isRecording ? 'Stop rekaman' : 'Mulai rekaman'}
+              accessibilityRole="button"
             >
-              {isAnalyzing ? (
-                <ActivityIndicator color="#FFFFFF" size="large" />
-              ) : isRecording ? (
-                <StopCircle size={36} color="#fff" weight="fill" />
-              ) : (
-                <Microphone size={36} color="#fff" weight="regular" />
-              )}
+              {isAnalyzing
+                ? <ActivityIndicator color={T.white} size="large" />
+                : isRecording
+                  ? <StopCircle size={40} color={T.white} weight="fill" />
+                  : <Microphone  size={40} color={T.white} weight="regular" />
+              }
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Done actions */}
+        {/* Done — retry + next */}
         {isDone && (
-          <View style={styles.actionRow}>
+          <View style={s.actionRow}>
             <TouchableOpacity
-              style={styles.retryBtn}
-              onPress={() => { resetVerse(); if (currentVerse) startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}
+              style={s.retryBtn}
+              onPress={() => { resetVerse(); currentVerse && startRecording(currentVerse.verse_number, currentVerse.text_uthmani) }}
+              accessibilityLabel="Ulangi"
             >
-              <ArrowCounterClockwise size={20} color="#FFFFFF" weight="regular" />
-              <Text style={styles.retryBtnText}>Ulangi</Text>
+              <ArrowCounterClockwise size={20} color={T.white} weight="regular" />
+              <Text style={s.retryTxt}>Ulangi</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+
+            <TouchableOpacity style={s.nextBtn} onPress={handleNext} accessibilityLabel="Lanjut">
               {currentIndex + 1 >= verses.length
-                ? <CheckCircle size={20} color="#fff" weight="regular" />
+                ? <CheckCircle size={20} color={T.white} weight="regular" />
                 : null}
-              <Text style={styles.nextBtnText}>
-                {currentIndex + 1 >= verses.length ? 'Selesai' : 'Ayat Berikutnya'}
-              </Text>
+              <Text style={s.nextTxt}>{currentIndex + 1 >= verses.length ? 'Selesai' : 'Berikutnya'}</Text>
               {currentIndex + 1 < verses.length
-                ? <ArrowRight size={20} color="#fff" weight="regular" />
+                ? <ArrowRight size={20} color={T.white} weight="regular" />
                 : null}
             </TouchableOpacity>
           </View>
@@ -531,234 +458,180 @@ export default function TilawahLatihanScreen() {
 
         {/* Hint button */}
         {wrongCount >= 3 && (
-          <TouchableOpacity style={styles.hintBtn} onPress={() => setSheetDismissed(false)}>
-            <Headphones size={17} color="#FFFFFF" weight="regular" />
-            <Text style={styles.hintBtnText}>Dengar Contoh Syeikh</Text>
+          <TouchableOpacity style={s.hintBtn} onPress={() => setSheetDismissed(false)} accessibilityLabel="Dengar contoh Syeikh">
+            <Headphones size={16} color={T.white} weight="regular" />
+            <Text style={s.hintTxt}>Dengar Contoh Syeikh</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <AudioSampleSheet
+      <AudioSheet
         visible={wrongCount >= 3 && !sheetDismissed && !!currentVerse}
         chapterId={String(id)}
-        verseNumber={currentVerse?.verse_number ?? 1}
+        verseNumber={currentVerse.verse_number}
         onDismiss={dismissSheet}
-        onPlay={playAudioSample}
-        isLoading={audioLoading}
-        audioError={audioError}
+        onPlay={playAudio}
+        loading={audioLoading}
+        error={audioError}
       />
     </View>
   )
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+// ── Styles ────────────────────────────────────────────────────
+const s = StyleSheet.create({
 
-  /* Header */
-  header: {
-    paddingTop: Platform.OS === 'ios' ? 58 : 38,
-    paddingHorizontal: 24,
-    paddingBottom: 4,
-  },
-  progressTrack: {
-    height: 14,
-    backgroundColor: C.cream,
-    borderRadius: 7,
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  progressFill: {
-    height: 14,
-    backgroundColor: C.sage,
-    borderRadius: 7,
-  },
-  progressDot: {
-    position: 'absolute',
-    top: 3,
-    width: 8, height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFFFFF',
-    shadowColor: C.sage,
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
-  },
-  progressLabel: {
-    color: C.textSoft,
-    fontSize: 13,
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: 0.4,
-  },
+  fill:   { flex: 1, backgroundColor: T.bg, alignItems: 'center', justifyContent: 'center' },
+  root:   { flex: 1, backgroundColor: T.bg },
 
-  /* Scroll content */
-  scrollContent: { flexGrow: 1, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 8 },
+  /* Top bar */
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 58 : 40,
+    paddingHorizontal: 22,
+    paddingBottom: 10,
+  },
+  surahLabel:   { fontSize: 17, fontWeight: '800', color: T.ink },
+  verseCounter: { fontSize: 14, fontWeight: '700', color: T.inkSoft, backgroundColor: T.primaryBg, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
+
+  /* Progress */
+  progressTrack: { height: 6, backgroundColor: T.line, marginHorizontal: 22, borderRadius: 3, overflow: 'hidden', marginBottom: 16 },
+  progressFill:  { height: 6, backgroundColor: T.primary, borderRadius: 3 },
+
+  /* Scroll */
+  scroll:        { flex: 1 },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 12 },
 
   /* Verse card */
   verseCard: {
-    backgroundColor: C.card,
-    borderRadius: 32,
-    paddingHorizontal: 22,
-    paddingBottom: 22,
-    paddingTop: 0,
-    marginBottom: 14,
+    backgroundColor: T.surface,
+    borderRadius: 28,
     overflow: 'hidden',
+    marginBottom: 14,
   },
-  /* Watercolor banner at top of verse card */
-  verseCardBanner: {
-    height: 52,
-    backgroundColor: C.sage,
-    marginHorizontal: -22,
-    marginBottom: 16,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    justifyContent: 'flex-end',
-    paddingHorizontal: 18,
-    paddingBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  verseBadge: {
+  cardStrip: { height: 8, width: '100%' },
+  badge: {
+    position: 'absolute',
+    top: 16, right: 20,
     width: 36, height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center', justifyContent: 'center',
   },
-  verseBadgeText: { color: '#FFFFFF', fontWeight: '900', fontSize: 15 },
-  arabicRow: {
+  badgeNum:  { color: T.white, fontWeight: '900', fontSize: 14 },
+  arabicWrap: {
+    paddingHorizontal: 20,
+    paddingTop: 48,
+    paddingBottom: 14,
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    gap: 10,
-    marginBottom: 14,
+    gap: 8,
   },
-  arabicWord: { fontSize: 40, lineHeight: 72, fontFamily: 'ScheherazadeNew-Regular', color: '#2A1508' },
+  arabicWord: { fontSize: 42, lineHeight: 76, fontFamily: 'ScheherazadeNew-Regular', color: T.ink },
   arabicFull: {
-    fontSize: 40, color: '#2A1508',
-    textAlign: 'right', lineHeight: 72,
-    writingDirection: 'rtl',
+    fontSize: 42, lineHeight: 76,
     fontFamily: 'ScheherazadeNew-Regular',
+    color: T.ink,
+    textAlign: 'right',
+    writingDirection: 'rtl',
     width: '100%',
   },
-  divider: {
-    height: 1.5,
-    backgroundColor: C.cream,
-    marginBottom: 12,
-    borderRadius: 1,
-  },
-  translation: {
-    color: C.textMuted, fontSize: 15, fontStyle: 'italic', lineHeight: 23,
-  },
+  divider:     { height: 1, backgroundColor: T.line, marginHorizontal: 20, marginBottom: 14 },
+  translation: { color: T.inkSoft, fontSize: 15, lineHeight: 23, paddingHorizontal: 20, paddingBottom: 20, fontStyle: 'italic' },
 
-  /* Feedback card */
+  /* Feedback */
   feedbackCard: {
-    borderRadius: 24, padding: 20,
+    backgroundColor: T.surface,
+    borderRadius: 24,
+    padding: 20,
     marginBottom: 14,
+    borderLeftWidth: 4,
   },
-  feedbackCardGreen: { backgroundColor: C.cardSage },
-  feedbackCardGold:  { backgroundColor: C.goldLight },
-  feedbackCardRed:   { backgroundColor: '#FFF5F5' },
-  feedbackHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: 12,
-  },
-  starRow: { flexDirection: 'row', gap: 4 },
-  scorePill: {
-    flexDirection: 'row', alignItems: 'baseline', gap: 2,
-    paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20,
-  },
-  scorePillGreen: { backgroundColor: 'rgba(92,158,122,0.15)' },
-  scorePillGold:  { backgroundColor: 'rgba(212,146,30,0.15)' },
-  scorePillRed:   { backgroundColor: 'rgba(217,85,85,0.12)' },
-  scoreText: { fontWeight: '900', fontSize: 22 },
-  scoreMax: { color: C.textMuted, fontWeight: '600', fontSize: 13 },
-  feedbackFirst: { fontWeight: '700', fontSize: 16, color: C.text, marginBottom: 8 },
-  feedbackItem: { color: C.textSoft, fontSize: 14, marginBottom: 5, lineHeight: 21 },
+  feedbackTop:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  scoreBadge:   { flexDirection: 'row', alignItems: 'baseline', gap: 2, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 },
+  scoreNum:     { fontSize: 24, fontWeight: '900' },
+  scoreDen:     { fontSize: 13, color: T.inkSoft, fontWeight: '600' },
+  feedbackBold: { fontWeight: '700', fontSize: 16, color: T.ink, marginBottom: 6 },
+  feedbackLine: { color: T.inkMid, fontSize: 14, lineHeight: 21, marginBottom: 4 },
 
-  /* Record area — green background like reference image */
-  recordArea: {
-    backgroundColor: C.sage,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    paddingTop: 10,
-    paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  /* Panel */
+  panel: {
+    backgroundColor: T.primary,
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingTop: 12,
+    paddingHorizontal: 22,
+    paddingBottom: Platform.OS === 'ios' ? 38 : 22,
     alignItems: 'center',
     gap: 14,
   },
 
-  /* Decorative dots */
-  dotRow: {
+  /* Status pill */
+  statusPill: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    paddingTop: 6,
-  },
-  decorDot: {
-    width: 8, height: 8, borderRadius: 4,
-    opacity: 0.4,
-  },
-
-  /* Status chip */
-  statusChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    paddingHorizontal: 18, paddingVertical: 10,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: 24,
+    minWidth: 220,
+    justifyContent: 'center',
   },
-  statusChipRecording: { backgroundColor: 'rgba(255,255,255,0.18)' },
-  statusChipDone:      { backgroundColor: 'rgba(255,255,255,0.22)' },
-  statusChipError:     { backgroundColor: 'rgba(255,255,255,0.18)' },
-  statusText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  recordingDot: {
-    width: 12, height: 12, borderRadius: 6,
-    backgroundColor: '#FFFFFF',
-  },
-  errorText: { color: '#FFE0D0', fontSize: 14, textAlign: 'center' },
+  statusRecording: { backgroundColor: 'rgba(217,79,53,0.35)' },
+  statusDone:      { backgroundColor: 'rgba(255,255,255,0.22)' },
+  statusError:     { backgroundColor: 'rgba(217,79,53,0.35)' },
+  statusTxt: { color: T.white, fontWeight: '700', fontSize: 14 },
+  recDot:    { width: 10, height: 10, borderRadius: 5, backgroundColor: T.white },
 
   /* Waveform */
-  waveform: {
-    flexDirection: 'row', gap: 4, alignItems: 'center',
-    height: 56,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    paddingHorizontal: 16, borderRadius: 20,
-    width: '100%', justifyContent: 'center',
+  waveWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 52,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    width: '100%',
+    justifyContent: 'center',
   },
-  waveBar: { width: 5, borderRadius: 3, backgroundColor: '#FFFFFF', minHeight: 6 },
 
-  /* Mic button */
-  micWrapper: { alignItems: 'center', justifyContent: 'center', width: 104, height: 104 },
-  pulsingRing: {
-    position: 'absolute',
-    width: 104, height: 104, borderRadius: 52,
-    backgroundColor: C.green,
-  },
+  /* Mic */
+  micOuter: { width: 100, height: 100, alignItems: 'center', justifyContent: 'center' },
   micBtn: {
-    width: 96, height: 96, borderRadius: 48,
-    backgroundColor: C.green,
+    width: 92, height: 92, borderRadius: 46,
+    backgroundColor: T.primaryMid,
     alignItems: 'center', justifyContent: 'center',
   },
-  micBtnActive: { backgroundColor: C.red },
+  micBtnActive: { backgroundColor: T.coral },
 
   /* Done actions */
-  actionRow: { flexDirection: 'row', gap: 12, alignItems: 'center', width: '100%' },
+  actionRow: { flexDirection: 'row', gap: 10, width: '100%' },
   retryBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: 20, paddingVertical: 14,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 20, paddingVertical: 16, paddingHorizontal: 20,
+    minHeight: 52,
   },
-  retryBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
+  retryTxt: { color: T.white, fontWeight: '700', fontSize: 15 },
   nextBtn: {
-    flex: 1, backgroundColor: C.sageDark,
-    borderRadius: 22, paddingVertical: 16, paddingHorizontal: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: T.white,
+    borderRadius: 20, paddingVertical: 16, paddingHorizontal: 16,
+    minHeight: 52,
   },
-  nextBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
+  nextTxt: { color: T.primary, fontWeight: '800', fontSize: 16 },
 
   /* Hint */
   hintBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    borderRadius: 22, paddingVertical: 11, paddingHorizontal: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20, paddingVertical: 12, paddingHorizontal: 20,
+    minHeight: 44,
   },
-  hintBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  hintTxt: { color: T.white, fontSize: 14, fontWeight: '600' },
+
+  errorMsg: { color: '#FFD0C8', fontSize: 13, textAlign: 'center' },
 })
