@@ -6,8 +6,7 @@ import {
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import Animated, {
   useSharedValue, useAnimatedStyle,
-  withRepeat, withTiming, withSequence, withSpring,
-  Easing, interpolate,
+  withRepeat, withTiming, withSequence,
 } from 'react-native-reanimated'
 import { Audio } from 'expo-av'
 import { useTilawah, calcStars, calcPoints, VerseResult } from '../../../hooks/use-tilawah'
@@ -111,8 +110,8 @@ function WaveBar({ idx, active }: { idx: number; active: boolean }) {
     if (active) {
       h.value = withRepeat(
         withSequence(
-          withTiming(8 + (idx % 5) * 8, { duration: 160 + idx * 22, easing: Easing.inOut(Easing.sine) }),
-          withTiming(5, { duration: 160 + idx * 22, easing: Easing.inOut(Easing.sine) }),
+          withTiming(8 + (idx % 5) * 8, { duration: 160 + idx * 22 }),
+          withTiming(5, { duration: 160 + idx * 22 }),
         ), -1, true,
       )
     } else {
@@ -138,7 +137,7 @@ function PulseRing({ active }: { active: boolean }) {
   useEffect(() => {
     if (active) {
       sc.value = withRepeat(withSequence(
-        withTiming(1.9, { duration: 950, easing: Easing.out(Easing.ease) }),
+        withTiming(1.9, { duration: 950 }),
         withTiming(1,   { duration: 950 }),
       ), -1, true)
       op.value = withRepeat(withSequence(
