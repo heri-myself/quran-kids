@@ -631,9 +631,9 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 14,
   },
-  arabicWord: { fontSize: 40, lineHeight: 72, fontFamily: 'ScheherazadeNew-Regular' },
+  arabicWord: { fontSize: 40, lineHeight: 72, fontFamily: 'ScheherazadeNew-Regular', color: '#2A1508' },
   arabicFull: {
-    fontSize: 40, color: C.text,
+    fontSize: 40, color: '#2A1508',
     textAlign: 'right', lineHeight: 72,
     writingDirection: 'rtl',
     fontFamily: 'ScheherazadeNew-Regular',
