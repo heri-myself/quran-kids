@@ -165,11 +165,11 @@ function PulseRing({ active }: { active: boolean }) {
 //  STAR ROW
 // ─────────────────────────────────────────────────────────────
 function StarRow({ score }: { score: number }) {
-  const n = score >= 85 ? 3 : score >= 65 ? 2 : 1
+  const n = score >= 95 ? 5 : score >= 85 ? 4 : score >= 70 ? 3 : score >= 55 ? 2 : 1
   return (
-    <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-      {[1, 2, 3].map(i => (
-        <Star key={i} size={30} color={i <= n ? D.starOn : D.starOff} weight={i <= n ? 'fill' : 'regular'} />
+    <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
+      {[1, 2, 3, 4, 5].map(i => (
+        <Star key={i} size={24} color={i <= n ? D.starOn : D.starOff} weight={i <= n ? 'fill' : 'regular'} />
       ))}
     </View>
   )
@@ -631,12 +631,12 @@ const s = StyleSheet.create({
     gap: 8,
   },
   arabicWord: {
-    fontSize: 44, lineHeight: 78,
+    fontSize: 32, lineHeight: 60,
     fontFamily: 'ScheherazadeNew-Regular',
     color: D.ink,
   },
   arabicFull: {
-    fontSize: 44, lineHeight: 78,
+    fontSize: 32, lineHeight: 60,
     fontFamily: 'ScheherazadeNew-Regular',
     color: D.ink,
     textAlign: 'right',
