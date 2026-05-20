@@ -222,6 +222,7 @@ export default function TilawahLatihanScreen() {
   const setLastTilawah = useLastActivityStore((s) => s.setLastTilawah)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [verseResults, setVerseResults] = useState<VerseResult[]>([])
+  const [wrongCount, setWrongCount] = useState(0)
   const [sheetDismissed, setSheetDismissed] = useState(false)
   const [audioLoading, setAudioLoading] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
@@ -236,7 +237,7 @@ export default function TilawahLatihanScreen() {
     }
   }, [])
 
-  // Update verseResults saat evaluasi selesai — handle auto-stop maupun manual stop
+  // Update verseResults dan wrongCount saat evaluasi selesai — handle auto-stop maupun manual stop
   useEffect(() => {
     if (recordingState !== 'done' || !currentEval || !currentVerse) return
     setVerseResults((prev) => {
@@ -256,18 +257,26 @@ export default function TilawahLatihanScreen() {
       }
       return [...prev, newEntry]
     })
+    if (currentEval.score < 70) {
+      setWrongCount((c) => {
+        const next = c + 1
+        if (next >= 3) setSheetDismissed(false)
+        return next
+      })
+    }
   }, [recordingState, currentEval])
 
   const verses = getSurahVerses(Number(id)) as Verse[]
   const isLoading = false
 
-  const { recordingState, currentEval, error, retryCount, startRecording, stopAndEvaluate, resetVerse } =
+  const { recordingState, currentEval, error, startRecording, stopAndEvaluate, resetVerse } =
     useTilawah(Number(id))
 
   useFocusEffect(
     useCallback(() => {
       setCurrentIndex(0)
       setVerseResults([])
+      setWrongCount(0)
       setSheetDismissed(false)
       resetVerse()
     }, [])
@@ -309,6 +318,7 @@ export default function TilawahLatihanScreen() {
       })
     } else {
       setCurrentIndex((i) => i + 1)
+      setWrongCount(0)
       setSheetDismissed(false)
       setAudioError(null)
       resetVerse()
@@ -486,7 +496,7 @@ export default function TilawahLatihanScreen() {
             </TouchableOpacity>
           )}
         </View>
-      {retryCount >= 3 && (
+      {wrongCount >= 3 && (
         <TouchableOpacity
           style={styles.hintBtn}
           onPress={() => setSheetDismissed(false)}
@@ -496,7 +506,7 @@ export default function TilawahLatihanScreen() {
       )}
 
       <AudioSampleSheet
-        visible={retryCount >= 3 && !sheetDismissed && !!currentVerse}
+        visible={wrongCount >= 3 && !sheetDismissed && !!currentVerse}
         chapterId={String(id)}
         verseNumber={currentVerse?.verse_number ?? 1}
         onDismiss={dismissSheet}
