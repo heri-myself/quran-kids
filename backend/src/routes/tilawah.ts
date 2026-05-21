@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma.js'
 import { authenticate } from '../hooks/authenticate.js'
 import { getLevelFromPoints, isNewDay, isConsecutiveDay, POINTS as GAMIFICATION_POINTS } from '../lib/gamification.js'
 import { z } from 'zod'
+import { runpodTranscribe } from '../lib/runpod.js'
 
 const evaluateSchema = z.object({
   chapterId: z.number().int().min(1).max(114),
@@ -34,14 +35,23 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
 
     const { chapterId, verseNumber, expectedText, audioBase64 } = body.data
 
-    // Proxy ke Python sidecar
+    // Step 1: Transkripsi via RunPod GPU
+    let transcription: string
+    try {
+      transcription = await runpodTranscribe(audioBase64)
+    } catch (err: any) {
+      app.log.error(err)
+      return reply.code(503).send({ error: 'Transcription service unavailable', detail: err.message })
+    }
+
+    // Step 2: Analisis tajwid via Python sidecar lokal (tajweed_engine.py)
     let pythonResult: any
     try {
-      const res = await fetch('http://localhost:8001/evaluate', {
+      const res = await fetch('http://localhost:8001/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          audio_base64: audioBase64,
+          transcription,
           expected_text: expectedText,
           verse_number: verseNumber,
           chapter_id: chapterId,
@@ -49,15 +59,15 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
       })
       if (!res.ok) {
         const err = await res.text()
-        throw new Error(`Python sidecar error: ${err}`)
+        throw new Error(`Tajweed sidecar error: ${err}`)
       }
       pythonResult = await res.json()
     } catch (err: any) {
       app.log.error(err)
-      return reply.code(503).send({ error: 'Evaluation service unavailable', detail: err.message })
+      return reply.code(503).send({ error: 'Analysis service unavailable', detail: err.message })
     }
 
-    const { score, word_accuracy, tajweed_score, word_results, feedback, transcription } = pythonResult
+    const { score, word_accuracy, tajweed_score, word_results, feedback } = pythonResult
 
     return reply.send({
       verseNumber,
@@ -78,13 +88,21 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
 
     const { chapterId, verseNumber, expectedText, audioBase64 } = body.data
 
+    let transcription: string
+    try {
+      transcription = await runpodTranscribe(audioBase64)
+    } catch (err: any) {
+      app.log.error(err)
+      return reply.code(503).send({ error: 'Transcription service unavailable', detail: err.message })
+    }
+
     let pythonResult: any
     try {
-      const res = await fetch('http://localhost:8001/evaluate-simple', {
+      const res = await fetch('http://localhost:8001/analyze-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          audio_base64: audioBase64,
+          transcription,
           expected_text: expectedText,
           verse_number: verseNumber,
           chapter_id: chapterId,
@@ -92,15 +110,15 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
       })
       if (!res.ok) {
         const err = await res.text()
-        throw new Error(`Python sidecar error: ${err}`)
+        throw new Error(`Tajweed sidecar error: ${err}`)
       }
       pythonResult = await res.json()
     } catch (err: any) {
       app.log.error(err)
-      return reply.code(503).send({ error: 'Evaluation service unavailable', detail: err.message })
+      return reply.code(503).send({ error: 'Analysis service unavailable', detail: err.message })
     }
 
-    const { score, word_accuracy, tajweed_score, word_results, feedback, transcription } = pythonResult
+    const { score, word_accuracy, tajweed_score, word_results, feedback } = pythonResult
 
     return reply.send({
       verseNumber,

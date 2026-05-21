@@ -124,7 +124,7 @@ def evaluate(req: EvaluateRequest):
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=400, detail=f"Cannot process audio: {e}")
 
-    from tajweed_engine import compare_texts, detect_mad_errors, analyze_tajweed
+    from tajweed_engine import compare_texts, detect_mad_errors, analyze_tajweed, detect_tajweed_rules
 
     print(f"[EXPECTED]     {req.expected_text}")
     print(f"[TRANSCRIBED]  {transcription}")
@@ -150,12 +150,22 @@ def evaluate(req: EvaluateRequest):
     score = int(word_accuracy * 0.60 + tajweed_score * 0.25 + completeness * 0.15)
 
     feedback: list[str] = []
+    expected_words = req.expected_text.strip().split()
 
-    wrong_words = [w.word for w in raw_word_results if w.status == "wrong"]
+    wrong_words = [w for w in raw_word_results if w.status == "wrong"]
     missing_words = [w.word for w in raw_word_results if w.status == "missing"]
 
     if wrong_words:
-        feedback.append(f"Kata yang perlu diperbaiki: {', '.join(wrong_words)}")
+        feedback.append(f"Kata yang perlu diperbaiki: {', '.join(w.word for w in wrong_words)}")
+        for w in wrong_words:
+            next_word = expected_words[w.position + 1] if w.position + 1 < len(expected_words) else ''
+            rules = detect_tajweed_rules(w.word, next_word)
+            seen = set()
+            for rule_name, explanation in rules:
+                if rule_name not in seen:
+                    seen.add(rule_name)
+                    feedback.append(f"• {explanation}")
+
     if missing_words:
         feedback.append(f"Kata yang tidak terdengar: {', '.join(missing_words)} — coba ucapkan lebih jelas.")
     feedback.extend(tajweed_feedback)
@@ -223,6 +233,113 @@ def evaluate_simple(req: EvaluateRequest):
 
     return EvaluateResponse(
         transcription=transcription,
+        word_results=word_results,
+        word_accuracy=word_accuracy,
+        tajweed_score=0,
+        score=score,
+        feedback=[feedback_msg],
+    )
+
+
+class AnalyzeRequest(BaseModel):
+    transcription: str
+    expected_text: str
+    verse_number: int
+    chapter_id: int
+
+
+@app.post("/analyze", response_model=EvaluateResponse)
+def analyze(req: AnalyzeRequest):
+    """Terima transcription teks langsung, lakukan analisis tajweed saja."""
+    from tajweed_engine import compare_texts, detect_mad_errors, analyze_tajweed, detect_tajweed_rules
+
+    print(f"[ANALYZE][EXPECTED]     {req.expected_text}")
+    print(f"[ANALYZE][TRANSCRIBED]  {req.transcription}")
+
+    raw_word_results, word_accuracy = compare_texts(req.expected_text, req.transcription)
+    detect_mad_errors(raw_word_results, [])
+    tajweed_score, tajweed_feedback = analyze_tajweed(raw_word_results)
+
+    for w in raw_word_results:
+        print(f"  [{w.status.upper():10}] {w.word}")
+
+    word_results = [
+        WordResult(
+            word=w.word,
+            correct=(w.status in ("correct", "mad_short")),
+            expected=w.word,
+            status=w.status,
+        )
+        for w in raw_word_results
+    ]
+
+    completeness = 100 if not any(w.status == "missing" for w in raw_word_results) else 70
+    score = int(word_accuracy * 0.60 + tajweed_score * 0.25 + completeness * 0.15)
+
+    feedback: list[str] = []
+    expected_words = req.expected_text.strip().split()
+    wrong_words = [w for w in raw_word_results if w.status == "wrong"]
+    missing_words = [w.word for w in raw_word_results if w.status == "missing"]
+
+    if wrong_words:
+        feedback.append(f"Kata yang perlu diperbaiki: {', '.join(w.word for w in wrong_words)}")
+        for w in wrong_words:
+            next_word = expected_words[w.position + 1] if w.position + 1 < len(expected_words) else ''
+            rules = detect_tajweed_rules(w.word, next_word)
+            seen = set()
+            for rule_name, explanation in rules:
+                if rule_name not in seen:
+                    seen.add(rule_name)
+                    feedback.append(f"• {explanation}")
+
+    if missing_words:
+        feedback.append(f"Kata yang tidak terdengar: {', '.join(missing_words)} — coba ucapkan lebih jelas.")
+    feedback.extend(tajweed_feedback)
+
+    if score >= 85:
+        feedback.insert(0, "MasyaAllah! Bacaan sangat bagus! 🌟")
+    elif score >= 65:
+        feedback.insert(0, "Bagus! Terus berlatih untuk hasil lebih baik.")
+    else:
+        feedback.insert(0, "Jangan menyerah! Ulangi dan perhatikan kata yang disorot merah.")
+
+    return EvaluateResponse(
+        transcription=req.transcription,
+        word_results=word_results,
+        word_accuracy=word_accuracy,
+        tajweed_score=tajweed_score,
+        score=score,
+        feedback=feedback,
+    )
+
+
+@app.post("/analyze-simple", response_model=EvaluateResponse)
+def analyze_simple(req: AnalyzeRequest):
+    """Versi simple — hanya word accuracy, tanpa tajweed detail."""
+    from tajweed_engine import compare_texts
+
+    raw_word_results, word_accuracy = compare_texts(req.expected_text, req.transcription)
+
+    word_results = [
+        WordResult(
+            word=w.word,
+            correct=(w.status in ("correct", "mad_short")),
+            expected=w.word,
+            status=w.status,
+        )
+        for w in raw_word_results
+    ]
+
+    score = word_accuracy
+    if score >= 80:
+        feedback_msg = "MasyaAllah! Bacaan sangat bagus! 🌟"
+    elif score >= 50:
+        feedback_msg = "Bagus! Terus berlatih."
+    else:
+        feedback_msg = "Ulangi dan perhatikan kata yang disorot merah."
+
+    return EvaluateResponse(
+        transcription=req.transcription,
         word_results=word_results,
         word_accuracy=word_accuracy,
         tajweed_score=0,
