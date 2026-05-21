@@ -46,6 +46,7 @@ async function pollJob(jobId: string): Promise<RunPodOutput> {
       throw new Error(`RunPod job failed: ${data.error ?? 'unknown error'}`)
     }
     // IN_QUEUE or IN_PROGRESS — tunggu
+    if (Date.now() - start >= TIMEOUT_MS) break
     await new Promise(r => setTimeout(r, POLL_INTERVAL_MS))
   }
   throw new Error(`RunPod job timeout after ${TIMEOUT_MS}ms`)
