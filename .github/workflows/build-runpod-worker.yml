@@ -39,7 +39,6 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/quran-kids-whisper:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/quran-kids-whisper:${{ github.sha }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/quran-kids-whisper:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/quran-kids-whisper:buildcache,mode=max
 
       - name: Summary
         run: |
