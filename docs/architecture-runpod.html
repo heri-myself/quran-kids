@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RunPod Serverless Architecture — Quran Kids AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:        #020C18;
+  --bg2:       #060F1E;
+  --bg3:       #0A1628;
+  --cyan:      #00D9F5;
+  --cyan-dim:  rgba(0,217,245,0.12);
+  --cyan-glow: rgba(0,217,245,0.35);
+  --green:     #00F5A0;
+  --green-dim: rgba(0,245,160,0.1);
+  --amber:     #FFB700;
+  --amber-dim: rgba(255,183,0,0.1);
+  --red:       #FF4D6A;
+  --red-dim:   rgba(255,77,106,0.1);
+  --purple:    #B06EFF;
+  --purple-dim:rgba(176,110,255,0.1);
+  --border:    rgba(255,255,255,0.07);
+  --border-hi: rgba(0,217,245,0.25);
+  --text:      #E2EDF8;
+  --text-muted:#5A7A9A;
+  --text-dim:  #2A4A6A;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GRID BG ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,217,245,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,217,245,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── AMBIENT GLOWS ── */
+.glow-1 {
+  position: fixed;
+  top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,217,245,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.glow-2 {
+  position: fixed;
+  bottom: -150px; right: -150px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(176,110,255,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 64px 28px 80px;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  margin-bottom: 72px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.header-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: var(--cyan-dim);
+  border: 1px solid var(--border-hi);
+  padding: 7px 16px;
+  border-radius: 100px;
+  margin-bottom: 24px;
+}
+.header-eyebrow::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+  animation: pulse 2s infinite;
+}
+
+.header h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+.header h1 .line1 { color: var(--text); }
+.header h1 .line2 {
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-sub {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto 32px;
+}
+
+.header-stats {
+  display: inline-flex;
+  gap: 32px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px 32px;
+}
+.stat { text-align: center; }
+.stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--cyan);
+  display: block;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.05em;
+}
+.stat-sep {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  animation: fadeUp 0.5s ease both;
+}
+.section-label-text {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ── DIAGRAM ── */
+.diagram-outer {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 48px 32px;
+  margin-bottom: 56px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.diagram-outer::before {
+  content: 'SYSTEM ARCHITECTURE';
+  position: absolute;
+  top: 20px; right: 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text-dim);
+}
+
+/* SVG diagram */
+.arch-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── FLOW STEPS ── */
+.steps-section { margin-bottom: 56px; animation: fadeUp 0.6s 0.2s ease both; }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  position: relative;
+}
+.steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 36px;
+  left: 36px;
+  right: 36px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--cyan-dim), var(--green-dim), var(--amber-dim), var(--purple-dim), var(--green-dim));
+  z-index: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px;
+  position: relative;
+  z-index: 1;
+  cursor: default;
+}
+.step:hover .step-circle { transform: scale(1.1); }
+.step:hover .step-body { border-color: rgba(255,255,255,0.15); }
+
+.step-circle {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 1.5px solid;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  position: relative;
+}
+.step-circle::after {
+  content: attr(data-num);
+  position: absolute;
+  bottom: -4px; right: -4px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.s1 .step-circle { background: var(--purple-dim); border-color: rgba(176,110,255,0.3); }
+.s2 .step-circle { background: var(--cyan-dim);   border-color: var(--border-hi); }
+.s3 .step-circle { background: var(--amber-dim);  border-color: rgba(255,183,0,0.3); }
+.s4 .step-circle { background: var(--green-dim);  border-color: rgba(0,245,160,0.3); }
+.s5 .step-circle { background: var(--cyan-dim);   border-color: var(--border-hi); }
+
+.step-body {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 12px;
+  width: 100%;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.step-desc { font-size: 10.5px; color: var(--text-muted); line-height: 1.5; }
+.step-tag {
+  margin-top: 8px;
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+.s1 .step-tag { background: var(--purple-dim); color: var(--purple); }
+.s2 .step-tag { background: var(--cyan-dim);   color: var(--cyan); }
+.s3 .step-tag { background: var(--amber-dim);  color: var(--amber); }
+.s4 .step-tag { background: var(--green-dim);  color: var(--green); }
+.s5 .step-tag { background: var(--cyan-dim);   color: var(--cyan); }
+
+/* ── DIFF GRID ── */
+.diff-section { margin-bottom: 56px; animation: fadeUp 0.6s 0.3s ease both; }
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.diff-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+.diff-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 20px 20px 0 0;
+}
+.diff-changed::after { background: linear-gradient(90deg, var(--amber), var(--red)); }
+.diff-kept::after    { background: linear-gradient(90deg, var(--green), var(--cyan)); }
+
+.diff-head {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.diff-changed .diff-head { color: var(--amber); }
+.diff-kept .diff-head    { color: var(--green); }
+
+.diff-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.diff-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.diff-list li .dot {
+  flex-shrink: 0;
+  margin-top: 6px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+}
+.diff-changed .dot { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.diff-kept .dot    { background: var(--green);  box-shadow: 0 0 6px var(--green); }
+code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  background: rgba(255,255,255,0.05);
+  padding: 1px 6px;
+  border-radius: 5px;
+  color: var(--cyan);
+}
+
+/* ── COST TABLE ── */
+.cost-section { margin-bottom: 56px; animation: fadeUp 0.6s 0.4s ease both; }
+.cost-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.cost-head {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cost-head-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.cost-head-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid rgba(0,245,160,0.2);
+  padding: 5px 12px;
+  border-radius: 8px;
+}
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 12px 20px;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 14px 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+tbody tr:last-child td {
+  border-bottom: none;
+  background: rgba(0,245,160,0.04);
+  color: var(--text);
+  font-weight: 600;
+}
+tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.badge {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); }
+.badge-dim   { background: rgba(255,255,255,0.04); color: var(--text-dim); }
+.cost-val { font-family: 'IBM Plex Mono', monospace; color: var(--text); }
+
+/* ── UPGRADE NOTE ── */
+.upgrade-note {
+  background: linear-gradient(135deg, var(--cyan-dim), rgba(0,245,160,0.06));
+  border: 1px solid var(--border-hi);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  animation: fadeUp 0.6s 0.5s ease both;
+}
+.upgrade-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.upgrade-text {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.upgrade-text strong { color: var(--cyan); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; box-shadow: 0 0 6px var(--cyan); }
+  50%      { opacity: 0.5; box-shadow: 0 0 3px var(--cyan); }
+}
+@keyframes flow {
+  from { stroke-dashoffset: 24; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes nodePulse {
+  0%,100% { filter: drop-shadow(0 0 4px rgba(0,217,245,0.3)); }
+  50%      { filter: drop-shadow(0 0 12px rgba(0,217,245,0.7)); }
+}
+@keyframes blink {
+  0%,100% { opacity:1; } 50% { opacity:0.3; }
+}
+</style>
+</head>
+<body>
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<div class="page">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="header-eyebrow">Arsitektur Sistem</div>
+    <h1>
+      <div class="line1">Migrasi AI Tilawah ke</div>
+      <div class="line2">RunPod Serverless GPU</div>
+    </h1>
+    <p class="header-sub">Whisper large-v3-turbo dipindah dari VPS CPU ke GPU serverless — inferensi 10× lebih cepat, bayar hanya saat digunakan.</p>
+    <div class="header-stats">
+      <div class="stat">
+        <span class="stat-val">RTX 3090</span>
+        <span class="stat-label">GPU Target</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <span class="stat-val">~3 dtk</span>
+        <span class="stat-label">Inferensi/Ayat</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <span class="stat-val">$0.00022</span>
+        <span class="stat-label">Per Detik GPU</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <span class="stat-val">~Rp 15</span>
+        <span class="stat-label">Per Request</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIAGRAM ── -->
+  <div class="section-label"><span class="section-label-text">01 — Diagram Alur</span></div>
+  <div class="diagram-outer">
+    <svg class="arch-svg" viewBox="0 0 900 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Glow filters -->
+        <filter id="glow-cyan"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-green"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glow-amber"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+
+        <!-- Animated flow lines -->
+        <style>
+          .flow-cyan { stroke-dasharray: 8 4; animation: flow 0.8s linear infinite; }
+          .flow-green { stroke-dasharray: 8 4; animation: flow 1s linear infinite; }
+          .flow-amber { stroke-dasharray: 8 4; animation: flow 1.2s linear infinite; }
+          .flow-purple { stroke-dasharray: 8 4; animation: flow 0.9s linear infinite; }
+          .node-pulse { animation: nodePulse 3s ease-in-out infinite; }
+          .status-blink { animation: blink 2s infinite; }
+        </style>
+
+        <!-- Arrowheads -->
+        <marker id="arr-cyan" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#00D9F5"/>
+        </marker>
+        <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#00F5A0"/>
+        </marker>
+        <marker id="arr-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#FFB700"/>
+        </marker>
+        <marker id="arr-purple" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#B06EFF"/>
+        </marker>
+        <marker id="arr-cyan-r" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto">
+          <path d="M6,0 L0,3 L6,6 Z" fill="#00D9F5"/>
+        </marker>
+
+        <!-- Gradients -->
+        <linearGradient id="g-cyan" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#00D9F5" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#00D9F5" stop-opacity="0.03"/>
+        </linearGradient>
+        <linearGradient id="g-orange" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#FF8C00" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#FF8C00" stop-opacity="0.03"/>
+        </linearGradient>
+        <linearGradient id="g-green" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#00F5A0" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#00F5A0" stop-opacity="0.03"/>
+        </linearGradient>
+        <linearGradient id="g-purple" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#B06EFF" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#B06EFF" stop-opacity="0.03"/>
+        </linearGradient>
+      </defs>
+
+      <!-- ─── MOBILE NODE ─── -->
+      <g class="node-pulse" transform="translate(40,30)">
+        <rect x="0" y="0" width="150" height="110" rx="16" fill="#0A1020" stroke="#B06EFF" stroke-opacity="0.4" stroke-width="1.5"/>
+        <rect x="0" y="0" width="150" height="3" rx="2" fill="#B06EFF" opacity="0.8"/>
+        <text x="75" y="32" text-anchor="middle" font-size="28" dominant-baseline="middle">📱</text>
+        <text x="75" y="58" text-anchor="middle" font-family="Syne, sans-serif" font-size="13" font-weight="700" fill="#E2EDF8">Mobile App</text>
+        <text x="75" y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">React Native / Expo</text>
+        <!-- Status dot -->
+        <circle cx="18" cy="18" r="4" fill="#B06EFF" opacity="0.9" class="status-blink"/>
+        <text x="28" y="21" font-family="IBM Plex Mono, monospace" font-size="8" fill="#B06EFF">ONLINE</text>
+        <!-- Bottom tag -->
+        <rect x="36" y="84" width="78" height="16" rx="8" fill="rgba(176,110,255,0.1)"/>
+        <text x="75" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#B06EFF">iOS / Android</text>
+      </g>
+
+      <!-- Mobile → VPS arrow (audio base64) -->
+      <line x1="190" y1="85" x2="250" y2="85" stroke="#B06EFF" stroke-width="1.5" marker-end="url(#arr-purple)" class="flow-purple"/>
+      <text x="220" y="73" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#B06EFF">audio b64</text>
+      <text x="220" y="99" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5A7A9A">POST /evaluate</text>
+
+      <!-- ─── VPS NODE ─── -->
+      <g transform="translate(250,0)">
+        <rect x="0" y="20" width="200" height="175" rx="16" fill="#06111E" stroke="#00D9F5" stroke-opacity="0.25" stroke-width="1.5"/>
+        <rect x="0" y="20" width="200" height="3" rx="2" fill="#00D9F5" opacity="0.6"/>
+        <!-- Header -->
+        <text x="100" y="52" text-anchor="middle" font-size="22">🖥️</text>
+        <text x="100" y="75" text-anchor="middle" font-family="Syne, sans-serif" font-size="13" font-weight="700" fill="#E2EDF8">VPS Backend</text>
+        <text x="100" y="91" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">Node.js · Express · Prisma</text>
+        <!-- Divider -->
+        <line x1="16" y1="105" x2="184" y2="105" stroke="rgba(255,255,255,0.07)"/>
+        <!-- Sub items -->
+        <rect x="12" y="112" width="176" height="22" rx="8" fill="rgba(0,217,245,0.06)"/>
+        <text x="24" y="126" font-family="IBM Plex Mono, monospace" font-size="9" fill="#00D9F5">routes/tilawah.ts</text>
+        <rect x="12" y="138" width="176" height="22" rx="8" fill="rgba(0,245,160,0.06)"/>
+        <text x="24" y="152" font-family="IBM Plex Mono, monospace" font-size="9" fill="#00F5A0">tajweed_engine.py ← tetap</text>
+        <rect x="12" y="164" width="176" height="22" rx="8" fill="rgba(176,110,255,0.06)"/>
+        <text x="24" y="178" font-family="IBM Plex Mono, monospace" font-size="9" fill="#B06EFF">prisma / database</text>
+        <!-- Status -->
+        <circle cx="18" cy="40" r="4" fill="#00D9F5" opacity="0.9" class="status-blink" style="animation-delay:0.3s"/>
+        <text x="28" y="43" font-family="IBM Plex Mono, monospace" font-size="8" fill="#00D9F5">VPS</text>
+      </g>
+
+      <!-- VPS → RunPod arrow -->
+      <line x1="450" y1="107" x2="510" y2="107" stroke="#FFB700" stroke-width="1.5" marker-end="url(#arr-amber)" class="flow-amber"/>
+      <text x="480" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FFB700">POST /run</text>
+      <text x="480" y="121" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5A7A9A">RunPod API</text>
+
+      <!-- ─── RUNPOD NODE ─── -->
+      <g class="node-pulse" style="animation-delay:1s" transform="translate(510,30)">
+        <rect x="0" y="0" width="175" height="155" rx="16" fill="#0C1008" stroke="#FFB700" stroke-opacity="0.35" stroke-width="1.5"/>
+        <rect x="0" y="0" width="175" height="3" rx="2" fill="#FFB700" opacity="0.7"/>
+        <text x="88" y="36" text-anchor="middle" font-size="28">⚡</text>
+        <text x="88" y="62" text-anchor="middle" font-family="Syne, sans-serif" font-size="13" font-weight="700" fill="#E2EDF8">RunPod Serverless</text>
+        <text x="88" y="78" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">RTX 3090 · 24GB VRAM</text>
+        <line x1="16" y1="92" x2="159" y2="92" stroke="rgba(255,255,255,0.07)"/>
+        <rect x="12" y="99" width="151" height="20" rx="8" fill="rgba(255,183,0,0.08)"/>
+        <text x="24" y="113" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FFB700">runpod_handler.py</text>
+        <rect x="12" y="123" width="151" height="20" rx="8" fill="rgba(255,183,0,0.05)"/>
+        <text x="24" y="137" font-family="IBM Plex Mono, monospace" font-size="9" fill="#8A7A5A">Whisper baked in image</text>
+        <!-- GPU meter -->
+        <rect x="12" y="147" width="151" height="4" rx="2" fill="rgba(255,255,255,0.05)"/>
+        <rect x="12" y="147" width="112" height="4" rx="2" fill="#FFB700" opacity="0.5"/>
+        <circle cx="18" cy="18" r="4" fill="#FFB700" opacity="0.9" class="status-blink" style="animation-delay:0.6s"/>
+        <text x="28" y="21" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FFB700">SERVERLESS</text>
+      </g>
+
+      <!-- RunPod → HuggingFace (cold start) -->
+      <line x1="685" y1="107" x2="730" y2="107" stroke="#00F5A0" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-green)"/>
+      <text x="707" y="95" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7.5" fill="#00F5A0">cold start</text>
+      <text x="707" y="121" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7.5" fill="#5A7A9A">load model</text>
+
+      <!-- ─── HUGGINGFACE NODE ─── -->
+      <g transform="translate(730,50)">
+        <rect x="0" y="0" width="148" height="115" rx="16" fill="#0A1510" stroke="#00F5A0" stroke-opacity="0.25" stroke-width="1.5"/>
+        <rect x="0" y="0" width="148" height="3" rx="2" fill="#00F5A0" opacity="0.5"/>
+        <text x="74" y="36" text-anchor="middle" font-size="24">🤗</text>
+        <text x="74" y="58" text-anchor="middle" font-family="Syne, sans-serif" font-size="12" font-weight="700" fill="#E2EDF8">HuggingFace</text>
+        <text x="74" y="74" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#5A7A9A">whisper-large-v3-turbo</text>
+        <text x="74" y="88" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#00F5A0">ar-quran · ~1.6GB</text>
+        <rect x="12" y="98" width="124" height="12" rx="6" fill="rgba(0,245,160,0.05)"/>
+        <text x="74" y="108" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7.5" fill="#3A7A6A">first load only</text>
+      </g>
+
+      <!-- ─── RETURN ARROWS (bottom) ─── -->
+      <!-- RunPod → VPS return (transcription) -->
+      <path d="M 597 185 Q 597 260 450 260 Q 350 260 350 195" stroke="#00D9F5" stroke-width="1.5" stroke-dasharray="none" fill="none" marker-end="url(#arr-cyan)" class="flow-cyan"/>
+      <text x="470" y="278" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#00D9F5">transcription result</text>
+
+      <!-- VPS → Mobile return -->
+      <path d="M 350 195 Q 350 310 115 310 Q 115 290 115 140" stroke="#00D9F5" stroke-width="1.5" fill="none" marker-end="url(#arr-cyan)" class="flow-cyan" style="animation-delay:0.3s"/>
+      <text x="80" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#00D9F5">JSON response</text>
+      <text x="80" y="285" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5A7A9A">score · stars · feedback</text>
+
+      <!-- ─── LEGEND / INFO BOX ─── -->
+      <g transform="translate(40,340)">
+        <rect x="0" y="0" width="820" height="140" rx="14" fill="rgba(6,15,30,0.8)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+        <text x="20" y="24" font-family="IBM Plex Mono, monospace" font-size="9" letter-spacing="0.15em" fill="#2A4A6A">KOMPONEN · KETERANGAN</text>
+        <line x1="0" y1="34" x2="820" y2="34" stroke="rgba(255,255,255,0.05)"/>
+
+        <!-- Col 1 -->
+        <circle cx="28" cy="60" r="5" fill="#B06EFF"/>
+        <text x="42" y="64" font-family="Syne, sans-serif" font-size="11" font-weight="700" fill="#E2EDF8">Mobile App</text>
+        <text x="42" y="78" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">React Native — tidak berubah</text>
+
+        <circle cx="28" cy="105" r="5" fill="#00D9F5"/>
+        <text x="42" y="109" font-family="Syne, sans-serif" font-size="11" font-weight="700" fill="#E2EDF8">VPS Backend</text>
+        <text x="42" y="123" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">Node.js + tajweed logic — tetap di VPS</text>
+
+        <!-- Col 2 -->
+        <circle cx="230" cy="60" r="5" fill="#FFB700"/>
+        <text x="244" y="64" font-family="Syne, sans-serif" font-size="11" font-weight="700" fill="#E2EDF8">RunPod Worker</text>
+        <text x="244" y="78" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">GPU serverless — BARU, ganti localhost:8001</text>
+
+        <circle cx="230" cy="105" r="5" fill="#00F5A0"/>
+        <text x="244" y="109" font-family="Syne, sans-serif" font-size="11" font-weight="700" fill="#E2EDF8">HuggingFace</text>
+        <text x="244" y="123" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">Model hanya diload saat cold start pertama</text>
+
+        <!-- Col 3 -->
+        <line x1="440" y1="46" x2="460" y2="46" stroke="#00D9F5" stroke-width="1.5" stroke-dasharray="0"/>
+        <polygon points="460,42 466,46 460,50" fill="#00D9F5"/>
+        <text x="474" y="50" font-family="IBM Plex Mono, monospace" font-size="9" fill="#E2EDF8">Data flow aktif</text>
+
+        <line x1="440" y1="70" x2="460" y2="70" stroke="#00F5A0" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <polygon points="460,66 466,70 460,74" fill="#00F5A0"/>
+        <text x="474" y="74" font-family="IBM Plex Mono, monospace" font-size="9" fill="#E2EDF8">Koneksi opsional (cold start)</text>
+
+        <!-- Cost highlight -->
+        <rect x="570" y="44" width="230" height="82" rx="10" fill="rgba(0,245,160,0.05)" stroke="rgba(0,245,160,0.15)" stroke-width="1"/>
+        <text x="685" y="64" text-anchor="middle" font-family="Syne, sans-serif" font-size="11" font-weight="700" fill="#00F5A0">Estimasi Biaya</text>
+        <text x="685" y="82" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A7A9A">~100 req/hari · RTX 3090</text>
+        <text x="685" y="100" text-anchor="middle" font-family="Syne, sans-serif" font-size="18" font-weight="800" fill="#00F5A0">~$0.26</text>
+        <text x="685" y="117" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9" fill="#3A7A5A">per bulan</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ── FLOW STEPS ── -->
+  <div class="section-label"><span class="section-label-text">02 — Alur Per Request</span></div>
+  <div class="steps-section">
+    <div class="steps-grid">
+      <div class="step s1">
+        <div class="step-circle" data-num="1">📱</div>
+        <div class="step-body">
+          <div class="step-title">User Rekam Ayat</div>
+          <div class="step-desc">Audio M4A direcord, dikonversi ke base64, dikirim ke VPS.</div>
+          <div class="step-tag">POST /evaluate</div>
+        </div>
+      </div>
+      <div class="step s2">
+        <div class="step-circle" data-num="2">🖥️</div>
+        <div class="step-body">
+          <div class="step-title">VPS Forward ke RunPod</div>
+          <div class="step-desc">Backend Node.js teruskan audio ke RunPod API menggunakan API key.</div>
+          <div class="step-tag">RUNPOD_API_KEY</div>
+        </div>
+      </div>
+      <div class="step s3">
+        <div class="step-circle" data-num="3">⚡</div>
+        <div class="step-body">
+          <div class="step-title">GPU Transkripsi</div>
+          <div class="step-desc">Whisper di RTX 3090 transkrip audio ~3 detik. 10× lebih cepat dari CPU.</div>
+          <div class="step-tag">~3 detik</div>
+        </div>
+      </div>
+      <div class="step s4">
+        <div class="step-circle" data-num="4">🔤</div>
+        <div class="step-body">
+          <div class="step-title">Analisis Tajwid</div>
+          <div class="step-desc">VPS bandingkan transkripsi vs teks asli, hitung score & feedback.</div>
+          <div class="step-tag">tajweed_engine.py</div>
+        </div>
+      </div>
+      <div class="step s5">
+        <div class="step-circle" data-num="5">✅</div>
+        <div class="step-body">
+          <div class="step-title">Kirim ke App</div>
+          <div class="step-desc">Hasil lengkap dikirim ke mobile: score, bintang, kata salah, feedback.</div>
+          <div class="step-tag">JSON response</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DIFF ── -->
+  <div class="section-label"><span class="section-label-text">03 — Yang Berubah vs Tidak</span></div>
+  <div class="diff-section">
+    <div class="diff-grid">
+      <div class="diff-card diff-changed">
+        <div class="diff-head">✏️ Yang Berubah</div>
+        <ul class="diff-list">
+          <li><span class="dot"></span>Buat <code>runpod_handler.py</code> — wrapper Whisper untuk RunPod Worker</li>
+          <li><span class="dot"></span>Buat <code>Dockerfile.runpod</code> — Docker image GPU dengan model baked-in</li>
+          <li><span class="dot"></span>Ganti endpoint di backend dari <code>localhost:8001</code> ke RunPod API URL</li>
+          <li><span class="dot"></span>Tambah <code>RUNPOD_API_KEY</code> di environment variable VPS</li>
+        </ul>
+      </div>
+      <div class="diff-card diff-kept">
+        <div class="diff-head">✅ Yang Tidak Berubah</div>
+        <ul class="diff-list">
+          <li><span class="dot"></span>Seluruh <code>tajweed_engine.py</code> — logic tajwid tetap jalan di VPS</li>
+          <li><span class="dot"></span>Scoring formula <code>accuracy×0.6 + tajweed×0.25</code></li>
+          <li><span class="dot"></span>Response format ke mobile — tidak ada perubahan apapun di app</li>
+          <li><span class="dot"></span>Kecerdasan model Whisper — sama persis, hanya lokasi eksekusi yang pindah</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COST ── -->
+  <div class="section-label"><span class="section-label-text">04 — Estimasi Biaya</span></div>
+  <div class="cost-section">
+    <div class="cost-card">
+      <div class="cost-head">
+        <div class="cost-head-title">RTX 3090 · Serverless · Fase Test (tanpa warm-up)</div>
+        <div class="cost-head-badge">AKTIF SEKARANG</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Komponen</th>
+            <th>Detail</th>
+            <th>Biaya/bulan</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Inferensi Tilawah</td>
+            <td class="cost-val">100 req/hari × 4 dtk × $0.00022</td>
+            <td class="cost-val">~$0.26</td>
+            <td><span class="badge badge-green">AKTIF</span></td>
+          </tr>
+          <tr>
+            <td>Cold Start</td>
+            <td class="cost-val">Terjadi setelah idle, tanpa biaya tambahan</td>
+            <td class="cost-val">$0</td>
+            <td><span class="badge badge-green">DIBIARKAN</span></td>
+          </tr>
+          <tr>
+            <td>Warm-up Ping</td>
+            <td class="cost-val">Belum diaktifkan di fase test</td>
+            <td class="cost-val">$0</td>
+            <td><span class="badge badge-amber">NANTI</span></td>
+          </tr>
+          <tr>
+            <td>Total Fase Test</td>
+            <td class="cost-val">Asumsi ~100 req/hari</td>
+            <td class="cost-val" style="color:#00F5A0">~$0.26 – $1 / bulan</td>
+            <td><span class="badge badge-green">HEMAT</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── UPGRADE NOTE ── -->
+  <div class="upgrade-note">
+    <div class="upgrade-icon">💡</div>
+    <div class="upgrade-text">
+      Upgrade ke <strong>warm-up ping</strong> kapanpun hanya dengan menambah 1 cron job di VPS — tidak perlu ubah apapun di RunPod. Perkiraan biaya tambahan hanya <strong>~Rp 2.700/bulan</strong> (288 ping/hari × $0.000022/ping).
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
