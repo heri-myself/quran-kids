@@ -8,10 +8,16 @@ COPY requirements.runpod.txt /requirements.runpod.txt
 RUN pip install --no-cache-dir -r /requirements.runpod.txt
 
 # Pre-download model into image (baked-in — tidak perlu download saat cold start)
+ARG HF_TOKEN
+ENV HF_TOKEN=${HF_TOKEN}
 RUN python3 -c "\
+import os; \
+from huggingface_hub import login; \
+token = os.environ.get('HF_TOKEN'); \
+login(token=token) if token else None; \
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor; \
-AutoModelForSpeechSeq2Seq.from_pretrained('naazimsnh02/whisper-large-v3-turbo-ar-quran', use_safetensors=True); \
-AutoProcessor.from_pretrained('naazimsnh02/whisper-large-v3-turbo-ar-quran'); \
+AutoModelForSpeechSeq2Seq.from_pretrained('naazimsnh02/whisper-large-v3-turbo-ar-quran', use_safetensors=True, token=token); \
+AutoProcessor.from_pretrained('naazimsnh02/whisper-large-v3-turbo-ar-quran', token=token); \
 print('Model baked in.')"
 
 # Copy handler
