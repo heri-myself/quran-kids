@@ -1,9 +1,71 @@
+# ── Dependencies ──────────────────────────────────────────
 node_modules/
-.DS_Store
-*.log
+.pnp
+.pnp.js
+
+# ── Build output ──────────────────────────────────────────
+dist/
+build/
+.next/
+out/
+.expo/
+web-build/
+expo-env.d.ts
+
+# ── Environment & Secrets ─────────────────────────────────
 .env
 .env.local
 .env.*.local
-dist/
-build/
-.expo/
+.env.production
+.env.staging
+*.secret
+secrets/
+credentials/
+
+# ── Python ────────────────────────────────────────────────
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+*.ipynb_checkpoints/
+
+# ── Certificates & Keys ───────────────────────────────────
+*.pem
+*.key
+*.p12
+*.p8
+*.jks
+*.keystore
+*.mobileprovision
+*.cer
+*.der
+*.crt
+google-services.json
+GoogleService-Info.plist
+
+# ── OS & Editor ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# ── TypeScript ────────────────────────────────────────────
+*.tsbuildinfo
+
+# ── Misc ──────────────────────────────────────────────────
+.claude/
+.superpowers/
+uploads/
+*.tmp
+*.cache
