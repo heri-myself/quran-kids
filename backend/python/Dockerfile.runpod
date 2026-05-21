@@ -3,15 +3,16 @@ FROM runpod/base:0.4.0-cuda11.8.0
 # System deps
 RUN apt-get update && apt-get install -y ffmpeg git && rm -rf /var/lib/apt/lists/*
 
+# ARG di sini agar semua layer berikutnya di-rebuild fresh setiap kali HF_TOKEN berubah
+ARG HF_TOKEN
+ENV HF_HUB_TOKEN=${HF_TOKEN}
+
 # Python deps
 COPY requirements.runpod.txt /requirements.runpod.txt
 RUN pip install --no-cache-dir -r /requirements.runpod.txt
 
-# Pre-download model into image (baked-in — tidak perlu download saat cold start)
-ARG HF_TOKEN
-ENV HF_HUB_TOKEN=${HF_TOKEN}
-RUN pip install --no-cache-dir huggingface_hub && \
-    python3 -c "\
+# Pre-download model (baked-in — HF_HUB_TOKEN dibaca otomatis oleh transformers)
+RUN python3 -c "\
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor; \
 AutoModelForSpeechSeq2Seq.from_pretrained('naazimsnh02/whisper-large-v3-turbo-ar-quran', use_safetensors=True); \
 AutoProcessor.from_pretrained('naazimsnh02/whisper-large-v3-turbo-ar-quran'); \
