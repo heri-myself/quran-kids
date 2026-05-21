@@ -23,9 +23,17 @@ services:
       - /opt/quran-kids/uploads:/app/uploads
     depends_on:
       - postgres
+      - tilawah-sidecar
     networks:
       - quran-kids
       - n8n_default
+
+  tilawah-sidecar:
+    image: quran-kids-sidecar
+    container_name: quran-kids-sidecar
+    restart: unless-stopped
+    networks:
+      - quran-kids
 
 networks:
   quran-kids:

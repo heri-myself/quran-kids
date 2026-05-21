@@ -27,9 +27,12 @@ $SSH $VPS << REMOTE
 
   cd $REMOTE_DIR/repo
 
-  # Build image dari subfolder backend
-  echo "🔨 Build Docker image..."
+  # Build images
+  echo "🔨 Build backend Docker image..."
   sudo docker build -f backend/Dockerfile -t quran-kids-backend backend/
+
+  echo "🔨 Build sidecar Docker image..."
+  sudo docker build -f backend/python/Dockerfile.sidecar -t quran-kids-sidecar backend/python/
 
   # Start postgres jika belum jalan
   echo "🗄️  Start postgres..."
@@ -46,9 +49,9 @@ $SSH $VPS << REMOTE
     quran-kids-backend \
     npx prisma migrate deploy
 
-  # Restart backend container
-  echo "🔄 Restart backend container..."
-  sudo docker compose --env-file $REMOTE_DIR/.env up -d backend
+  # Restart containers
+  echo "🔄 Restart containers..."
+  sudo docker compose --env-file $REMOTE_DIR/.env up -d tilawah-sidecar backend
 
   sleep 5
   echo "📋 Container logs:"
