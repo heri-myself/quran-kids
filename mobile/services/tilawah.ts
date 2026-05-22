@@ -40,7 +40,7 @@ export interface SaveSessionResponse {
   pointsEarned: number
 }
 
-const EVAL_TIMEOUT_MS = 200_000
+const EVAL_TIMEOUT_MS = 70_000
 
 function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
   const controller = new AbortController()

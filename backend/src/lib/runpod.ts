@@ -5,7 +5,7 @@ const RUNPOD_ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID!
 const BASE_URL = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}`
 
 const POLL_INTERVAL_MS = 1_000
-const TIMEOUT_MS = 180_000  // 3 menit — cukup untuk cold start RunPod
+const TIMEOUT_MS = 55_000  // 55s — di bawah batas carrier mobile (~60s) agar koneksi tidak di-drop
 
 interface WordTimestamp {
   word: string
