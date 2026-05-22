@@ -285,6 +285,7 @@ export default function TilawahLatihanScreen() {
   const [sheetDismissed, setSheetDismissed] = useState(false)
   const [audioLoading,   setAudioLoading]   = useState(false)
   const [audioError,     setAudioError]     = useState<string | null>(null)
+  const [analyzingSecs,  setAnalyzingSecs]  = useState(0)
   const soundRef = useRef<any>(null)
 
   const verses = getSurahVerses(Number(id)) as Verse[]
@@ -319,6 +320,12 @@ export default function TilawahLatihanScreen() {
       })
     }
   }, [recordingState, currentEval])
+
+  useEffect(() => {
+    if (!isAnalyzing) { setAnalyzingSecs(0); return }
+    const t = setInterval(() => setAnalyzingSecs(s => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [isAnalyzing])
 
   useFocusEffect(useCallback(() => {
     setCurrentIndex(0); setVerseResults([])
@@ -482,6 +489,15 @@ export default function TilawahLatihanScreen() {
             {recordingState === 'error'     && 'Coba lagi ya!'}
           </Text>
         </View>
+
+        {/* Cold-start hint saat analyzing lama */}
+        {isAnalyzing && analyzingSecs >= 8 && (
+          <Text style={s.coldStartHint}>
+            {analyzingSecs >= 60
+              ? '🤖 AI hampir siap, sebentar lagi...'
+              : '⏳ Mempersiapkan AI, mohon tunggu...'}
+          </Text>
+        )}
 
         {/* Waveform */}
         {isRecording && (
@@ -732,5 +748,6 @@ const s = StyleSheet.create({
     minHeight: 44,
   },
   hintTxt:  { color: D.panel, fontSize: 14, fontWeight: '600' },
-  errTxt:   { color: D.coral, fontSize: 13, textAlign: 'center' },
+  errTxt:        { color: D.coral, fontSize: 13, textAlign: 'center' },
+  coldStartHint: { color: D.inkMid, fontSize: 12, textAlign: 'center', marginTop: 6, opacity: 0.75 },
 })

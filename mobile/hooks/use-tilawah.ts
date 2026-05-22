@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { Vibration } from 'react-native'
 import { Audio } from 'expo-av'
 import * as FileSystem from 'expo-file-system/legacy'
 import { evaluateVerse, EvaluateResponse } from '../services/tilawah'
@@ -46,6 +47,7 @@ export function useTilawah(chapterId: number) {
     isStoppingRef.current = true
     try {
       playStopSound()
+      Vibration.vibrate([0, 30, 60, 30])
       setRecordingState('analyzing')
       await recordingRef.current.stopAndUnloadAsync()
       const uri = recordingRef.current.getURI()
@@ -95,6 +97,7 @@ export function useTilawah(chapterId: number) {
       recordingRef.current = recording
       setRecordingState('recording')
       playStartSound()
+      Vibration.vibrate(40)
 
       const startTime = Date.now()
       let silenceStart: number | null = null
