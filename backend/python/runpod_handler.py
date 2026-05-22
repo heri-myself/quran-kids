@@ -21,6 +21,11 @@ def get_pipe():
     if _pipe is None:
         print(f"[WORKER] Loading model {MODEL_ID} ...")
         device = "cuda" if torch.cuda.is_available() else "cpu"
+        if device == "cuda":
+            print(f"[WORKER] GPU: {torch.cuda.get_device_name(0)}")
+            cap = torch.cuda.get_device_capability(0)
+            print(f"[WORKER] Compute capability: sm_{cap[0]}{cap[1]}")
+            print(f"[WORKER] PyTorch CUDA version: {torch.version.cuda}")
         dtype = torch.float16 if device == "cuda" else torch.float32
         try:
             model = AutoModelForSpeechSeq2Seq.from_pretrained(
