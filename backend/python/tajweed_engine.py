@@ -141,10 +141,11 @@ def detect_tajweed_rules(word: str, next_word: str = '') -> list[tuple[str, str]
     return rules
 
 
-# Empirically calibrated: full-word duration threshold for mad 2-harakat.
-# stable-whisper word timestamps cover the entire word, not just the vowel,
-# so the threshold must account for consonants. Adjust based on real data.
-MAD_MIN_DURATION = 0.35
+# Threshold durasi minimum untuk mad tabi'i (2 harakat) berdasarkan Whisper word timestamps.
+# Whisper mengukur durasi seluruh kata (konsonan + vokal), bukan hanya vokal mad.
+# Dikalibrasi berdasarkan kata-kata Al-Fatihah: threshold konservatif 0.30s
+# agar tidak terlalu banyak false positive pada bacaan anak yang lebih lambat.
+MAD_MIN_DURATION = 0.30
 
 
 @dataclass
