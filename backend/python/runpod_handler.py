@@ -33,6 +33,7 @@ def get_pipe():
                 torch_dtype=dtype,
                 low_cpu_mem_usage=True,
                 use_safetensors=True,
+                attn_implementation="eager",  # avoid fused SDPA/flash-attn kernel mismatch
             ).to(device)
             processor = AutoProcessor.from_pretrained(MODEL_ID)
             processor.tokenizer.set_prefix_tokens(language="arabic", task="transcribe")
