@@ -37,8 +37,11 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
 
     // Step 1: Transkripsi via RunPod GPU
     let transcription: string
+    let wordTimestamps: Array<{ word: string; start: number; end: number }> = []
     try {
-      transcription = await runpodTranscribe(audioBase64)
+      const result = await runpodTranscribe(audioBase64)
+      transcription = result.transcription
+      wordTimestamps = result.word_timestamps
     } catch (err: any) {
       app.log.error(err)
       return reply.code(503).send({ error: 'Transcription service unavailable', detail: err.message })
@@ -55,6 +58,7 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
           expected_text: expectedText,
           verse_number: verseNumber,
           chapter_id: chapterId,
+          word_timestamps: wordTimestamps,
         }),
       })
       if (!res.ok) {
@@ -89,8 +93,11 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
     const { chapterId, verseNumber, expectedText, audioBase64 } = body.data
 
     let transcription: string
+    let wordTimestamps: Array<{ word: string; start: number; end: number }> = []
     try {
-      transcription = await runpodTranscribe(audioBase64)
+      const result = await runpodTranscribe(audioBase64)
+      transcription = result.transcription
+      wordTimestamps = result.word_timestamps
     } catch (err: any) {
       app.log.error(err)
       return reply.code(503).send({ error: 'Transcription service unavailable', detail: err.message })
@@ -106,6 +113,7 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
           expected_text: expectedText,
           verse_number: verseNumber,
           chapter_id: chapterId,
+          word_timestamps: wordTimestamps,
         }),
       })
       if (!res.ok) {
