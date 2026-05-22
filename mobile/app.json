@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Aplikasi membutuhkan akses mikrofon untuk merekam bacaan Quran kamu."
-      }
+      },
+      "bundleIdentifier": "com.anonymous.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,8 +27,11 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.anonymous.mobile",
+      "enableSplitAPKs": true
     },
     "scheme": "quran-kids",
     "web": {
@@ -44,6 +48,12 @@
           "microphonePermission": "Aplikasi membutuhkan akses mikrofon untuk merekam bacaan Quran kamu."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "31705cb4-175f-4528-8507-6dc4e15bf79c"
+      }
+    }
   }
 }
