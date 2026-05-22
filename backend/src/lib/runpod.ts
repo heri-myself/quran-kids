@@ -4,8 +4,8 @@ const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY!
 const RUNPOD_ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID!
 const BASE_URL = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}`
 
-const POLL_INTERVAL_MS = 1_000
-const TIMEOUT_MS = 55_000  // 55s — di bawah batas carrier mobile (~60s) agar koneksi tidak di-drop
+const POLL_INTERVAL_MS = 2_000
+const TIMEOUT_MS = 180_000  // 3 menit — aman karena mobile sudah async (tidak hold koneksi)
 
 interface WordTimestamp {
   word: string
