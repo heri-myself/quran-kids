@@ -7,13 +7,14 @@ const storyRoutes: FastifyPluginAsync = async (app) => {
     const query = storyFilterSchema.safeParse(request.query)
     if (!query.success) return reply.code(400).send({ error: query.error.flatten() })
 
-    const { category, premium, page, limit } = query.data
+    const { category, premium, featured, page, limit } = query.data
     const skip = (page - 1) * limit
 
     const where = {
-      isPublished: true,
+      ...(featured === 'true' ? {} : { isPublished: true }),
       ...(category && { category }),
       ...(premium !== undefined && { isPremium: premium === 'true' }),
+      ...(featured !== undefined && { isFeatured: featured === 'true' }),
     }
 
     const [data, total] = await Promise.all([
@@ -27,7 +28,7 @@ const storyRoutes: FastifyPluginAsync = async (app) => {
   app.get('/:slug', async (request, reply) => {
     const { slug } = request.params as { slug: string }
     const story = await prisma.story.findFirst({
-      where: { slug, isPublished: true },
+      where: { slug },
     })
     if (!story) return reply.code(404).send({ error: 'Story not found' })
     return reply.send(story)
@@ -36,7 +37,7 @@ const storyRoutes: FastifyPluginAsync = async (app) => {
   app.get('/:slug/pages', async (request, reply) => {
     const { slug } = request.params as { slug: string }
     const story = await prisma.story.findFirst({
-      where: { slug, isPublished: true },
+      where: { slug },
       include: { pages: { orderBy: { pageNumber: 'asc' } } },
     })
     if (!story) return reply.code(404).send({ error: 'Story not found' })

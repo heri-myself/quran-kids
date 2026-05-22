@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { Text } from '../../../components/Text'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import { useStories } from '../../../hooks/use-stories'
 import { StoryCard } from '../../../components/StoryCard'
@@ -32,8 +33,6 @@ export default function StoryListScreen() {
           paddingHorizontal: 24,
           paddingTop: 56,
           paddingBottom: 24,
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
         }}
       >
         <Text style={{ color: '#D4D0FF', fontSize: 13, marginBottom: 4 }}>Perpustakaan</Text>

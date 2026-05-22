@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import {
   View,
-  Text,
+  
   FlatList,
   TextInput,
   TouchableOpacity,
@@ -9,8 +9,11 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native'
+import { Text } from '../../../components/Text'
+import { RiIcon } from '../../../components/RiIcon'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
+import { useLastActivityStore } from '../../../stores/last-activity-store'
 
 const RECOMMENDED_IDS = [112, 113, 114, 1]
 
@@ -36,6 +39,7 @@ function starRating(verseCount: number): string {
 
 export default function TilawahIndexScreen() {
   const router = useRouter()
+  const setLastTilawah = useLastActivityStore((s) => s.setLastTilawah)
   const [query, setQuery] = useState('')
 
   const { data: chapters = [], isLoading } = useQuery({
@@ -64,7 +68,10 @@ export default function TilawahIndexScreen() {
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => router.push(`/(child)/tilawah/${item.id}`)}
+        onPress={() => {
+          setLastTilawah({ surahId: item.id, surahName: item.name_simple, verseNumber: 1, timestamp: Date.now() })
+          router.push(`/(child)/tilawah/${item.id}`)
+        }}
         activeOpacity={0.75}
       >
         <View style={styles.cardBadge}>
@@ -83,21 +90,24 @@ export default function TilawahIndexScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F4F4FF' }}>
+    <View style={{ flex: 1, backgroundColor: '#FFF7ED' }}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>🎙️ Latihan Tilawah</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <RiIcon name="mic-fill" size={20} color="#FFFFFF" />
+          <Text style={styles.headerTitle}>Latihan Tilawah</Text>
+        </View>
         <Text style={styles.headerSub}>Pilih surah untuk berlatih membaca</Text>
         <TextInput
           style={styles.searchBar}
           placeholder="Cari surah..."
-          placeholderTextColor="#BDB8FF"
+          placeholderTextColor="#FED7AA"
           value={query}
           onChangeText={setQuery}
         />
       </View>
 
       {isLoading ? (
-        <ActivityIndicator color="#7C6FF1" size="large" style={{ marginTop: 40 }} />
+        <ActivityIndicator color="#EA580C" size="large" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={filtered}
@@ -123,15 +133,13 @@ export default function TilawahIndexScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 56 : 32,
     paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
   headerTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', marginBottom: 4 },
-  headerSub: { color: '#D4D0FF', fontSize: 13, marginBottom: 16 },
+  headerSub: { color: '#FED7AA', fontSize: 13, marginBottom: 16 },
   searchBar: {
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 12,
@@ -140,7 +148,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
   },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1A1A2E', marginBottom: 8 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#431407', marginBottom: 8 },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
@@ -149,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     marginBottom: 8,
-    shadowColor: '#7C6FF1',
+    shadowColor: '#EA580C',
     shadowOpacity: 0.07,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -159,12 +167,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#EEF0FF',
+    backgroundColor: '#FFEDD5',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardBadgeText: { color: '#7C6FF1', fontWeight: '700', fontSize: 13 },
-  cardName: { fontSize: 14, fontWeight: '700', color: '#1A1A2E' },
+  cardBadgeText: { color: '#EA580C', fontWeight: '700', fontSize: 13 },
+  cardName: { fontSize: 14, fontWeight: '700', color: '#431407' },
   cardSub: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
-  cardArabic: { fontSize: 18, color: '#7C6FF1', fontFamily: 'ScheherazadeNew-Regular' },
+  cardArabic: { fontSize: 18, color: '#EA580C', fontFamily: 'ScheherazadeNew-Regular' },
 })

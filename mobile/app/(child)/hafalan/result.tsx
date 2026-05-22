@@ -24,6 +24,7 @@ export default function HafalanResultScreen() {
   const params = useLocalSearchParams<{
     chapterId: string
     verseResults: string
+    from?: string
   }>()
 
   let verseResults: VerseResult[] = []
@@ -38,10 +39,6 @@ export default function HafalanResultScreen() {
       : 0
   const [pointsEarned, setPointsEarned] = useState(avgScore >= 90 ? 50 : avgScore >= 70 ? 30 : 15)
   const stars = avgScore >= 85 ? 3 : avgScore >= 65 ? 2 : 1
-  const madShortCount = verseResults.reduce(
-    (total, v) => total + (v.wordResults ?? []).filter((w) => w.status === 'mad_short').length,
-    0
-  )
   const starEmojis = Array.from({ length: 3 }, (_, i) => (i < stars ? '⭐' : '☆')).join(' ')
 
   const hasSavedRef = useRef(false)
@@ -99,19 +96,12 @@ export default function HafalanResultScreen() {
           ))}
         </View>
 
-        {madShortCount > 0 && (
-          <View style={styles.tajweedCard}>
-            <Text style={styles.tajweedTitle}>📝 Catatan Tajweed</Text>
-            <Text style={styles.tajweedItem}>
-              • Ada {madShortCount} kata dengan mad (huruf panjang) yang terlalu pendek.
-              Perhatikan kata yang ditandai kuning.
-            </Text>
-          </View>
-        )}
-
         <TouchableOpacity
           style={styles.btnPrimary}
-          onPress={() => router.replace(`/(child)/hafalan/${params.chapterId}` as any)}
+          onPress={() => params.from === 'membaca'
+            ? router.replace(`/(child)/hafalan/continuous/${params.chapterId}` as any)
+            : router.replace(`/(child)/hafalan/${params.chapterId}` as any)
+          }
         >
           <Text style={styles.btnPrimaryText}>Ulangi Surah</Text>
         </TouchableOpacity>
@@ -128,65 +118,69 @@ export default function HafalanResultScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1A1A2E' },
+  container: { flex: 1, backgroundColor: '#F0FDF4' },
   content: {
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 40,
     alignItems: 'center',
   },
-  starEmojis: { fontSize: 42, marginBottom: 12 },
-  title: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: 16 },
-  score: { color: '#FFD166', fontSize: 64, fontWeight: '900' },
-  scoreLabel: { color: '#94A3B8', fontSize: 14, marginTop: -4, marginBottom: 16 },
+  starEmojis: { fontSize: 48, marginBottom: 12 },
+  title: { color: '#065F46', fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: 16 },
+  score: { color: '#059669', fontSize: 72, fontWeight: '900' },
+  scoreLabel: { color: '#6B7280', fontSize: 14, marginTop: -4, marginBottom: 16 },
   pointsBadge: {
-    backgroundColor: '#7C6FF1',
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    marginBottom: 24,
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1.5,
+    borderColor: '#4ADE80',
+    borderRadius: 24,
+    paddingHorizontal: 22,
+    paddingVertical: 9,
+    marginBottom: 28,
   },
-  pointsText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  pointsText: { color: '#15803D', fontWeight: '800', fontSize: 16 },
   recapCard: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     marginBottom: 24,
+    borderWidth: 1.5,
+    borderColor: '#D1FAE5',
+    shadowColor: '#059669',
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
-  recapTitle: { color: '#D4D0FF', fontWeight: '700', fontSize: 15, marginBottom: 12 },
-  recapRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  recapLabel: { color: '#94A3B8', fontSize: 12, width: 52 },
-  recapBarBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4 },
-  recapBarFill: { height: 8, backgroundColor: '#7C6FF1', borderRadius: 4 },
-  recapScore: { color: '#D4D0FF', fontSize: 12, width: 28, textAlign: 'right' },
+  recapTitle: { color: '#065F46', fontWeight: '800', fontSize: 15, marginBottom: 14 },
+  recapRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  recapLabel: { color: '#6B7280', fontSize: 12, width: 52 },
+  recapBarBg: { flex: 1, height: 10, backgroundColor: '#F1F5F9', borderRadius: 5 },
+  recapBarFill: { height: 10, backgroundColor: '#34D399', borderRadius: 5 },
+  recapScore: { color: '#059669', fontSize: 12, fontWeight: '700', width: 28, textAlign: 'right' },
   btnPrimary: {
     width: '100%',
-    backgroundColor: '#7C6FF1',
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: '#059669',
+    borderRadius: 18,
+    paddingVertical: 17,
     alignItems: 'center',
     marginBottom: 12,
+    shadowColor: '#059669',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  btnPrimaryText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  btnPrimaryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
   btnSecondary: {
     width: '100%',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 16,
-    paddingVertical: 14,
+    borderColor: '#A7F3D0',
+    borderRadius: 18,
+    paddingVertical: 15,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
-  btnSecondaryText: { color: '#D4D0FF', fontWeight: '600', fontSize: 15 },
-  tajweedCard: {
-    width: '100%',
-    backgroundColor: 'rgba(234,179,8,0.12)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(234,179,8,0.3)',
-  },
-  tajweedTitle: { color: '#FCD34D', fontWeight: '700', fontSize: 14, marginBottom: 8 },
-  tajweedItem: { color: '#FDE68A', fontSize: 13, lineHeight: 20 },
+  btnSecondaryText: { color: '#059669', fontWeight: '700', fontSize: 15 },
 })

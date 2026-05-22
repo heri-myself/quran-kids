@@ -148,7 +148,7 @@ export default function TilawahResultScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1A1A2E' },
+  container: { flex: 1, backgroundColor: '#1C0A00' },
   content: {
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
@@ -158,10 +158,10 @@ const styles = StyleSheet.create({
   starsWrapper: { alignItems: 'center', marginBottom: 8 },
   starEmojis: { fontSize: 36, marginTop: -32 },
   title: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: 16 },
-  score: { color: '#FFD166', fontSize: 64, fontWeight: '900' },
-  scoreLabel: { color: '#94A3B8', fontSize: 14, marginTop: -4, marginBottom: 16 },
+  score: { color: '#FB923C', fontSize: 64, fontWeight: '900' },
+  scoreLabel: { color: '#9A7A6A', fontSize: 14, marginTop: -4, marginBottom: 16 },
   pointsBadge: {
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     borderRadius: 20,
     paddingHorizontal: 20,
     paddingVertical: 8,
@@ -175,15 +175,15 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 24,
   },
-  recapTitle: { color: '#D4D0FF', fontWeight: '700', fontSize: 15, marginBottom: 12 },
+  recapTitle: { color: '#FFEDD5', fontWeight: '700', fontSize: 15, marginBottom: 12 },
   recapRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
-  recapVerseLabel: { color: '#94A3B8', fontSize: 12, width: 52 },
+  recapVerseLabel: { color: '#9A7A6A', fontSize: 12, width: 52 },
   recapBarBg: { flex: 1, height: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4 },
-  recapBarFill: { height: 8, backgroundColor: '#7C6FF1', borderRadius: 4 },
-  recapScoreText: { color: '#D4D0FF', fontSize: 12, width: 28, textAlign: 'right' },
+  recapBarFill: { height: 8, backgroundColor: '#EA580C', borderRadius: 4 },
+  recapScoreText: { color: '#FFEDD5', fontSize: 12, width: 28, textAlign: 'right' },
   btnPrimary: {
     width: '100%',
-    backgroundColor: '#7C6FF1',
+    backgroundColor: '#EA580C',
     borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  btnSecondaryText: { color: '#D4D0FF', fontWeight: '600', fontSize: 15 },
+  btnSecondaryText: { color: '#FFEDD5', fontWeight: '600', fontSize: 15 },
   tajweedCard: {
     width: '100%',
     backgroundColor: 'rgba(234,179,8,0.12)',

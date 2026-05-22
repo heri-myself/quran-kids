@@ -13,7 +13,7 @@ import hafalanRoutes from './routes/hafalan.js'
 import adminStoryRoutes from './routes/admin/stories.js'
 
 export function buildApp() {
-  const app = Fastify({ logger: true })
+  const app = Fastify({ logger: true, bodyLimit: 50 * 1024 * 1024 })
 
   app.register(cors, { origin: true })
   app.register(jwtPlugin)

@@ -1,5 +1,5 @@
 // mobile/app/(child)/hafalan/[id].tsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   View,
   TouchableOpacity,
@@ -11,7 +11,8 @@ import {
   Linking,
 } from 'react-native'
 import { Text } from '../../../components/Text'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { RiIcon } from '../../../components/RiIcon'
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -56,43 +57,80 @@ function WaveformBar({ index, isActive }: { index: number; isActive: boolean }) 
   return <Animated.View style={[styles.waveBar, style, { backgroundColor: '#EF4444' }]} />
 }
 
-function HiddenVerse({ wordCount }: { wordCount: number }) {
+const STATUS_INFO: Record<string, { label: string; tip: string; color: string; bg: string; border: string }> = {
+  wrong:     { label: 'Salah ucap', tip: 'Perhatikan makhraj dan harakat kata ini', color: '#DC2626', bg: '#FEF2F2', border: '#FECACA' },
+  missing:   { label: 'Terlewat',   tip: 'Kata ini tidak terucap, pastikan dibaca lengkap', color: '#9333EA', bg: '#FAF5FF', border: '#E9D5FF' },
+  mad_short: { label: 'Mad pendek', tip: 'Panjangkan bacaan huruf mad (minimal 2 harakat)', color: '#D97706', bg: '#FFFBEB', border: '#FDE68A' },
+}
+
+function WordResultRow({ words, wordResults }: { words: Verse['words']; wordResults: HafalanWordResult[] }) {
+  const errorWords = words
+    .map((w, i) => {
+      const result = wordResults[i]
+      const status = result?.status ?? (result?.correct === false ? 'wrong' : 'correct')
+      return { word: w.text_uthmani, expected: result?.expected ?? w.text_uthmani, status, index: i }
+    })
+    .filter((w) => w.status === 'wrong' || w.status === 'missing' || w.status === 'mad_short')
+
   return (
-    <View style={styles.hiddenRow}>
-      {Array.from({ length: wordCount }).map((_, i) => (
-        <View key={i} style={[styles.hiddenChip, i % 3 === 0 && { width: 54 }, i % 3 === 1 && { width: 36 }]} />
-      ))}
+    <View>
+      {/* Arabic text with color per word */}
+      <Text style={styles.arabicResult}>
+        {words.map((w, i) => {
+          const result = wordResults[i]
+          const status = result?.status ?? (result?.correct === false ? 'wrong' : 'correct')
+          const isMadShort = status === 'mad_short'
+          const isCorrect = status === 'correct' || isMadShort
+          const color = isMadShort ? '#F59E0B' : isCorrect ? '#10B981' : '#EF4444'
+          return (
+            <Text key={i} style={{ color }}>
+              {w.text_uthmani}{i < words.length - 1 ? ' ' : ''}
+            </Text>
+          )
+        })}
+      </Text>
+
+      {/* Error detail cards */}
+      {errorWords.length > 0 && (
+        <View style={styles.errorList}>
+          {errorWords.map((w) => {
+            const info = STATUS_INFO[w.status] ?? STATUS_INFO.wrong
+            return (
+              <View key={w.index} style={[styles.errorCard, { backgroundColor: info.bg, borderColor: info.border }]}>
+                <View style={styles.errorCardHeader}>
+                  <View style={[styles.errorBadge, { backgroundColor: info.color }]}>
+                    <Text style={styles.errorBadgeText}>{info.label}</Text>
+                  </View>
+                  {w.status === 'mad_short' && (
+                    <Text style={styles.errorMadIcon}>🔤</Text>
+                  )}
+                </View>
+                {/* Correct form with harakat */}
+                <Text style={[styles.errorArabic, { color: info.color }]}>{w.expected}</Text>
+                <Text style={[styles.errorTip, { color: info.color }]}>{info.tip}</Text>
+              </View>
+            )
+          })}
+        </View>
+      )}
     </View>
   )
 }
 
-function WordResultRow({ words, wordResults }: { words: Verse['words']; wordResults: HafalanWordResult[] }) {
+function HiddenVerse({ wordCount, isActive }: { wordCount: number; isActive: boolean }) {
   return (
-    <View style={styles.wordsRow}>
-      {words.map((w, i) => {
-        const result = wordResults[i]
-        const status = result?.status ?? (result?.correct === false ? 'wrong' : 'correct')
-        const isMadShort = status === 'mad_short'
-        const isCorrect = status === 'correct' || isMadShort
-        return (
-          <View
-            key={i}
-            style={[
-              styles.wordChip,
-              isMadShort ? styles.wordMadShort : isCorrect ? styles.wordCorrect : styles.wordWrong,
-            ]}
-          >
-            <Text
-              style={[
-                styles.wordText,
-                { color: isMadShort ? '#854D0E' : isCorrect ? '#16A34A' : '#DC2626' },
-              ]}
-            >
-              {w.text_uthmani}
-            </Text>
-          </View>
-        )
-      })}
+    <View style={[styles.hiddenRow, isActive && styles.hiddenRowActive]}>
+      {Array.from({ length: wordCount }).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.hiddenChip,
+            i % 3 === 0 && { width: 54 },
+            i % 3 === 1 && { width: 36 },
+            isActive && { backgroundColor: 'rgba(124,111,241,0.25)' },
+          ]}
+        />
+      ))}
     </View>
   )
 }
@@ -100,11 +138,14 @@ function WordResultRow({ words, wordResults }: { words: Verse['words']; wordResu
 export default function HafalanSessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
+  const scrollRef = useRef<ScrollView>(null)
+  const cardRefs = useRef<{ [key: number]: number }>({})
+
   const [currentIndex, setCurrentIndex] = useState(0)
   const [verseResults, setVerseResults] = useState<VerseResult[]>([])
+  const [allDone, setAllDone] = useState(false)
 
   const verses = getSurahVerses(Number(id)) as Verse[]
-  const currentVerse = verses[currentIndex]
 
   const { hafalanState, currentEval, error, recordingDuration, startRecording, stopAndEvaluate, reset } =
     useHafalan(Number(id))
@@ -113,44 +154,82 @@ export default function HafalanSessionScreen() {
   const isAnalyzing = hafalanState === 'analyzing'
   const isDone = hafalanState === 'done'
 
+  // Reset state every time screen is focused (covers: new surah, same surah retry, back navigation)
+  useFocusEffect(
+    useCallback(() => {
+      setCurrentIndex(0)
+      setVerseResults([])
+      setAllDone(false)
+      cardRefs.current = {}
+      reset()
+    }, [id])
+  )
+
+  // Auto-scroll to active verse card
+  useEffect(() => {
+    const y = cardRefs.current[currentIndex]
+    if (y != null) {
+      scrollRef.current?.scrollTo({ y: Math.max(0, y - 20), animated: true })
+    }
+  }, [currentIndex])
+
+  // After evaluation — save result and advance
+  useEffect(() => {
+    if (!isDone || !currentEval) return
+    const verse = verses[currentIndex]
+    if (!verse) return
+
+    const entry: VerseResult = {
+      verseNumber: verse.verse_number,
+      score: currentEval.score,
+      wordResults: (currentEval.wordResults ?? []) as HafalanWordResult[],
+    }
+
+    setVerseResults((prev) => {
+      const idx = prev.findIndex((v) => v.verseNumber === verse.verse_number)
+      if (idx >= 0) {
+        const updated = [...prev]
+        if (currentEval.score > prev[idx].score) updated[idx] = entry
+        return updated
+      }
+      return [...prev, entry]
+    })
+
+    const isLast = currentIndex + 1 >= verses.length
+    if (isLast) {
+      setAllDone(true)
+    }
+  }, [isDone, currentEval])
+
   const handleMicPress = async () => {
     if (hafalanState === 'idle' || hafalanState === 'error') {
       await startRecording()
     } else if (hafalanState === 'recording') {
-      if (!currentVerse) return
-      const result = await stopAndEvaluate(currentVerse.verse_number, currentVerse.text_uthmani)
-      if (result) {
-        setVerseResults((prev) => {
-          const entry: VerseResult = {
-            verseNumber: currentVerse.verse_number,
-            score: result.score,
-            wordResults: (result.wordResults ?? []) as HafalanWordResult[],
-          }
-          const idx = prev.findIndex((v) => v.verseNumber === currentVerse.verse_number)
-          if (idx >= 0) {
-            const updated = [...prev]
-            if (result.score > prev[idx].score) updated[idx] = entry
-            return updated
-          }
-          return [...prev, entry]
-        })
-      }
+      const verse = verses[currentIndex]
+      if (!verse) return
+      await stopAndEvaluate(verse.verse_number, verse.text_uthmani)
     }
   }
 
-  const handleNext = () => {
-    if (currentIndex + 1 >= verses.length) {
-      router.replace({
-        pathname: '/(child)/hafalan/result',
-        params: {
-          chapterId: id,
-          verseResults: JSON.stringify(verseResults),
-        },
-      } as any)
-    } else {
+  const handleNextVerse = () => {
+    if (currentIndex + 1 < verses.length) {
       setCurrentIndex((i) => i + 1)
       reset()
     }
+  }
+
+  const handleRetry = () => {
+    reset()
+  }
+
+  const handleFinish = () => {
+    router.replace({
+      pathname: '/(child)/hafalan/result',
+      params: {
+        chapterId: id,
+        verseResults: JSON.stringify(verseResults),
+      },
+    } as any)
   }
 
   const handleMicError = () => {
@@ -164,52 +243,95 @@ export default function HafalanSessionScreen() {
     )
   }
 
-  if (!currentVerse) {
-    return (
-      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color="#7C6FF1" size="large" />
-      </View>
-    )
-  }
-
-  const words = currentVerse.words ?? []
-  const progressWidth = `${((currentIndex + 1) / verses.length) * 100}%`
+  const doneCount = verseResults.length
+  const progressPct = verses.length > 0 ? (doneCount / verses.length) * 100 : 0
 
   return (
     <View style={styles.container}>
+      {/* Progress */}
       <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: progressWidth as any }]} />
+        <View style={[styles.progressFill, { width: `${progressPct}%` as any }]} />
       </View>
       <Text style={styles.progressLabel}>
-        Ayat {currentIndex + 1} / {verses.length}
+        {doneCount} / {verses.length} ayat selesai
       </Text>
 
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 16 }}>
-        <View style={styles.verseCard}>
-          <View style={styles.verseBadge}>
-            <Text style={styles.verseBadgeText}>{currentVerse.verse_number}</Text>
-          </View>
+      {/* All verses */}
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {verses.map((verse, index) => {
+          const result = verseResults.find((r) => r.verseNumber === verse.verse_number)
+          const isActive = index === currentIndex && !allDone
+          const isPast = !!result
+          const isFuture = index > currentIndex && !result
 
-          {isDone && currentEval ? (
-            <WordResultRow
-              words={words}
-              wordResults={(currentEval.wordResults ?? []) as HafalanWordResult[]}
-            />
-          ) : (
-            <HiddenVerse wordCount={words.length || 4} />
-          )}
+          return (
+            <View
+              key={verse.verse_number}
+              style={[
+                styles.verseCard,
+                isActive && styles.verseCardActive,
+                isFuture && styles.verseCardFuture,
+              ]}
+              onLayout={(e) => {
+                cardRefs.current[index] = e.nativeEvent.layout.y
+              }}
+            >
+              {/* Header row */}
+              <View style={styles.verseHeader}>
+                <View style={[styles.verseBadge, isPast && styles.verseBadgeDone, isFuture && styles.verseBadgeFuture]}>
+                  <Text style={styles.verseBadgeText}>
+                    {isPast ? '✓' : verse.verse_number}
+                  </Text>
+                </View>
+                {isPast && (
+                  <View style={styles.scoreChip}>
+                    <Text style={styles.scoreChipText}>{result!.score}/100</Text>
+                  </View>
+                )}
+                {isActive && !isDone && (
+                  <View style={styles.activeChip}>
+                    <Text style={styles.activeChipText}>● Aktif</Text>
+                  </View>
+                )}
+              </View>
 
-          {isDone && currentEval && (
-            <View style={styles.scoreRow}>
-              <Text style={styles.scoreText}>Skor: {currentEval.score}/100</Text>
-              <Text style={styles.starsText}>
-                {currentEval.score >= 85 ? '⭐⭐⭐' : currentEval.score >= 65 ? '⭐⭐' : '⭐'}
-              </Text>
+              {/* Verse content */}
+              {isPast ? (
+                <WordResultRow words={verse.words ?? []} wordResults={result!.wordResults} />
+              ) : isActive && isDone && currentEval ? (
+                <WordResultRow
+                  words={verse.words ?? []}
+                  wordResults={(currentEval.wordResults ?? []) as HafalanWordResult[]}
+                />
+              ) : (
+                <HiddenVerse wordCount={(verse.words ?? []).length || 4} isActive={isActive} />
+              )}
+
+              {/* Retry / next button for active verse after evaluation */}
+              {isActive && isDone && (
+                <View style={styles.verseActions}>
+                  <TouchableOpacity style={styles.retrySmallBtn} onPress={handleRetry}>
+                    <Text style={styles.retrySmallText}>↺ Ulangi</Text>
+                  </TouchableOpacity>
+                  {!allDone && (
+                    <TouchableOpacity style={styles.nextSmallBtn} onPress={handleNextVerse}>
+                      <Text style={styles.nextSmallText}>Ayat Selanjutnya →</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
             </View>
-          )}
-        </View>
+          )
+        })}
+
+        <View style={{ height: 220 }} />
       </ScrollView>
 
+      {/* Bottom record area */}
       <View style={styles.recordArea}>
         {error && error.includes('Izin') ? (
           <TouchableOpacity onPress={handleMicError}>
@@ -219,13 +341,15 @@ export default function HafalanSessionScreen() {
           <Text style={styles.errorText}>{error}</Text>
         ) : null}
 
-        <Text style={styles.recordStatus}>
-          {hafalanState === 'idle' && 'Tekan untuk mulai merekam'}
-          {hafalanState === 'recording' && `🔴 Merekam... ${recordingDuration}s`}
-          {hafalanState === 'analyzing' && '⏳ Sedang dinilai...'}
-          {hafalanState === 'done' && '✅ Selesai dibaca'}
-          {hafalanState === 'error' && '❌ Coba lagi'}
-        </Text>
+        {!allDone && (
+          <Text style={styles.recordStatus}>
+            {hafalanState === 'idle' && `Tekan untuk membaca Ayat ${currentIndex + 1}`}
+            {hafalanState === 'recording' && `Merekam... ${recordingDuration}s`}
+            {hafalanState === 'analyzing' && 'Sedang dinilai...'}
+            {hafalanState === 'done' && 'Selesai — ulangi atau lanjut ke ayat berikutnya'}
+            {hafalanState === 'error' && 'Coba lagi'}
+          </Text>
+        )}
 
         {isRecording && (
           <View style={styles.waveform}>
@@ -235,35 +359,30 @@ export default function HafalanSessionScreen() {
           </View>
         )}
 
-        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          {isDone && (
-            <TouchableOpacity style={styles.retryBtn} onPress={reset}>
-              <Text style={styles.retryBtnText}>↺ Ulangi</Text>
-            </TouchableOpacity>
-          )}
-
-          {!isDone && (
-            <TouchableOpacity
-              style={[styles.micBtn, isRecording && styles.micBtnActive, isAnalyzing && { opacity: 0.6 }]}
-              onPress={handleMicPress}
-              disabled={isAnalyzing}
-            >
-              {isAnalyzing ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={{ fontSize: 32 }}>{isRecording ? '⏹' : '🎙️'}</Text>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {isDone && (
-            <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-              <Text style={styles.nextBtnText}>
-                {currentIndex + 1 >= verses.length ? 'Lihat Hasil 🎉' : 'Ayat Berikutnya →'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {allDone ? (
+          <TouchableOpacity style={styles.finishBtn} onPress={handleFinish}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <RiIcon name="trophy-fill" size={18} color="#fff" />
+              <Text style={styles.finishBtnText}>Lihat Hasil</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.micBtn,
+              isRecording && styles.micBtnActive,
+              (isAnalyzing || isDone) && { opacity: 0.5 },
+            ]}
+            onPress={handleMicPress}
+            disabled={isAnalyzing || isDone}
+          >
+            {isAnalyzing ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <RiIcon name={isRecording ? 'stop-circle-fill' : 'mic-fill'} size={30} color="#fff" />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   )
@@ -279,82 +398,167 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   progressFill: { height: 4, backgroundColor: '#7C6FF1', borderRadius: 2 },
-  progressLabel: { color: '#BDB8FF', fontSize: 12, textAlign: 'center', marginTop: 6 },
+  progressLabel: { color: '#BDB8FF', fontSize: 12, textAlign: 'center', marginTop: 6, marginBottom: 4 },
+
+  scrollContent: { paddingHorizontal: 20, paddingTop: 12 },
+
   verseCard: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    minHeight: 160,
-    justifyContent: 'center',
+    padding: 18,
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  verseCardActive: {
+    borderColor: '#7C6FF1',
+    backgroundColor: 'rgba(124,111,241,0.08)',
+  },
+  verseCardFuture: {
+    opacity: 0.45,
+  },
+
+  verseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 14,
   },
   verseBadge: {
-    alignSelf: 'flex-end',
     backgroundColor: '#7C6FF1',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    marginBottom: 16,
+    minWidth: 32,
+    alignItems: 'center',
   },
+  verseBadgeDone: { backgroundColor: '#10B981' },
+  verseBadgeFuture: { backgroundColor: 'rgba(255,255,255,0.15)' },
   verseBadgeText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+
+  scoreChip: {
+    backgroundColor: 'rgba(16,185,129,0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(16,185,129,0.3)',
+  },
+  scoreChipText: { color: '#10B981', fontWeight: '700', fontSize: 12 },
+
+  activeChip: {
+    backgroundColor: 'rgba(124,111,241,0.2)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(124,111,241,0.4)',
+  },
+  activeChipText: { color: '#A5B4FC', fontWeight: '600', fontSize: 12 },
+
+  arabicResult: {
+    fontSize: 26,
+    lineHeight: 50,
+    fontFamily: 'ScheherazadeNew-Regular',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+
+  errorList: { gap: 8, marginTop: 4 },
+  errorCard: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 12,
+    gap: 4,
+  },
+  errorCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  errorBadge: {
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  errorBadgeText: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
+  errorMadIcon: { fontSize: 14 },
+  errorArabic: {
+    fontSize: 24,
+    lineHeight: 44,
+    fontFamily: 'ScheherazadeNew-Regular',
+    textAlign: 'right',
+    writingDirection: 'rtl',
+    fontWeight: '700',
+  },
+  errorTip: { fontSize: 12, lineHeight: 18, opacity: 0.85 },
+
   hiddenRow: {
     flexDirection: 'row-reverse',
     flexWrap: 'wrap',
     gap: 8,
     justifyContent: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 4,
   },
+  hiddenRowActive: {},
   hiddenChip: {
     width: 44,
-    height: 16,
+    height: 14,
     backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 8,
+    borderRadius: 7,
   },
-  wordsRow: {
-    flexDirection: 'row-reverse',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'flex-start',
-    marginBottom: 12,
-  },
-  wordChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1.5,
-  },
-  wordCorrect: { backgroundColor: '#E6FBF0', borderColor: '#86EFAC' },
-  wordWrong: { backgroundColor: '#FEE2E2', borderColor: '#FCA5A5' },
-  wordMadShort: { backgroundColor: '#FEF9C3', borderColor: '#FDE047' },
-  wordText: { fontSize: 24, fontFamily: 'ScheherazadeNew-Regular', lineHeight: 40 },
-  scoreRow: {
+
+  verseActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
+    gap: 10,
+    marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.08)',
   },
-  scoreText: { color: '#D4D0FF', fontWeight: '700', fontSize: 14 },
-  starsText: { fontSize: 18 },
+  retrySmallBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(124,111,241,0.5)',
+  },
+  retrySmallText: { color: '#A5B4FC', fontWeight: '600', fontSize: 13 },
+  nextSmallBtn: {
+    flex: 1,
+    backgroundColor: '#7C6FF1',
+    borderRadius: 10,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  nextSmallText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13 },
+
   recordArea: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(26,26,46,0.97)',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
-    paddingBottom: 100,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 28,
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
   },
-  recordStatus: { color: '#D4D0FF', fontSize: 14 },
+  recordStatus: { color: '#D4D0FF', fontSize: 13, textAlign: 'center' },
   errorText: { color: '#EF4444', fontSize: 13, textAlign: 'center' },
-  waveform: { flexDirection: 'row', gap: 4, alignItems: 'center', height: 48 },
+  waveform: { flexDirection: 'row', gap: 4, alignItems: 'center', height: 40 },
   waveBar: { width: 4, borderRadius: 2, minHeight: 8 },
   micBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: '#7C6FF1',
     alignItems: 'center',
     justifyContent: 'center',
@@ -364,20 +568,12 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   micBtnActive: { backgroundColor: '#EF4444' },
-  retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#7C6FF1',
-  },
-  retryBtnText: { color: '#7C6FF1', fontWeight: '700', fontSize: 14 },
-  nextBtn: {
-    flex: 1,
+  finishBtn: {
+    width: '100%',
     backgroundColor: '#7C6FF1',
-    borderRadius: 14,
-    paddingVertical: 14,
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
   },
-  nextBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  finishBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
 })

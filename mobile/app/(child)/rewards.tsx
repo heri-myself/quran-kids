@@ -89,8 +89,6 @@ export default function RewardsScreen() {
           paddingHorizontal: 24,
           paddingTop: 56,
           paddingBottom: 32,
-          borderBottomLeftRadius: 28,
-          borderBottomRightRadius: 28,
         }}
       >
         <Text style={{ color: '#D4D0FF', fontSize: 13 }}>Pencapaianku</Text>

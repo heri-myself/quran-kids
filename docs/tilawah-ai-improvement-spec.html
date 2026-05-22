@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tilawah AI Improvement — Design Spec</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F0F0FA; color: #1A1A2E; line-height: 1.6; }
+
+  .hero {
+    background: linear-gradient(135deg, #6C5CE7 0%, #a78bfa 100%);
+    color: white;
+    padding: 56px 40px 48px;
+  }
+  .hero-tag { font-size: 11px; font-weight: 700; letter-spacing: 2px; opacity: 0.7; text-transform: uppercase; margin-bottom: 12px; }
+  .hero h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .hero p { font-size: 15px; opacity: 0.85; max-width: 560px; }
+  .hero-meta { margin-top: 24px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 600; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .section { background: white; border-radius: 20px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 2px 12px rgba(108,92,231,0.07); }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #6C5CE7; text-transform: uppercase; margin-bottom: 8px; }
+  .section h2 { font-size: 20px; font-weight: 800; color: #1A1A2E; margin-bottom: 16px; }
+  .section p { color: #4A4A6A; font-size: 14px; margin-bottom: 12px; }
+  .section p:last-child { margin-bottom: 0; }
+
+  /* Problem cards */
+  .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 4px; }
+  .problem-card { background: #FFF5F5; border: 1px solid #FFD5D5; border-radius: 14px; padding: 16px 18px; }
+  .problem-card .num { font-size: 11px; font-weight: 700; color: #E53E3E; letter-spacing: 1px; margin-bottom: 6px; }
+  .problem-card h3 { font-size: 14px; font-weight: 700; color: #C53030; margin-bottom: 4px; }
+  .problem-card p { font-size: 13px; color: #742A2A; margin: 0; }
+
+  /* Layer cards */
+  .layer-grid { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+  .layer-card { border-radius: 14px; padding: 18px 20px; border: 1px solid transparent; }
+  .layer-1 { background: #F0FDF4; border-color: #BBF7D0; }
+  .layer-2 { background: #EFF6FF; border-color: #BFDBFE; }
+  .layer-3 { background: #FFF7ED; border-color: #FED7AA; }
+  .layer-card .layer-tag { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+  .layer-1 .layer-tag { color: #16A34A; }
+  .layer-2 .layer-tag { color: #2563EB; }
+  .layer-3 .layer-tag { color: #D97706; }
+  .layer-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .layer-1 h3 { color: #166534; }
+  .layer-2 h3 { color: #1E40AF; }
+  .layer-3 h3 { color: #92400E; }
+  .layer-card p { font-size: 13px; margin: 0; }
+  .layer-1 p { color: #166534; }
+  .layer-2 p { color: #1E40AF; }
+  .layer-3 p { color: #92400E; }
+  .layer-card code { background: rgba(0,0,0,0.07); border-radius: 4px; padding: 1px 5px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; }
+
+  /* Status table */
+  .status-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .status-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6B6B8A; padding: 0 16px 10px; }
+  .status-table td { padding: 10px 16px; font-size: 14px; border-top: 1px solid #F0F0FA; }
+  .status-table tr:first-child td { border-top: none; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+  .dot-green { background: #22C55E; }
+  .dot-red { background: #EF4444; }
+  .dot-yellow { background: #EAB308; }
+
+  /* Word preview */
+  .word-preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; direction: rtl; justify-content: center; background: #F8F7FF; border-radius: 14px; padding: 20px; }
+  .word-chip { padding: 8px 16px; border-radius: 10px; font-size: 18px; font-weight: 700; border: 2px solid transparent; }
+  .word-green { background: #DCFCE7; border-color: #86EFAC; color: #166534; }
+  .word-red { background: #FEE2E2; border-color: #FCA5A5; color: #991B1B; }
+  .word-yellow { background: #FEF9C3; border-color: #FDE047; color: #854D0E; }
+  .word-label { font-size: 10px; font-weight: 700; display: block; text-align: center; margin-top: 2px; letter-spacing: 0.5px; }
+
+  /* Flow diagram */
+  .flow { display: flex; flex-direction: column; gap: 0; margin-top: 8px; }
+  .flow-step { display: flex; align-items: flex-start; gap: 16px; }
+  .flow-line { display: flex; flex-direction: column; align-items: center; }
+  .flow-dot { width: 32px; height: 32px; border-radius: 50%; background: #6C5CE7; color: white; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .flow-connector { width: 2px; height: 24px; background: #D4D0FF; margin: 2px auto; }
+  .flow-content { padding-top: 4px; padding-bottom: 20px; }
+  .flow-content h4 { font-size: 14px; font-weight: 700; color: #1A1A2E; margin-bottom: 3px; }
+  .flow-content p { font-size: 13px; color: #6B6B8A; margin: 0; }
+  .flow-content code { background: #F0EEFF; color: #6C5CE7; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; }
+
+  /* Files table */
+  .files-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .files-table th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6B6B8A; padding: 0 14px 10px; }
+  .files-table td { padding: 10px 14px; font-size: 13px; border-top: 1px solid #F0F0FA; vertical-align: top; }
+  .files-table tr:first-child td { border-top: none; }
+  .file-path { font-family: 'SF Mono', Menlo, monospace; font-size: 12px; color: #6C5CE7; background: #F0EEFF; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+  .change-tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
+  .tag-py { background: #FEF9C3; color: #854D0E; }
+  .tag-mobile { background: #DBEAFE; color: #1E40AF; }
+
+  /* Scoring */
+  .scoring-box { background: #F8F7FF; border: 1px solid #D4D0FF; border-radius: 14px; padding: 18px 20px; margin-top: 4px; }
+  .scoring-formula { font-family: 'SF Mono', Menlo, monospace; font-size: 13px; color: #4A4A6A; line-height: 2; }
+  .scoring-formula span { color: #6C5CE7; font-weight: 700; }
+
+  /* Deps */
+  .dep-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .dep-chip { background: #F0EEFF; border: 1px solid #D4D0FF; border-radius: 8px; padding: 5px 12px; font-size: 12px; font-family: 'SF Mono', Menlo, monospace; color: #4A4A6A; }
+  .dep-chip.new { background: #DCFCE7; border-color: #86EFAC; color: #166534; font-weight: 700; }
+  .dep-chip.new::before { content: '+ '; }
+
+  /* Out of scope */
+  .oos-list { list-style: none; margin-top: 8px; }
+  .oos-list li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #6B6B8A; padding: 6px 0; border-top: 1px solid #F0F0FA; }
+  .oos-list li:first-child { border-top: none; }
+  .oos-list li::before { content: '✕'; color: #CBD5E0; font-weight: 700; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-tag">Design Spec · 2026-05-16</div>
+  <h1>Tilawah AI Improvement</h1>
+  <p>Meningkatkan akurasi evaluasi tilawah & hafalan dengan upgrade model Whisper, sequence alignment, dan deteksi mad (panjang pendek) berbasis word timestamps.</p>
+  <div class="hero-meta">
+    <span class="badge">Python Sidecar Only</span>
+    <span class="badge">No API Change</span>
+    <span class="badge">No DB Change</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Problem -->
+  <div class="section">
+    <div class="section-label">Masalah</div>
+    <h2>Tiga Root Cause</h2>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="num">MASALAH 1</div>
+        <h3>Model Terlalu Kecil</h3>
+        <p><code>whisper-base</code> (74M params) sering salah transkripsi, terutama ayat dengan harakat kompleks.</p>
+      </div>
+      <div class="problem-card">
+        <div class="num">MASALAH 2</div>
+        <h3>Algoritma Naif</h3>
+        <p>Perbandingan posisional: satu kata salah membuat semua kata setelahnya ikut dianggap salah.</p>
+      </div>
+      <div class="problem-card">
+        <div class="num">MASALAH 3</div>
+        <h3>Tajweed Heuristik</h3>
+        <p>Analisis mad hanya berdasarkan durasi total rekaman. Tidak akurat dan tidak bisa menunjuk kata mana yang salah.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="section">
+    <div class="section-label">Arsitektur</div>
+    <h2>Tiga Lapis Perbaikan</h2>
+    <div class="layer-grid">
+      <div class="layer-card layer-1">
+        <div class="layer-tag">Layer 1 · Transkripsi</div>
+        <h3>Upgrade Model + stable-whisper</h3>
+        <p>Ganti <code>whisper-base-ar-quran</code> (74M) → <code>whisper-small-ar-quran</code> (244M). Pakai library <code>stable-ts</code> yang mengekstrak word-level timestamps dari attention map Whisper — tanpa model tambahan.</p>
+      </div>
+      <div class="layer-card layer-2">
+        <div class="layer-tag">Layer 2 · Word Matching</div>
+        <h3>Sequence Alignment (difflib)</h3>
+        <p>Ganti loop positional dengan <code>difflib.SequenceMatcher</code>. Handles insertions, deletions, reorderings — satu kata salah tidak merusak penilaian kata setelahnya.</p>
+      </div>
+      <div class="layer-card layer-3">
+        <div class="layer-tag">Layer 3 · Tajweed</div>
+        <h3>Deteksi Mad per Kata</h3>
+        <p>Fungsi <code>detect_mad_errors()</code> baru: identifikasi kata dengan mad pattern dari expected text, bandingkan durasi aktual vs threshold (2/4/6 harakat). Hasil: status <code>mad_short</code> per kata.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Word Status -->
+  <div class="section">
+    <div class="section-label">Word Results</div>
+    <h2>Status & Warna Per Kata</h2>
+    <table class="status-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Warna</th>
+          <th>Makna</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>correct</code></td>
+          <td><span class="dot dot-green"></span> Hijau</td>
+          <td>Kata benar, mad cukup</td>
+        </tr>
+        <tr>
+          <td><code>wrong</code></td>
+          <td><span class="dot dot-red"></span> Merah</td>
+          <td>Kata salah diucapkan</td>
+        </tr>
+        <tr>
+          <td><code>missing</code></td>
+          <td><span class="dot dot-red"></span> Merah</td>
+          <td>Kata tidak diucapkan</td>
+        </tr>
+        <tr>
+          <td><code>mad_short</code></td>
+          <td><span class="dot dot-yellow"></span> Kuning</td>
+          <td>Kata benar tapi mad terlalu pendek</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="word-preview">
+      <div>
+        <span class="word-chip word-green">قُلْ</span>
+        <span class="word-label" style="color:#16A34A">✓ Benar</span>
+      </div>
+      <div>
+        <span class="word-chip word-green">هُوَ</span>
+        <span class="word-label" style="color:#16A34A">✓ Benar</span>
+      </div>
+      <div>
+        <span class="word-chip word-red">اللَّهُ</span>
+        <span class="word-label" style="color:#991B1B">✗ Salah</span>
+      </div>
+      <div>
+        <span class="word-chip word-yellow">أَحَدٌ</span>
+        <span class="word-label" style="color:#854D0E">⚠ Mad pendek</span>
+      </div>
+    </div>
+    <p style="text-align:center; font-size:12px; color:#9CA3AF; margin-top:12px;">Contoh tampilan kata pada screen tilawah/hafalan</p>
+  </div>
+
+  <!-- Data Flow -->
+  <div class="section">
+    <div class="section-label">Data Flow</div>
+    <h2>End-to-End Pipeline</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">1</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>Mobile → POST /evaluate</h4>
+          <p><code>audio_base64</code> + <code>expected_text</code> + <code>verse_number</code> + <code>chapter_id</code></p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">2</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>stable-whisper transcribe</h4>
+          <p>Output: <code>transcription</code> + <code>word_timestamps[]</code> (start, end per kata)</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">3</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>compare_texts (difflib)</h4>
+          <p>Output: <code>word_results[]</code> dengan status <code>correct / wrong / missing</code></p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">4</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>detect_mad_errors</h4>
+          <p>Update status kata yang mad-nya pendek → <code>mad_short</code></p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">5</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>Hitung score & feedback</h4>
+          <p>Formula scoring baru, buat list tajweed feedback</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-line">
+          <div class="flow-dot">6</div>
+        </div>
+        <div class="flow-content">
+          <h4>Return response</h4>
+          <p><code>{ transcription, word_results, word_accuracy, tajweed_score, score, feedback[] }</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scoring -->
+  <div class="section">
+    <div class="section-label">Scoring</div>
+    <h2>Formula Penilaian Baru</h2>
+    <div class="scoring-box">
+      <div class="scoring-formula">
+        tajweed_score = <span>100 − (jumlah mad_short × 10)</span>, min 50<br>
+        completeness = <span>100</span> jika tidak ada <code>missing</code>, <span>70</span> jika ada<br><br>
+        score = <span>word_accuracy × 0.60</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + <span>tajweed_score × 0.25</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; + <span>completeness × 0.15</span>
+      </div>
+    </div>
+    <p style="margin-top:12px; font-size:13px; color:#6B6B8A;">Tajweed score kini berbasis data nyata (mad_short count) — bukan heuristik durasi total rekaman.</p>
+  </div>
+
+  <!-- Files -->
+  <div class="section">
+    <div class="section-label">Files Changed</div>
+    <h2>Yang Diubah</h2>
+    <table class="files-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Perubahan</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="change-tag tag-py">Python</span><br><span class="file-path">backend/python/tilawah_service.py</span></td>
+          <td>Ganti model ke whisper-small, pakai stable-whisper, teruskan word timestamps ke tajweed engine</td>
+        </tr>
+        <tr>
+          <td><span class="change-tag tag-py">Python</span><br><span class="file-path">backend/python/tajweed_engine.py</span></td>
+          <td>Upgrade compare_texts() ke difflib, tambah detect_mad_errors() baru, refactor analyze_tajweed()</td>
+        </tr>
+        <tr>
+          <td><span class="change-tag tag-py">Python</span><br><span class="file-path">backend/python/requirements.txt</span></td>
+          <td>Ganti transformers → stable-ts≥2.17</td>
+        </tr>
+        <tr>
+          <td><span class="change-tag tag-mobile">Mobile</span><br><span class="file-path">mobile/app/(child)/tilawah/[id].tsx</span></td>
+          <td>Tambah warna kuning untuk status mad_short di WordResultRow</td>
+        </tr>
+        <tr>
+          <td><span class="change-tag tag-mobile">Mobile</span><br><span class="file-path">mobile/app/(child)/hafalan/[id].tsx</span></td>
+          <td>Sama — tambah warna kuning untuk mad_short</td>
+        </tr>
+        <tr>
+          <td><span class="change-tag tag-mobile">Mobile</span><br><span class="file-path">mobile/app/(child)/tilawah/result.tsx</span></td>
+          <td>Tambah section "Catatan Tajweed" dari tajweed_feedback server</td>
+        </tr>
+        <tr>
+          <td><span class="change-tag tag-mobile">Mobile</span><br><span class="file-path">mobile/app/(child)/hafalan/result.tsx</span></td>
+          <td>Sama — tambah section "Catatan Tajweed"</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Dependencies -->
+  <div class="section">
+    <div class="section-label">Dependencies</div>
+    <h2>Python Packages</h2>
+    <div class="dep-list">
+      <span class="dep-chip new">stable-ts≥2.17</span>
+      <span class="dep-chip">torch≥2.0</span>
+      <span class="dep-chip">av</span>
+      <span class="dep-chip">fastapi</span>
+      <span class="dep-chip">uvicorn</span>
+      <span class="dep-chip">numpy</span>
+      <span class="dep-chip">pydantic</span>
+    </div>
+    <p style="margin-top:12px; font-size:13px; color:#6B6B8A;"><code>stable-ts</code> menggantikan penggunaan langsung <code>transformers</code>. Model weights didownload dari HuggingFace saat first run (~500MB untuk whisper-small).</p>
+  </div>
+
+  <!-- Out of Scope -->
+  <div class="section">
+    <div class="section-label">Out of Scope</div>
+    <h2>Tidak Termasuk</h2>
+    <ul class="oos-list">
+      <li>Deteksi ghunnah berbasis audio (butuh phoneme-level model terpisah)</li>
+      <li>Perubahan Node/Fastify backend</li>
+      <li>Perubahan Prisma schema atau database</li>
+      <li>Perubahan mobile navigation atau UI layout</li>
+      <li>API eksternal berbayar (Gemini, OpenAI, dll)</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

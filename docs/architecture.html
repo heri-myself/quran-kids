@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arsitektur — Quran Kids</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #7c6ff1;
+      --accent2: #06b6d4;
+      --accent3: #10b981;
+      --accent4: #f59e0b;
+      --accent5: #ef4444;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --code-bg: #12151e;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 0 0 80px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1a1d27 0%, #0f1117 60%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 40px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -80px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(124,111,241,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #fff 30%, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+    .hero p { color: var(--muted); font-size: 15px; max-width: 600px; }
+
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+    /* ── Section ── */
+    .section { margin-top: 56px; }
+    .section-title {
+      font-size: 20px; font-weight: 700;
+      color: #fff;
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Service Cards ── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .service-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: border-color .2s, transform .2s;
+    }
+    .service-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .service-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 14px;
+    }
+    .service-card h3 { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .service-card .port {
+      font-size: 11px; font-weight: 600;
+      background: rgba(124,111,241,.15);
+      color: var(--accent);
+      padding: 2px 8px; border-radius: 20px;
+      display: inline-block; margin-bottom: 10px;
+    }
+    .service-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .tag {
+      font-size: 10px; font-weight: 600;
+      padding: 3px 8px; border-radius: 6px;
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Flow Diagram ── */
+    .flow-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+    }
+    .flow-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .flow-node {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .flow-node.mobile  { border-color: #06b6d4; color: #06b6d4; }
+    .flow-node.backend { border-color: #7c6ff1; color: #7c6ff1; }
+    .flow-node.python  { border-color: #f59e0b; color: #f59e0b; }
+    .flow-node.db      { border-color: #10b981; color: #10b981; }
+    .flow-node.admin   { border-color: #f472b6; color: #f472b6; }
+
+    .flow-arrow {
+      padding: 0 10px;
+      color: var(--muted);
+      font-size: 18px;
+      font-weight: 300;
+    }
+    .flow-label {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      margin: 0 6px;
+    }
+
+    .flow-section { margin-bottom: 28px; }
+    .flow-section-title {
+      font-size: 12px; font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── API Table ── */
+    .api-table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 10px 16px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+    tbody tr:hover { background: rgba(255,255,255,.03); }
+    tbody td { padding: 10px 16px; color: var(--text); vertical-align: top; }
+    .method {
+      font-family: monospace; font-weight: 700; font-size: 11px;
+      padding: 2px 8px; border-radius: 5px;
+      display: inline-block;
+    }
+    .method.GET  { background: rgba(16,185,129,.15); color: #10b981; }
+    .method.POST { background: rgba(124,111,241,.15); color: #a5b4fc; }
+    .method.PUT  { background: rgba(245,158,11,.15);  color: #f59e0b; }
+    .method.DELETE { background: rgba(239,68,68,.15); color: #f87171; }
+    .route-path { font-family: monospace; color: var(--muted); font-size: 12px; }
+    .auth-badge {
+      font-size: 10px; font-weight: 600;
+      background: rgba(245,158,11,.1);
+      color: #f59e0b; border: 1px solid rgba(245,158,11,.3);
+      padding: 2px 6px; border-radius: 4px;
+    }
+
+    /* ── DB Schema ── */
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .db-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .db-card-header {
+      background: var(--surface2);
+      padding: 12px 16px;
+      font-size: 13px; font-weight: 700;
+      color: #fff;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .db-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .db-field {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      font-size: 12px;
+    }
+    .db-field:last-child { border-bottom: none; }
+    .field-name { color: var(--text); font-family: monospace; }
+    .field-name.pk { color: var(--accent); font-weight: 700; }
+    .field-name.fk { color: #06b6d4; }
+    .field-type { color: var(--muted); font-size: 11px; font-family: monospace; }
+
+    /* ── AI Pipeline ── */
+    .pipeline {
+      display: flex;
+      gap: 0;
+      align-items: stretch;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .pipeline-step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 18px;
+      min-width: 160px;
+      flex: 1;
+      position: relative;
+    }
+    .pipeline-step + .pipeline-step {
+      margin-left: -1px;
+      border-left: none;
+      border-radius: 0 12px 12px 0;
+    }
+    .pipeline-step:first-child { border-radius: 12px 0 0 12px; }
+    .pipeline-step:last-child { border-radius: 0 12px 12px 0; }
+
+    .step-num {
+      font-size: 10px; font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .step-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .step-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+    .step-tech {
+      margin-top: 10px;
+      font-size: 10px; font-weight: 600;
+      color: var(--accent4);
+      background: rgba(245,158,11,.08);
+      border: 1px solid rgba(245,158,11,.2);
+      padding: 2px 8px; border-radius: 5px;
+      display: inline-block;
+    }
+
+    /* ── Scoring ── */
+    .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .score-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .score-weight { font-size: 32px; font-weight: 900; margin-bottom: 6px; }
+    .score-card h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .score-card p { font-size: 11px; color: var(--muted); }
+
+    /* ── Gamification ── */
+    .gamif-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+    .gamif-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .gamif-card h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .gamif-card p { font-size: 12px; color: var(--muted); }
+
+    /* ── Code block ── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      color: #c9d1d9;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+    .kw { color: #ff7b72; }
+    .str { color: #a5d6ff; }
+    .num { color: #79c0ff; }
+    .cm { color: #8b949e; font-style: italic; }
+    .fn { color: #d2a8ff; }
+
+    /* ── Mad detection detail ── */
+    .mad-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .mad-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .mad-card h4 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+
+    .word-badge {
+      display: inline-block;
+      font-family: monospace;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      margin: 4px;
+    }
+    .word-correct  { background: rgba(16,185,129,.15); color: #10b981; border: 1px solid rgba(16,185,129,.3); }
+    .word-wrong    { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+    .word-missing  { background: rgba(148,163,184,.08); color: #94a3b8; border: 1px dashed #475569; }
+    .word-mad      { background: rgba(234,179,8,.15);  color: #fbbf24; border: 1px solid rgba(234,179,8,.3); }
+
+    /* ── Tech Stack ── */
+    .stack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .stack-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .stack-icon { font-size: 22px; }
+    .stack-item h4 { font-size: 13px; font-weight: 700; color: #fff; }
+    .stack-item p { font-size: 11px; color: var(--muted); }
+
+    hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+
+    @media (max-width: 700px) {
+      .hero { padding: 40px 20px 32px; }
+      .container { padding: 0 20px; }
+      .score-grid { grid-template-columns: 1fr; }
+      .mad-grid { grid-template-columns: 1fr; }
+      .pipeline { flex-direction: column; }
+      .pipeline-step { min-width: 0; }
+      .pipeline-step + .pipeline-step { margin-left: 0; margin-top: -1px; border-left: 1px solid var(--border); border-top: none; border-radius: 0 0 12px 12px; }
+      .pipeline-step:first-child { border-radius: 12px 12px 0 0; }
+      .pipeline-step:last-child { border-radius: 0 0 12px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-label">Quran Kids · Technical Documentation</div>
+    <h1>Arsitektur Sistem</h1>
+    <p>Dokumentasi lengkap arsitektur monorepo, alur data, skema database, API endpoints, dan pipeline AI Tilawah &amp; Hafalan.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ══════════════════ OVERVIEW SERVICES ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Layanan &amp; Infrastruktur</div>
+    <div class="services-grid">
+
+      <div class="service-card">
+        <div class="service-icon" style="background:rgba(6,182,212,.12)">📱</div>
+        <h3>Mobile App</h3>
+        <span class="port">Port 8081</span>
+        <p>Aplikasi anak untuk Tilawah, Hafalan, Kisah Nabi, Quran, Stories, dan Gamifikasi.</p>
+        <div class="tag-list">
+          <span class="tag">Expo SDK 52</span>
+          <span class="tag">React Native</span>
+          <span class="tag">Expo Router</span>
+          <span class="tag">Zustand</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon" style="background:rgba(124,111,241,.12)">⚡</div>
+        <h3>Backend API</h3>
+        <span class="port">Port 3000</span>
+        <p>REST API utama — auth, profil, tilawah, hafalan, stories, gamifikasi, subscription.</p>
+        <div class="tag-list">
+          <span class="tag">Fastify</span>
+          <span class="tag">Prisma ORM</span>
+          <span class="tag">PostgreSQL</span>
+          <span class="tag">JWT</span>
+          <span class="tag">Zod</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon" style="background:rgba(245,158,11,.12)">🐍</div>
+        <h3>Python Sidecar</h3>
+        <span class="port">Port 8001</span>
+        <p>ASR &amp; tajweed engine — transkripsi audio Quran, komparasi kata, deteksi mad.</p>
+        <div class="tag-list">
+          <span class="tag">FastAPI</span>
+          <span class="tag">stable-whisper</span>
+          <span class="tag">Whisper large-v3-turbo</span>
+          <span class="tag">difflib</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon" style="background:rgba(244,114,182,.12)">🛠️</div>
+        <h3>Admin Panel</h3>
+        <span class="port">Port 4000</span>
+        <p>Dashboard manajemen konten — kelola Stories, halaman, cover image, publikasi.</p>
+        <div class="tag-list">
+          <span class="tag">Next.js 15</span>
+          <span class="tag">Turbopack</span>
+          <span class="tag">shadcn/ui</span>
+          <span class="tag">TanStack Query</span>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon" style="background:rgba(16,185,129,.12)">🗄️</div>
+        <h3>Database</h3>
+        <span class="port">PostgreSQL</span>
+        <p>Penyimpanan data persisten — user, profil, sesi tilawah/hafalan, gamifikasi, badge.</p>
+        <div class="tag-list">
+          <span class="tag">PostgreSQL 16</span>
+          <span class="tag">Prisma Migrate</span>
+          <span class="tag">CUID IDs</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════ ALUR DATA ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Alur Data</div>
+    <div class="flow-box">
+
+      <div class="flow-section">
+        <div class="flow-section-title">🎙️ Tilawah / Hafalan — Evaluasi Ayat</div>
+        <div class="flow-row">
+          <span class="flow-node mobile">📱 Mobile</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">rekam audio (expo-av)</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node mobile">base64 audio</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">POST /tilawah/evaluate</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node backend">⚡ Backend</span>
+        </div>
+        <div class="flow-row" style="margin-top:8px; padding-left:24px">
+          <span class="flow-arrow">↓</span>
+          <span class="flow-label" style="margin:0 12px">proxy &amp; forward</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">POST :8001/evaluate</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node python">🐍 Python</span>
+        </div>
+        <div class="flow-row" style="margin-top:8px; padding-left:80px">
+          <span class="flow-node python">Whisper large-v3-turbo</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">transkripsi + word timestamps</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node python">Tajweed Engine</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">score, word_results, feedback</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node mobile">📱 tampil per ayat</span>
+        </div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-section-title">💾 Simpan Sesi (setelah semua ayat selesai)</div>
+        <div class="flow-row">
+          <span class="flow-node mobile">📱 Result Screen</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">POST /tilawah/session (JWT)</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node backend">⚡ Backend</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">INSERT TilawahSession + Verses</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node db">🗄️ PostgreSQL</span>
+        </div>
+        <div class="flow-row" style="margin-top:8px; padding-left:24px">
+          <span class="flow-node backend">⚡ Backend</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">UPDATE Gamification (poin, streak, level)</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node db">🗄️ PostgreSQL</span>
+        </div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-section-title">📚 Stories &amp; Konten</div>
+        <div class="flow-row">
+          <span class="flow-node admin">🛠️ Admin</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">CRUD Story / Pages</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node backend">⚡ Backend</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node db">🗄️ PostgreSQL</span>
+        </div>
+        <div class="flow-row" style="margin-top:8px">
+          <span class="flow-node mobile">📱 Mobile</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">GET /stories</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node backend">⚡ Backend</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">query</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node db">🗄️ PostgreSQL</span>
+        </div>
+      </div>
+
+      <div class="flow-section" style="margin-bottom:0">
+        <div class="flow-section-title">🔐 Autentikasi</div>
+        <div class="flow-row">
+          <span class="flow-node mobile">📱 Login/Register</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">POST /auth/login</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node backend">JWT (7d)</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-label">simpan di SecureStore</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node mobile">Bearer token setiap request</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════ AI PIPELINE ══════════════════ -->
+  <div class="section">
+    <div class="section-title">AI Pipeline — Tilawah &amp; Hafalan</div>
+    <div class="pipeline">
+      <div class="pipeline-step">
+        <div class="step-num">Step 1</div>
+        <div class="step-title">Rekam Audio</div>
+        <div class="step-desc">User membaca ayat, Expo Audio merekam dalam format HIGH_QUALITY. File dibaca sebagai base64 string.</div>
+        <span class="step-tech">expo-av</span>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">Step 2</div>
+        <div class="step-title">Backend Proxy</div>
+        <div class="step-desc">Fastify menerima request, validasi dengan Zod, lalu forward ke Python sidecar di port 8001.</div>
+        <span class="step-tech">Fastify + Zod</span>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">Step 3</div>
+        <div class="step-title">Transkripsi ASR</div>
+        <div class="step-desc">stable-whisper menjalankan Whisper large-v3-turbo dengan <code>word_timestamps=True</code>, menghasilkan teks Arab + timestamp per kata.</div>
+        <span class="step-tech">Whisper large-v3-turbo</span>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">Step 4</div>
+        <div class="step-title">Komparasi Kata</div>
+        <div class="step-desc">difflib SequenceMatcher membandingkan teks expected vs transkripsi (setelah strip harakat). Menghasilkan status: correct / wrong / missing.</div>
+        <span class="step-tech">difflib</span>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">Step 5</div>
+        <div class="step-title">Deteksi Mad</div>
+        <div class="step-desc">Kata "correct" yang mengandung pola mad dicek durasi via word timestamp. Jika &lt; 0.35 detik → status <em>mad_short</em>.</div>
+        <span class="step-tech">Tajweed Engine</span>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">Step 6</div>
+        <div class="step-title">Scoring</div>
+        <div class="step-desc">Skor final: 60% word accuracy + 25% tajweed score + 15% completeness. Dikirim ke mobile untuk ditampilkan.</div>
+        <span class="step-tech">Python</span>
+      </div>
+    </div>
+
+    <!-- Scoring detail -->
+    <div style="margin-top:24px">
+      <div class="score-grid">
+        <div class="score-card">
+          <div class="score-weight" style="color:#7c6ff1">60%</div>
+          <h4>Word Accuracy</h4>
+          <p>Persentase kata yang benar dari total kata yang diharapkan (status "correct" atau "mad_short")</p>
+        </div>
+        <div class="score-card">
+          <div class="score-weight" style="color:#f59e0b">25%</div>
+          <h4>Tajweed Score</h4>
+          <p>Dimulai dari 100, dikurangi 10 per kata mad_short. Minimal 50. Mengukur panjang-pendek bacaan.</p>
+        </div>
+        <div class="score-card">
+          <div class="score-weight" style="color:#10b981">15%</div>
+          <h4>Completeness</h4>
+          <p>100 jika tidak ada kata missing (tidak dibaca), 70 jika ada kata yang dilewati.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word status legend -->
+    <div style="margin-top:24px" class="mad-grid">
+      <div class="mad-card">
+        <h4>Status Kata &amp; Warna di UI</h4>
+        <div style="margin-top:8px">
+          <span class="word-badge word-correct">بِسْمِ</span>
+          <span style="font-size:12px; color:var(--muted); margin-right:12px">correct — hijau</span>
+          <span class="word-badge word-wrong">اللَّهِ</span>
+          <span style="font-size:12px; color:var(--muted); margin-right:12px">wrong — merah</span>
+        </div>
+        <div style="margin-top:6px">
+          <span class="word-badge word-missing">الرَّحِيمِ</span>
+          <span style="font-size:12px; color:var(--muted); margin-right:12px">missing — abu-abu dashed</span>
+          <span class="word-badge word-mad">الرَّحْمَٰنِ</span>
+          <span style="font-size:12px; color:var(--muted)">mad_short — kuning</span>
+        </div>
+      </div>
+      <div class="mad-card">
+        <h4>Pola Mad yang Dideteksi</h4>
+        <div style="margin-top:8px; font-size:12px; color:var(--muted); line-height:2">
+          <span class="word-badge word-mad" style="font-size:12px">فَا</span> Fathah + Alef<br/>
+          <span class="word-badge word-mad" style="font-size:12px">فَى</span> Fathah + Alef Maqsurah<br/>
+          <span class="word-badge word-mad" style="font-size:12px">فَٰ</span> Fathah + Superscript Alef (U+0670)<br/>
+          <span class="word-badge word-mad" style="font-size:12px">فِي</span> Kasrah + Ya<br/>
+          <span class="word-badge word-mad" style="font-size:12px">فُو</span> Dammah + Waw
+        </div>
+      </div>
+    </div>
+
+    <!-- Normalisasi note -->
+    <div style="margin-top:20px">
+      <pre><span class="cm"># normalize_arabic — strip harakat sebelum komparasi</span>
+<span class="kw">def</span> <span class="fn">normalize_arabic</span>(text: str) -> str:
+    <span class="cm"># includes superscript alef (U+0670) which Whisper doesn't produce</span>
+    harakat = <span class="str">'ًٌٍَُِّْٰٕٓٔ'</span>
+    <span class="kw">return</span> <span class="str">''</span>.join(c <span class="kw">for</span> c <span class="kw">in</span> text <span class="kw">if</span> c <span class="kw">not in</span> harakat)
+
+<span class="cm"># contoh:</span>
+<span class="cm"># "الرَّحْمَٰنِ" → "الرحمن"  (match dengan transkripsi Whisper)</span>
+<span class="cm"># "الرَّحِيمِ"  → "الرحيم"</span></pre>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ══════════════════ API ENDPOINTS ══════════════════ -->
+  <div class="section">
+    <div class="section-title">API Endpoints (Backend :3000)</div>
+    <div class="api-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th>Auth</th>
+            <th>Deskripsi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/auth/register</td>
+            <td>—</td>
+            <td>Daftar akun orang tua baru, auto-buat profil parent</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/auth/login</td>
+            <td>—</td>
+            <td>Login, return JWT (7 hari)</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/auth/refresh</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Refresh access token</td>
+          </tr>
+          <tr>
+            <td><span class="method GET">GET</span></td>
+            <td class="route-path">/profiles</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Daftar profil anak milik user yang login</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/profiles</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Buat profil anak baru</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/tilawah/evaluate</td>
+            <td>—</td>
+            <td>Evaluasi satu ayat — proxy ke Python sidecar, return score + word results</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/tilawah/session</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Simpan sesi tilawah selesai + update poin/streak gamifikasi</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/hafalan/session</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Simpan sesi hafalan selesai + update poin/streak gamifikasi</td>
+          </tr>
+          <tr>
+            <td><span class="method GET">GET</span></td>
+            <td class="route-path">/stories</td>
+            <td>—</td>
+            <td>Daftar cerita yang dipublikasikan (filter by category, premium)</td>
+          </tr>
+          <tr>
+            <td><span class="method GET">GET</span></td>
+            <td class="route-path">/stories/:slug</td>
+            <td>—</td>
+            <td>Detail cerita beserta semua halaman</td>
+          </tr>
+          <tr>
+            <td><span class="method GET">GET</span></td>
+            <td class="route-path">/progress/:profileId</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Progress membaca, gamifikasi, badge profil anak</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/progress/reading</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Update progress halaman cerita yang sedang dibaca</td>
+          </tr>
+          <tr>
+            <td><span class="method GET">GET</span></td>
+            <td class="route-path">/subscription</td>
+            <td><span class="auth-badge">JWT</span></td>
+            <td>Status subscription user (active / expired)</td>
+          </tr>
+          <tr>
+            <td><span class="method GET">GET</span></td>
+            <td class="route-path">/admin/stories</td>
+            <td><span class="auth-badge">JWT admin</span></td>
+            <td>Daftar semua cerita (admin)</td>
+          </tr>
+          <tr>
+            <td><span class="method POST">POST</span></td>
+            <td class="route-path">/admin/stories</td>
+            <td><span class="auth-badge">JWT admin</span></td>
+            <td>Buat cerita baru</td>
+          </tr>
+          <tr>
+            <td><span class="method PUT">PUT</span></td>
+            <td class="route-path">/admin/stories/:id</td>
+            <td><span class="auth-badge">JWT admin</span></td>
+            <td>Edit cerita (judul, kategori, cover, status publikasi)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:20px">
+      <div class="section-title" style="font-size:16px; margin-bottom:12px">Python Sidecar Endpoints (:8001)</div>
+      <div class="api-table-wrap">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Endpoint</th><th>Deskripsi</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="method GET">GET</span></td>
+              <td class="route-path">/health</td>
+              <td>Health check — return <code>{"status":"ok"}</code></td>
+            </tr>
+            <tr>
+              <td><span class="method POST">POST</span></td>
+              <td class="route-path">/evaluate</td>
+              <td>Terima <code>audio_base64 + expected_text</code>, return transkripsi, word_results, score, tajweed_score, feedback</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ══════════════════ DATABASE SCHEMA ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Skema Database</div>
+    <div class="db-grid">
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#7c6ff1"></span>
+          User
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name">email</span><span class="field-type">String UNIQUE</span></div>
+        <div class="db-field"><span class="field-name">passwordHash</span><span class="field-type">String</span></div>
+        <div class="db-field"><span class="field-name">role</span><span class="field-type">parent|child|admin</span></div>
+        <div class="db-field"><span class="field-name fk">profiles[]</span><span class="field-type">→ Profile</span></div>
+        <div class="db-field"><span class="field-name fk">subscription?</span><span class="field-type">→ Subscription</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#06b6d4"></span>
+          Profile
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name fk">userId</span><span class="field-type">→ User</span></div>
+        <div class="db-field"><span class="field-name">name</span><span class="field-type">String</span></div>
+        <div class="db-field"><span class="field-name">avatar</span><span class="field-type">String</span></div>
+        <div class="db-field"><span class="field-name">age</span><span class="field-type">Int?</span></div>
+        <div class="db-field"><span class="field-name">role</span><span class="field-type">parent|child|admin</span></div>
+        <div class="db-field"><span class="field-name fk">parentId?</span><span class="field-type">→ Profile (self)</span></div>
+        <div class="db-field"><span class="field-name fk">gamification?</span><span class="field-type">→ Gamification</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#10b981"></span>
+          Gamification
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name fk">profileId</span><span class="field-type">→ Profile UNIQUE</span></div>
+        <div class="db-field"><span class="field-name">totalPoints</span><span class="field-type">Int default 0</span></div>
+        <div class="db-field"><span class="field-name">currentLevel</span><span class="field-type">Int default 1</span></div>
+        <div class="db-field"><span class="field-name">currentStreak</span><span class="field-type">Int default 0</span></div>
+        <div class="db-field"><span class="field-name">lastReadAt</span><span class="field-type">DateTime?</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#f59e0b"></span>
+          TilawahSession
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name fk">profileId</span><span class="field-type">→ Profile</span></div>
+        <div class="db-field"><span class="field-name">chapterId</span><span class="field-type">Int (1-114)</span></div>
+        <div class="db-field"><span class="field-name">totalScore</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">stars</span><span class="field-type">Int (1-3)</span></div>
+        <div class="db-field"><span class="field-name">pointsEarned</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name fk">verses[]</span><span class="field-type">→ TilawahVerseResult</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#f59e0b"></span>
+          TilawahVerseResult
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name fk">sessionId</span><span class="field-type">→ TilawahSession</span></div>
+        <div class="db-field"><span class="field-name">verseNumber</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">score</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">wordAccuracy</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">tajweedScore</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">feedback</span><span class="field-type">Json</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#a78bfa"></span>
+          HafalanSession
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name fk">profileId</span><span class="field-type">→ Profile</span></div>
+        <div class="db-field"><span class="field-name">chapterId</span><span class="field-type">Int (1-114)</span></div>
+        <div class="db-field"><span class="field-name">totalVerses</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">avgScore</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">pointsEarned</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name fk">verses[]</span><span class="field-type">→ HafalanVerseResult</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#a78bfa"></span>
+          HafalanVerseResult
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name fk">sessionId</span><span class="field-type">→ HafalanSession</span></div>
+        <div class="db-field"><span class="field-name">verseNumber</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">score</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name">wordResults</span><span class="field-type">Json</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#f472b6"></span>
+          Story
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name">title</span><span class="field-type">String</span></div>
+        <div class="db-field"><span class="field-name">slug</span><span class="field-type">String UNIQUE</span></div>
+        <div class="db-field"><span class="field-name">category</span><span class="field-type">sahabat_nabi|kisah_quran|akhlaq</span></div>
+        <div class="db-field"><span class="field-name">difficultyLevel</span><span class="field-type">easy|medium|hard</span></div>
+        <div class="db-field"><span class="field-name">isPremium</span><span class="field-type">Boolean</span></div>
+        <div class="db-field"><span class="field-name">isPublished</span><span class="field-type">Boolean</span></div>
+        <div class="db-field"><span class="field-name fk">pages[]</span><span class="field-type">→ StoryPage</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#34d399"></span>
+          Badge &amp; UserBadge
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name">name</span><span class="field-type">String UNIQUE</span></div>
+        <div class="db-field"><span class="field-name">requirementType</span><span class="field-type">stories_completed|streak_days|points</span></div>
+        <div class="db-field"><span class="field-name">requirementValue</span><span class="field-type">Int</span></div>
+        <div class="db-field"><span class="field-name fk">UserBadge.profileId</span><span class="field-type">→ Profile</span></div>
+        <div class="db-field"><span class="field-name">earnedAt</span><span class="field-type">DateTime</span></div>
+      </div>
+
+      <div class="db-card">
+        <div class="db-card-header">
+          <span class="db-dot" style="background:#fb923c"></span>
+          Subscription
+        </div>
+        <div class="db-field"><span class="field-name pk">id</span><span class="field-type">String (CUID)</span></div>
+        <div class="db-field"><span class="field-name fk">userId</span><span class="field-type">→ User UNIQUE</span></div>
+        <div class="db-field"><span class="field-name">plan</span><span class="field-type">monthly|yearly</span></div>
+        <div class="db-field"><span class="field-name">status</span><span class="field-type">active|expired</span></div>
+        <div class="db-field"><span class="field-name">startedAt</span><span class="field-type">DateTime</span></div>
+        <div class="db-field"><span class="field-name">expiresAt</span><span class="field-type">DateTime</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ══════════════════ GAMIFIKASI ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Sistem Gamifikasi</div>
+    <div class="gamif-grid">
+      <div class="gamif-card">
+        <h4>⭐ Poin Tilawah</h4>
+        <p>Skor 100 → +75 poin<br/>3 bintang → +50 poin<br/>2 bintang → +25 poin<br/>1 bintang → +10 poin</p>
+      </div>
+      <div class="gamif-card">
+        <h4>📖 Poin Hafalan</h4>
+        <p>Avg ≥ 90 → +50 poin<br/>Avg ≥ 70 → +30 poin<br/>Avg &lt; 70 → +15 poin</p>
+      </div>
+      <div class="gamif-card">
+        <h4>🔥 Streak Harian</h4>
+        <p>+5 poin bonus jika baca hari berturut-turut. Streak reset jika lewat 1 hari. Dicek via <code>lastReadAt</code>.</p>
+      </div>
+      <div class="gamif-card">
+        <h4>🏆 Level</h4>
+        <p>Level naik otomatis dari total poin. Dihitung oleh <code>getLevelFromPoints()</code> di backend setelah setiap sesi.</p>
+      </div>
+      <div class="gamif-card">
+        <h4>🥇 Badge</h4>
+        <p>Tipe: stories_completed, streak_days, points. Diberikan otomatis saat requirement terpenuhi.</p>
+      </div>
+      <div class="gamif-card">
+        <h4>📱 State Management</h4>
+        <p>Zustand stores: <code>useProfileStore</code>, <code>useGamificationStore</code>, <code>useLastActivityStore</code></p>
+      </div>
+    </div>
+  </div>
+
+  <hr/>
+
+  <!-- ══════════════════ TECH STACK ══════════════════ -->
+  <div class="section">
+    <div class="section-title">Tech Stack Lengkap</div>
+    <div class="stack-grid">
+      <div class="stack-item"><span class="stack-icon">📱</span><div><h4>Expo SDK 52</h4><p>React Native cross-platform</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🗂️</span><div><h4>Expo Router</h4><p>File-based routing, tab &amp; stack</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🐻</span><div><h4>Zustand</h4><p>State management mobile</p></div></div>
+      <div class="stack-item"><span class="stack-icon">⚡</span><div><h4>Fastify 4</h4><p>Backend REST API framework</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🔷</span><div><h4>Prisma ORM</h4><p>Type-safe DB access</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🐘</span><div><h4>PostgreSQL 16</h4><p>Database utama</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🔐</span><div><h4>JWT + SecureStore</h4><p>Auth &amp; token storage</p></div></div>
+      <div class="stack-item"><span class="stack-icon">✅</span><div><h4>Zod</h4><p>Schema validation backend</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🐍</span><div><h4>FastAPI</h4><p>Python sidecar framework</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🎙️</span><div><h4>Whisper large-v3-turbo</h4><p>OpenAI ASR model</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🔤</span><div><h4>stable-whisper</h4><p>Word-level timestamps</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🔀</span><div><h4>difflib</h4><p>Sequence alignment Arabic</p></div></div>
+      <div class="stack-item"><span class="stack-icon">▲</span><div><h4>Next.js 15</h4><p>Admin panel (Turbopack)</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🎨</span><div><h4>shadcn/ui</h4><p>Admin UI components</p></div></div>
+      <div class="stack-item"><span class="stack-icon">🔍</span><div><h4>TanStack Query</h4><p>Data fetching admin</p></div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:64px; text-align:center; color:var(--muted); font-size:12px; padding-bottom:40px">
+    Quran Kids · Architecture Documentation · Generated 2026-05-16
+  </div>
+
+</div>
+</body>
+</html>

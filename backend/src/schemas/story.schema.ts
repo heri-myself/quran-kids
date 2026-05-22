@@ -3,6 +3,7 @@ import { z } from 'zod'
 export const storyFilterSchema = z.object({
   category: z.enum(['sahabat_nabi', 'kisah_quran', 'akhlaq']).optional(),
   premium: z.enum(['true', 'false']).optional(),
+  featured: z.enum(['true', 'false']).optional(),
   page: z.coerce.number().default(1),
   limit: z.coerce.number().default(20),
 })
@@ -13,6 +14,7 @@ export const createStorySchema = z.object({
   category: z.enum(['sahabat_nabi', 'kisah_quran', 'akhlaq']),
   difficultyLevel: z.enum(['easy', 'medium', 'hard']).default('easy'),
   isPremium: z.boolean().default(false),
+  isFeatured: z.boolean().default(false),
 })
 
 export const createPageSchema = z.object({

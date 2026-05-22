@@ -1,0 +1,1094 @@
+[
+  {
+    "id": "alif",
+    "nama": "Alif",
+    "karakter": "ا",
+    "kategori": "nama",
+    "file": "nama/alif.mp3"
+  },
+  {
+    "id": "ba",
+    "nama": "Ba",
+    "karakter": "ب",
+    "kategori": "nama",
+    "file": "nama/ba.mp3"
+  },
+  {
+    "id": "ta",
+    "nama": "Ta",
+    "karakter": "ت",
+    "kategori": "nama",
+    "file": "nama/ta.mp3"
+  },
+  {
+    "id": "tsa",
+    "nama": "Tsa",
+    "karakter": "ث",
+    "kategori": "nama",
+    "file": "nama/tsa.mp3"
+  },
+  {
+    "id": "jim",
+    "nama": "Jim",
+    "karakter": "ج",
+    "kategori": "nama",
+    "file": "nama/jim.mp3"
+  },
+  {
+    "id": "ha",
+    "nama": "Ha",
+    "karakter": "ح",
+    "kategori": "nama",
+    "file": "nama/ha.mp3"
+  },
+  {
+    "id": "kha",
+    "nama": "Kha",
+    "karakter": "خ",
+    "kategori": "nama",
+    "file": "nama/kha.mp3"
+  },
+  {
+    "id": "dal",
+    "nama": "Dal",
+    "karakter": "د",
+    "kategori": "nama",
+    "file": "nama/dal.mp3"
+  },
+  {
+    "id": "dzal",
+    "nama": "Dzal",
+    "karakter": "ذ",
+    "kategori": "nama",
+    "file": "nama/dzal.mp3"
+  },
+  {
+    "id": "ra",
+    "nama": "Ra",
+    "karakter": "ر",
+    "kategori": "nama",
+    "file": "nama/ra.mp3"
+  },
+  {
+    "id": "zai",
+    "nama": "Zai",
+    "karakter": "ز",
+    "kategori": "nama",
+    "file": "nama/zai.mp3"
+  },
+  {
+    "id": "sin",
+    "nama": "Sin",
+    "karakter": "س",
+    "kategori": "nama",
+    "file": "nama/sin.mp3"
+  },
+  {
+    "id": "syin",
+    "nama": "Syin",
+    "karakter": "ش",
+    "kategori": "nama",
+    "file": "nama/syin.mp3"
+  },
+  {
+    "id": "shad",
+    "nama": "Shad",
+    "karakter": "ص",
+    "kategori": "nama",
+    "file": "nama/shad.mp3"
+  },
+  {
+    "id": "dhad",
+    "nama": "Dhad",
+    "karakter": "ض",
+    "kategori": "nama",
+    "file": "nama/dhad.mp3"
+  },
+  {
+    "id": "tha",
+    "nama": "Tha",
+    "karakter": "ط",
+    "kategori": "nama",
+    "file": "nama/tha.mp3"
+  },
+  {
+    "id": "zha",
+    "nama": "Zha",
+    "karakter": "ظ",
+    "kategori": "nama",
+    "file": "nama/zha.mp3"
+  },
+  {
+    "id": "ain",
+    "nama": "Ain",
+    "karakter": "ع",
+    "kategori": "nama",
+    "file": "nama/ain.mp3"
+  },
+  {
+    "id": "ghain",
+    "nama": "Ghain",
+    "karakter": "غ",
+    "kategori": "nama",
+    "file": "nama/ghain.mp3"
+  },
+  {
+    "id": "fa",
+    "nama": "Fa",
+    "karakter": "ف",
+    "kategori": "nama",
+    "file": "nama/fa.mp3"
+  },
+  {
+    "id": "qaf",
+    "nama": "Qaf",
+    "karakter": "ق",
+    "kategori": "nama",
+    "file": "nama/qaf.mp3"
+  },
+  {
+    "id": "kaf",
+    "nama": "Kaf",
+    "karakter": "ك",
+    "kategori": "nama",
+    "file": "nama/kaf.mp3"
+  },
+  {
+    "id": "lam",
+    "nama": "Lam",
+    "karakter": "ل",
+    "kategori": "nama",
+    "file": "nama/lam.mp3"
+  },
+  {
+    "id": "mim",
+    "nama": "Mim",
+    "karakter": "م",
+    "kategori": "nama",
+    "file": "nama/mim.mp3"
+  },
+  {
+    "id": "nun",
+    "nama": "Nun",
+    "karakter": "ن",
+    "kategori": "nama",
+    "file": "nama/nun.mp3"
+  },
+  {
+    "id": "waw",
+    "nama": "Waw",
+    "karakter": "و",
+    "kategori": "nama",
+    "file": "nama/waw.mp3"
+  },
+  {
+    "id": "ha2",
+    "nama": "Ha",
+    "karakter": "ه",
+    "kategori": "nama",
+    "file": "nama/ha2.mp3"
+  },
+  {
+    "id": "ya",
+    "nama": "Ya",
+    "karakter": "ي",
+    "kategori": "nama",
+    "file": "nama/ya.mp3"
+  },
+  {
+    "id": "hamzah",
+    "nama": "Hamzah",
+    "karakter": "ء",
+    "kategori": "nama",
+    "file": "nama/hamzah.mp3"
+  },
+  {
+    "id": "lam_alif",
+    "nama": "Lam Alif",
+    "karakter": "لا",
+    "kategori": "nama",
+    "file": "nama/lam_alif.mp3"
+  },
+  {
+    "id": "alif_fathah",
+    "nama": "Alif fathah",
+    "karakter": "أَ",
+    "kategori": "fathah",
+    "file": "fathah/alif.mp3"
+  },
+  {
+    "id": "ba_fathah",
+    "nama": "Ba fathah",
+    "karakter": "بَ",
+    "kategori": "fathah",
+    "file": "fathah/ba.mp3"
+  },
+  {
+    "id": "ta_fathah",
+    "nama": "Ta fathah",
+    "karakter": "تَ",
+    "kategori": "fathah",
+    "file": "fathah/ta.mp3"
+  },
+  {
+    "id": "tsa_fathah",
+    "nama": "Tsa fathah",
+    "karakter": "ثَ",
+    "kategori": "fathah",
+    "file": "fathah/tsa.mp3"
+  },
+  {
+    "id": "jim_fathah",
+    "nama": "Jim fathah",
+    "karakter": "جَ",
+    "kategori": "fathah",
+    "file": "fathah/jim.mp3"
+  },
+  {
+    "id": "ha_fathah",
+    "nama": "Ha fathah",
+    "karakter": "حَ",
+    "kategori": "fathah",
+    "file": "fathah/ha.mp3"
+  },
+  {
+    "id": "kha_fathah",
+    "nama": "Kha fathah",
+    "karakter": "خَ",
+    "kategori": "fathah",
+    "file": "fathah/kha.mp3"
+  },
+  {
+    "id": "dal_fathah",
+    "nama": "Dal fathah",
+    "karakter": "دَ",
+    "kategori": "fathah",
+    "file": "fathah/dal.mp3"
+  },
+  {
+    "id": "dzal_fathah",
+    "nama": "Dzal fathah",
+    "karakter": "ذَ",
+    "kategori": "fathah",
+    "file": "fathah/dzal.mp3"
+  },
+  {
+    "id": "ra_fathah",
+    "nama": "Ra fathah",
+    "karakter": "رَ",
+    "kategori": "fathah",
+    "file": "fathah/ra.mp3"
+  },
+  {
+    "id": "zai_fathah",
+    "nama": "Zai fathah",
+    "karakter": "زَ",
+    "kategori": "fathah",
+    "file": "fathah/zai.mp3"
+  },
+  {
+    "id": "sin_fathah",
+    "nama": "Sin fathah",
+    "karakter": "سَ",
+    "kategori": "fathah",
+    "file": "fathah/sin.mp3"
+  },
+  {
+    "id": "syin_fathah",
+    "nama": "Syin fathah",
+    "karakter": "شَ",
+    "kategori": "fathah",
+    "file": "fathah/syin.mp3"
+  },
+  {
+    "id": "shad_fathah",
+    "nama": "Shad fathah",
+    "karakter": "صَ",
+    "kategori": "fathah",
+    "file": "fathah/shad.mp3"
+  },
+  {
+    "id": "dhad_fathah",
+    "nama": "Dhad fathah",
+    "karakter": "ضَ",
+    "kategori": "fathah",
+    "file": "fathah/dhad.mp3"
+  },
+  {
+    "id": "tha_fathah",
+    "nama": "Tha fathah",
+    "karakter": "طَ",
+    "kategori": "fathah",
+    "file": "fathah/tha.mp3"
+  },
+  {
+    "id": "zha_fathah",
+    "nama": "Zha fathah",
+    "karakter": "ظَ",
+    "kategori": "fathah",
+    "file": "fathah/zha.mp3"
+  },
+  {
+    "id": "ain_fathah",
+    "nama": "Ain fathah",
+    "karakter": "عَ",
+    "kategori": "fathah",
+    "file": "fathah/ain.mp3"
+  },
+  {
+    "id": "ghain_fathah",
+    "nama": "Ghain fathah",
+    "karakter": "غَ",
+    "kategori": "fathah",
+    "file": "fathah/ghain.mp3"
+  },
+  {
+    "id": "fa_fathah",
+    "nama": "Fa fathah",
+    "karakter": "فَ",
+    "kategori": "fathah",
+    "file": "fathah/fa.mp3"
+  },
+  {
+    "id": "qaf_fathah",
+    "nama": "Qaf fathah",
+    "karakter": "قَ",
+    "kategori": "fathah",
+    "file": "fathah/qaf.mp3"
+  },
+  {
+    "id": "kaf_fathah",
+    "nama": "Kaf fathah",
+    "karakter": "كَ",
+    "kategori": "fathah",
+    "file": "fathah/kaf.mp3"
+  },
+  {
+    "id": "lam_fathah",
+    "nama": "Lam fathah",
+    "karakter": "لَ",
+    "kategori": "fathah",
+    "file": "fathah/lam.mp3"
+  },
+  {
+    "id": "mim_fathah",
+    "nama": "Mim fathah",
+    "karakter": "مَ",
+    "kategori": "fathah",
+    "file": "fathah/mim.mp3"
+  },
+  {
+    "id": "nun_fathah",
+    "nama": "Nun fathah",
+    "karakter": "نَ",
+    "kategori": "fathah",
+    "file": "fathah/nun.mp3"
+  },
+  {
+    "id": "waw_fathah",
+    "nama": "Waw fathah",
+    "karakter": "وَ",
+    "kategori": "fathah",
+    "file": "fathah/waw.mp3"
+  },
+  {
+    "id": "ha2_fathah",
+    "nama": "Ha fathah",
+    "karakter": "هَ",
+    "kategori": "fathah",
+    "file": "fathah/ha2.mp3"
+  },
+  {
+    "id": "ya_fathah",
+    "nama": "Ya fathah",
+    "karakter": "يَ",
+    "kategori": "fathah",
+    "file": "fathah/ya.mp3"
+  },
+  {
+    "id": "hamzah_fathah",
+    "nama": "Hamzah fathah",
+    "karakter": "أَ",
+    "kategori": "fathah",
+    "file": "fathah/hamzah.mp3"
+  },
+  {
+    "id": "lam_alif_fathah",
+    "nama": "Lam Alif fathah",
+    "karakter": "لاَ",
+    "kategori": "fathah",
+    "file": "fathah/lam_alif.mp3"
+  },
+  {
+    "id": "alif_kasrah",
+    "nama": "Alif kasrah",
+    "karakter": "أِ",
+    "kategori": "kasrah",
+    "file": "kasrah/alif.mp3"
+  },
+  {
+    "id": "ba_kasrah",
+    "nama": "Ba kasrah",
+    "karakter": "بِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ba.mp3"
+  },
+  {
+    "id": "ta_kasrah",
+    "nama": "Ta kasrah",
+    "karakter": "تِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ta.mp3"
+  },
+  {
+    "id": "tsa_kasrah",
+    "nama": "Tsa kasrah",
+    "karakter": "ثِ",
+    "kategori": "kasrah",
+    "file": "kasrah/tsa.mp3"
+  },
+  {
+    "id": "jim_kasrah",
+    "nama": "Jim kasrah",
+    "karakter": "جِ",
+    "kategori": "kasrah",
+    "file": "kasrah/jim.mp3"
+  },
+  {
+    "id": "ha_kasrah",
+    "nama": "Ha kasrah",
+    "karakter": "حِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ha.mp3"
+  },
+  {
+    "id": "kha_kasrah",
+    "nama": "Kha kasrah",
+    "karakter": "خِ",
+    "kategori": "kasrah",
+    "file": "kasrah/kha.mp3"
+  },
+  {
+    "id": "dal_kasrah",
+    "nama": "Dal kasrah",
+    "karakter": "دِ",
+    "kategori": "kasrah",
+    "file": "kasrah/dal.mp3"
+  },
+  {
+    "id": "dzal_kasrah",
+    "nama": "Dzal kasrah",
+    "karakter": "ذِ",
+    "kategori": "kasrah",
+    "file": "kasrah/dzal.mp3"
+  },
+  {
+    "id": "ra_kasrah",
+    "nama": "Ra kasrah",
+    "karakter": "رِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ra.mp3"
+  },
+  {
+    "id": "zai_kasrah",
+    "nama": "Zai kasrah",
+    "karakter": "زِ",
+    "kategori": "kasrah",
+    "file": "kasrah/zai.mp3"
+  },
+  {
+    "id": "sin_kasrah",
+    "nama": "Sin kasrah",
+    "karakter": "سِ",
+    "kategori": "kasrah",
+    "file": "kasrah/sin.mp3"
+  },
+  {
+    "id": "syin_kasrah",
+    "nama": "Syin kasrah",
+    "karakter": "شِ",
+    "kategori": "kasrah",
+    "file": "kasrah/syin.mp3"
+  },
+  {
+    "id": "shad_kasrah",
+    "nama": "Shad kasrah",
+    "karakter": "صِ",
+    "kategori": "kasrah",
+    "file": "kasrah/shad.mp3"
+  },
+  {
+    "id": "dhad_kasrah",
+    "nama": "Dhad kasrah",
+    "karakter": "ضِ",
+    "kategori": "kasrah",
+    "file": "kasrah/dhad.mp3"
+  },
+  {
+    "id": "tha_kasrah",
+    "nama": "Tha kasrah",
+    "karakter": "طِ",
+    "kategori": "kasrah",
+    "file": "kasrah/tha.mp3"
+  },
+  {
+    "id": "zha_kasrah",
+    "nama": "Zha kasrah",
+    "karakter": "ظِ",
+    "kategori": "kasrah",
+    "file": "kasrah/zha.mp3"
+  },
+  {
+    "id": "ain_kasrah",
+    "nama": "Ain kasrah",
+    "karakter": "عِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ain.mp3"
+  },
+  {
+    "id": "ghain_kasrah",
+    "nama": "Ghain kasrah",
+    "karakter": "غِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ghain.mp3"
+  },
+  {
+    "id": "fa_kasrah",
+    "nama": "Fa kasrah",
+    "karakter": "فِ",
+    "kategori": "kasrah",
+    "file": "kasrah/fa.mp3"
+  },
+  {
+    "id": "qaf_kasrah",
+    "nama": "Qaf kasrah",
+    "karakter": "قِ",
+    "kategori": "kasrah",
+    "file": "kasrah/qaf.mp3"
+  },
+  {
+    "id": "kaf_kasrah",
+    "nama": "Kaf kasrah",
+    "karakter": "كِ",
+    "kategori": "kasrah",
+    "file": "kasrah/kaf.mp3"
+  },
+  {
+    "id": "lam_kasrah",
+    "nama": "Lam kasrah",
+    "karakter": "لِ",
+    "kategori": "kasrah",
+    "file": "kasrah/lam.mp3"
+  },
+  {
+    "id": "mim_kasrah",
+    "nama": "Mim kasrah",
+    "karakter": "مِ",
+    "kategori": "kasrah",
+    "file": "kasrah/mim.mp3"
+  },
+  {
+    "id": "nun_kasrah",
+    "nama": "Nun kasrah",
+    "karakter": "نِ",
+    "kategori": "kasrah",
+    "file": "kasrah/nun.mp3"
+  },
+  {
+    "id": "waw_kasrah",
+    "nama": "Waw kasrah",
+    "karakter": "وِ",
+    "kategori": "kasrah",
+    "file": "kasrah/waw.mp3"
+  },
+  {
+    "id": "ha2_kasrah",
+    "nama": "Ha kasrah",
+    "karakter": "هِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ha2.mp3"
+  },
+  {
+    "id": "ya_kasrah",
+    "nama": "Ya kasrah",
+    "karakter": "يِ",
+    "kategori": "kasrah",
+    "file": "kasrah/ya.mp3"
+  },
+  {
+    "id": "hamzah_kasrah",
+    "nama": "Hamzah kasrah",
+    "karakter": "أِ",
+    "kategori": "kasrah",
+    "file": "kasrah/hamzah.mp3"
+  },
+  {
+    "id": "lam_alif_kasrah",
+    "nama": "Lam Alif kasrah",
+    "karakter": "لاِ",
+    "kategori": "kasrah",
+    "file": "kasrah/lam_alif.mp3"
+  },
+  {
+    "id": "alif_dhammah",
+    "nama": "Alif dhammah",
+    "karakter": "أُ",
+    "kategori": "dhammah",
+    "file": "dhammah/alif.mp3"
+  },
+  {
+    "id": "ba_dhammah",
+    "nama": "Ba dhammah",
+    "karakter": "بُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ba.mp3"
+  },
+  {
+    "id": "ta_dhammah",
+    "nama": "Ta dhammah",
+    "karakter": "تُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ta.mp3"
+  },
+  {
+    "id": "tsa_dhammah",
+    "nama": "Tsa dhammah",
+    "karakter": "ثُ",
+    "kategori": "dhammah",
+    "file": "dhammah/tsa.mp3"
+  },
+  {
+    "id": "jim_dhammah",
+    "nama": "Jim dhammah",
+    "karakter": "جُ",
+    "kategori": "dhammah",
+    "file": "dhammah/jim.mp3"
+  },
+  {
+    "id": "ha_dhammah",
+    "nama": "Ha dhammah",
+    "karakter": "حُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ha.mp3"
+  },
+  {
+    "id": "kha_dhammah",
+    "nama": "Kha dhammah",
+    "karakter": "خُ",
+    "kategori": "dhammah",
+    "file": "dhammah/kha.mp3"
+  },
+  {
+    "id": "dal_dhammah",
+    "nama": "Dal dhammah",
+    "karakter": "دُ",
+    "kategori": "dhammah",
+    "file": "dhammah/dal.mp3"
+  },
+  {
+    "id": "dzal_dhammah",
+    "nama": "Dzal dhammah",
+    "karakter": "ذُ",
+    "kategori": "dhammah",
+    "file": "dhammah/dzal.mp3"
+  },
+  {
+    "id": "ra_dhammah",
+    "nama": "Ra dhammah",
+    "karakter": "رُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ra.mp3"
+  },
+  {
+    "id": "zai_dhammah",
+    "nama": "Zai dhammah",
+    "karakter": "زُ",
+    "kategori": "dhammah",
+    "file": "dhammah/zai.mp3"
+  },
+  {
+    "id": "sin_dhammah",
+    "nama": "Sin dhammah",
+    "karakter": "سُ",
+    "kategori": "dhammah",
+    "file": "dhammah/sin.mp3"
+  },
+  {
+    "id": "syin_dhammah",
+    "nama": "Syin dhammah",
+    "karakter": "شُ",
+    "kategori": "dhammah",
+    "file": "dhammah/syin.mp3"
+  },
+  {
+    "id": "shad_dhammah",
+    "nama": "Shad dhammah",
+    "karakter": "صُ",
+    "kategori": "dhammah",
+    "file": "dhammah/shad.mp3"
+  },
+  {
+    "id": "dhad_dhammah",
+    "nama": "Dhad dhammah",
+    "karakter": "ضُ",
+    "kategori": "dhammah",
+    "file": "dhammah/dhad.mp3"
+  },
+  {
+    "id": "tha_dhammah",
+    "nama": "Tha dhammah",
+    "karakter": "طُ",
+    "kategori": "dhammah",
+    "file": "dhammah/tha.mp3"
+  },
+  {
+    "id": "zha_dhammah",
+    "nama": "Zha dhammah",
+    "karakter": "ظُ",
+    "kategori": "dhammah",
+    "file": "dhammah/zha.mp3"
+  },
+  {
+    "id": "ain_dhammah",
+    "nama": "Ain dhammah",
+    "karakter": "عُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ain.mp3"
+  },
+  {
+    "id": "ghain_dhammah",
+    "nama": "Ghain dhammah",
+    "karakter": "غُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ghain.mp3"
+  },
+  {
+    "id": "fa_dhammah",
+    "nama": "Fa dhammah",
+    "karakter": "فُ",
+    "kategori": "dhammah",
+    "file": "dhammah/fa.mp3"
+  },
+  {
+    "id": "qaf_dhammah",
+    "nama": "Qaf dhammah",
+    "karakter": "قُ",
+    "kategori": "dhammah",
+    "file": "dhammah/qaf.mp3"
+  },
+  {
+    "id": "kaf_dhammah",
+    "nama": "Kaf dhammah",
+    "karakter": "كُ",
+    "kategori": "dhammah",
+    "file": "dhammah/kaf.mp3"
+  },
+  {
+    "id": "lam_dhammah",
+    "nama": "Lam dhammah",
+    "karakter": "لُ",
+    "kategori": "dhammah",
+    "file": "dhammah/lam.mp3"
+  },
+  {
+    "id": "mim_dhammah",
+    "nama": "Mim dhammah",
+    "karakter": "مُ",
+    "kategori": "dhammah",
+    "file": "dhammah/mim.mp3"
+  },
+  {
+    "id": "nun_dhammah",
+    "nama": "Nun dhammah",
+    "karakter": "نُ",
+    "kategori": "dhammah",
+    "file": "dhammah/nun.mp3"
+  },
+  {
+    "id": "waw_dhammah",
+    "nama": "Waw dhammah",
+    "karakter": "وُ",
+    "kategori": "dhammah",
+    "file": "dhammah/waw.mp3"
+  },
+  {
+    "id": "ha2_dhammah",
+    "nama": "Ha dhammah",
+    "karakter": "هُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ha2.mp3"
+  },
+  {
+    "id": "ya_dhammah",
+    "nama": "Ya dhammah",
+    "karakter": "يُ",
+    "kategori": "dhammah",
+    "file": "dhammah/ya.mp3"
+  },
+  {
+    "id": "hamzah_dhammah",
+    "nama": "Hamzah dhammah",
+    "karakter": "أُ",
+    "kategori": "dhammah",
+    "file": "dhammah/hamzah.mp3"
+  },
+  {
+    "id": "lam_alif_dhammah",
+    "nama": "Lam Alif dhammah",
+    "karakter": "لاُ",
+    "kategori": "dhammah",
+    "file": "dhammah/lam_alif.mp3"
+  },
+  {
+    "id": "alif_sukun",
+    "nama": "Alif sukun",
+    "karakter": "اْ",
+    "kategori": "sukun",
+    "file": "sukun/alif.mp3"
+  },
+  {
+    "id": "ba_sukun",
+    "nama": "Ba sukun",
+    "karakter": "بْ",
+    "kategori": "sukun",
+    "file": "sukun/ba.mp3"
+  },
+  {
+    "id": "ta_sukun",
+    "nama": "Ta sukun",
+    "karakter": "تْ",
+    "kategori": "sukun",
+    "file": "sukun/ta.mp3"
+  },
+  {
+    "id": "tsa_sukun",
+    "nama": "Tsa sukun",
+    "karakter": "ثْ",
+    "kategori": "sukun",
+    "file": "sukun/tsa.mp3"
+  },
+  {
+    "id": "jim_sukun",
+    "nama": "Jim sukun",
+    "karakter": "جْ",
+    "kategori": "sukun",
+    "file": "sukun/jim.mp3"
+  },
+  {
+    "id": "ha_sukun",
+    "nama": "Ha sukun",
+    "karakter": "حْ",
+    "kategori": "sukun",
+    "file": "sukun/ha.mp3"
+  },
+  {
+    "id": "kha_sukun",
+    "nama": "Kha sukun",
+    "karakter": "خْ",
+    "kategori": "sukun",
+    "file": "sukun/kha.mp3"
+  },
+  {
+    "id": "dal_sukun",
+    "nama": "Dal sukun",
+    "karakter": "دْ",
+    "kategori": "sukun",
+    "file": "sukun/dal.mp3"
+  },
+  {
+    "id": "dzal_sukun",
+    "nama": "Dzal sukun",
+    "karakter": "ذْ",
+    "kategori": "sukun",
+    "file": "sukun/dzal.mp3"
+  },
+  {
+    "id": "ra_sukun",
+    "nama": "Ra sukun",
+    "karakter": "رْ",
+    "kategori": "sukun",
+    "file": "sukun/ra.mp3"
+  },
+  {
+    "id": "zai_sukun",
+    "nama": "Zai sukun",
+    "karakter": "زْ",
+    "kategori": "sukun",
+    "file": "sukun/zai.mp3"
+  },
+  {
+    "id": "sin_sukun",
+    "nama": "Sin sukun",
+    "karakter": "سْ",
+    "kategori": "sukun",
+    "file": "sukun/sin.mp3"
+  },
+  {
+    "id": "syin_sukun",
+    "nama": "Syin sukun",
+    "karakter": "شْ",
+    "kategori": "sukun",
+    "file": "sukun/syin.mp3"
+  },
+  {
+    "id": "shad_sukun",
+    "nama": "Shad sukun",
+    "karakter": "صْ",
+    "kategori": "sukun",
+    "file": "sukun/shad.mp3"
+  },
+  {
+    "id": "dhad_sukun",
+    "nama": "Dhad sukun",
+    "karakter": "ضْ",
+    "kategori": "sukun",
+    "file": "sukun/dhad.mp3"
+  },
+  {
+    "id": "tha_sukun",
+    "nama": "Tha sukun",
+    "karakter": "طْ",
+    "kategori": "sukun",
+    "file": "sukun/tha.mp3"
+  },
+  {
+    "id": "zha_sukun",
+    "nama": "Zha sukun",
+    "karakter": "ظْ",
+    "kategori": "sukun",
+    "file": "sukun/zha.mp3"
+  },
+  {
+    "id": "ain_sukun",
+    "nama": "Ain sukun",
+    "karakter": "عْ",
+    "kategori": "sukun",
+    "file": "sukun/ain.mp3"
+  },
+  {
+    "id": "ghain_sukun",
+    "nama": "Ghain sukun",
+    "karakter": "غْ",
+    "kategori": "sukun",
+    "file": "sukun/ghain.mp3"
+  },
+  {
+    "id": "fa_sukun",
+    "nama": "Fa sukun",
+    "karakter": "فْ",
+    "kategori": "sukun",
+    "file": "sukun/fa.mp3"
+  },
+  {
+    "id": "qaf_sukun",
+    "nama": "Qaf sukun",
+    "karakter": "قْ",
+    "kategori": "sukun",
+    "file": "sukun/qaf.mp3"
+  },
+  {
+    "id": "kaf_sukun",
+    "nama": "Kaf sukun",
+    "karakter": "كْ",
+    "kategori": "sukun",
+    "file": "sukun/kaf.mp3"
+  },
+  {
+    "id": "lam_sukun",
+    "nama": "Lam sukun",
+    "karakter": "لْ",
+    "kategori": "sukun",
+    "file": "sukun/lam.mp3"
+  },
+  {
+    "id": "mim_sukun",
+    "nama": "Mim sukun",
+    "karakter": "مْ",
+    "kategori": "sukun",
+    "file": "sukun/mim.mp3"
+  },
+  {
+    "id": "nun_sukun",
+    "nama": "Nun sukun",
+    "karakter": "نْ",
+    "kategori": "sukun",
+    "file": "sukun/nun.mp3"
+  },
+  {
+    "id": "waw_sukun",
+    "nama": "Waw sukun",
+    "karakter": "وْ",
+    "kategori": "sukun",
+    "file": "sukun/waw.mp3"
+  },
+  {
+    "id": "ha2_sukun",
+    "nama": "Ha sukun",
+    "karakter": "هْ",
+    "kategori": "sukun",
+    "file": "sukun/ha2.mp3"
+  },
+  {
+    "id": "ya_sukun",
+    "nama": "Ya sukun",
+    "karakter": "يْ",
+    "kategori": "sukun",
+    "file": "sukun/ya.mp3"
+  },
+  {
+    "id": "hamzah_sukun",
+    "nama": "Hamzah sukun",
+    "karakter": "ءْ",
+    "kategori": "sukun",
+    "file": "sukun/hamzah.mp3"
+  },
+  {
+    "id": "lam_alif_sukun",
+    "nama": "Lam Alif sukun",
+    "karakter": "لاْ",
+    "kategori": "sukun",
+    "file": "sukun/lam_alif.mp3"
+  },
+  {
+    "id": "tanwin_fathah",
+    "nama": "Tanwin Fathah",
+    "karakter": "ً",
+    "kategori": "tanwin",
+    "file": "tanwin/tanwin_fathah.mp3"
+  },
+  {
+    "id": "tanwin_kasrah",
+    "nama": "Tanwin Kasrah",
+    "karakter": "ٍ",
+    "kategori": "tanwin",
+    "file": "tanwin/tanwin_kasrah.mp3"
+  },
+  {
+    "id": "tanwin_dhammah",
+    "nama": "Tanwin Dhammah",
+    "karakter": "ٌ",
+    "kategori": "tanwin",
+    "file": "tanwin/tanwin_dhammah.mp3"
+  },
+  {
+    "id": "tasydid_ba",
+    "nama": "Tasydid Ba",
+    "karakter": "بَّ",
+    "kategori": "tasydid",
+    "file": "tasydid/tasydid_ba.mp3"
+  },
+  {
+    "id": "tasydid_mim",
+    "nama": "Tasydid Mim",
+    "karakter": "مَّ",
+    "kategori": "tasydid",
+    "file": "tasydid/tasydid_mim.mp3"
+  },
+  {
+    "id": "tasydid_nun",
+    "nama": "Tasydid Nun",
+    "karakter": "نَّ",
+    "kategori": "tasydid",
+    "file": "tasydid/tasydid_nun.mp3"
+  }
+]

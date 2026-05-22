@@ -2,14 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, LayoutDashboard, LogOut } from 'lucide-react'
+import { LayoutDashboard, LogOut, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLogout } from '@/hooks/use-auth'
-import { Button } from '@/components/ui/button'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/stories/new', label: 'Tambah Kisah', icon: BookOpen },
 ]
 
 export function Sidebar() {
@@ -17,33 +15,51 @@ export function Sidebar() {
   const logout = useLogout()
 
   return (
-    <aside className="w-56 min-h-screen bg-white border-r flex flex-col">
-      <div className="p-4 border-b">
-        <h1 className="font-bold text-lg text-emerald-700">Quran Kids</h1>
-        <p className="text-xs text-slate-500">Admin Panel</p>
+    <aside className="w-60 min-h-screen bg-[#6C5CE7] flex flex-col">
+      {/* Logo */}
+      <div className="px-5 py-5 border-b border-white/10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-white font-semibold text-sm leading-tight">Quran Kids</p>
+            <p className="text-white/50 text-[10px] leading-tight tracking-wider uppercase">Admin Panel</p>
+          </div>
+        </div>
       </div>
-      <nav className="flex-1 p-3 space-y-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors',
-              pathname === item.href
-                ? 'bg-emerald-50 text-emerald-700 font-medium'
-                : 'text-slate-600 hover:bg-slate-50',
-            )}
-          >
-            <item.icon className="w-4 h-4" aria-hidden={true} />
-            {item.label}
-          </Link>
-        ))}
+
+      {/* Nav */}
+      <nav className="flex-1 p-3 space-y-0.5 mt-2">
+        {navItems.map((item) => {
+          const active = pathname === item.href
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
+                active
+                  ? 'bg-white/20 text-white font-semibold'
+                  : 'text-white/60 hover:text-white hover:bg-white/10',
+              )}
+            >
+              <item.icon className="w-4 h-4 flex-shrink-0" />
+              {item.label}
+            </Link>
+          )
+        })}
       </nav>
-      <div className="p-3 border-t">
-        <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={logout}>
-          <LogOut className="w-4 h-4" aria-hidden={true} />
+
+      {/* Logout */}
+      <div className="p-3 border-t border-white/10">
+        <button
+          onClick={logout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/50 hover:text-white hover:bg-white/10 transition-all"
+        >
+          <LogOut className="w-4 h-4" />
           Keluar
-        </Button>
+        </button>
       </div>
     </aside>
   )

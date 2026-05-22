@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { View, Text, FlatList, TouchableOpacity, TextInput, Image } from 'react-native'
+import { View, FlatList, TouchableOpacity, Image } from 'react-native'
+import { Text } from '../../../components/Text'
 import { useRouter } from 'expo-router'
 import { useKisahNabiList, type KisahNabi } from '../../../hooks/use-kisah-nabi'
 

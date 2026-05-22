@@ -9,6 +9,11 @@ import { config } from '../../config.js'
 import { randomUUID } from 'crypto'
 
 const adminStoryRoutes: FastifyPluginAsync = async (app) => {
+  app.get('/stories', { preHandler: [requireAdmin] }, async (request, reply) => {
+    const stories = await prisma.story.findMany({ orderBy: { createdAt: 'desc' } })
+    return reply.send({ data: stories, total: stories.length, page: 1, limit: stories.length })
+  })
+
   app.post('/stories', { preHandler: [requireAdmin] }, async (request, reply) => {
     const body = createStorySchema.safeParse(request.body)
     if (!body.success) return reply.code(400).send({ error: body.error.flatten() })
@@ -77,6 +82,27 @@ const adminStoryRoutes: FastifyPluginAsync = async (app) => {
   app.put('/stories/:id/publish', { preHandler: [requireAdmin] }, async (request, reply) => {
     const { id } = request.params as { id: string }
     const story = await prisma.story.update({ where: { id }, data: { isPublished: true } })
+    return reply.send(story)
+  })
+
+  app.post('/stories/:id/cover', { preHandler: [requireAdmin] }, async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const parts = request.parts()
+
+    let coverUrl: string | undefined
+    for await (const part of parts) {
+      if (part.type === 'file' && part.fieldname === 'cover') {
+        const ext = path.extname(part.filename)
+        const filename = `${randomUUID()}${ext}`
+        const dest = path.join(config.UPLOAD_DIR, filename)
+        await pipeline(part.file, fs.createWriteStream(dest))
+        coverUrl = `${config.BASE_URL}/uploads/${filename}`
+      }
+    }
+
+    if (!coverUrl) return reply.code(400).send({ error: 'File cover wajib diisi' })
+
+    const story = await prisma.story.update({ where: { id }, data: { coverImageUrl: coverUrl } })
     return reply.send(story)
   })
 }

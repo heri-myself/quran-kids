@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native'
+import { View, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native'
+import { Text } from '../../../components/Text'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useKisahNabiDetail } from '../../../hooks/use-kisah-nabi'
 import { RIcon } from '../../../components/RIcon'

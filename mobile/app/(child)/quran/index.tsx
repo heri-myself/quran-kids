@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { View, Text, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native'
+import { View, FlatList, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native'
+import { Text } from '../../../components/Text'
 import { useRouter } from 'expo-router'
 import { useChapters } from '../../../hooks/use-quran'
 import type { Chapter } from '../../../services/quran'
@@ -202,8 +203,6 @@ export default function QuranIndexScreen() {
         paddingHorizontal: 24,
         paddingTop: 56,
         paddingBottom: 20,
-        borderBottomLeftRadius: 28,
-        borderBottomRightRadius: 28,
       }}>
         <Text style={{ color: '#D4D0FF', fontSize: 13, marginBottom: 4 }}>Kitab Suci</Text>
         <Text style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '800' }}>Al-Quran 📖</Text>

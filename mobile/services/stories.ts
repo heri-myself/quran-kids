@@ -31,10 +31,11 @@ export interface StoriesResponse {
   limit: number
 }
 
-export function getStoriesApi(params?: { category?: string; page?: number; limit?: number }): Promise<StoriesResponse> {
+export function getStoriesApi(params?: { category?: string; page?: number; limit?: number; featured?: boolean }): Promise<StoriesResponse> {
   const query = new URLSearchParams()
   if (params?.category) query.set('category', params.category)
   if (params?.page) query.set('page', String(params.page))
+  if (params?.featured !== undefined) query.set('featured', String(params.featured))
   query.set('limit', String(params?.limit ?? 20))
   return api.get<StoriesResponse>(`/stories?${query.toString()}`)
 }

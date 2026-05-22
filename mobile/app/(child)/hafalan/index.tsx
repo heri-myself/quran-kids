@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native'
 import { Text } from '../../../components/Text'
+import { RiIcon } from '../../../components/RiIcon'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
 import { useLastActivityStore } from '../../../stores/last-activity-store'
@@ -61,39 +62,28 @@ export default function HafalanIndexScreen() {
     router.push(`/(child)/hafalan/${item.id}` as any)
   }
 
-  const handleSelectContinuous = (item: SurahItem) => {
-    setLastHafalan({ surahId: item.id, surahName: item.name_simple, timestamp: Date.now() })
-    router.push(`/(child)/hafalan/continuous/${item.id}` as any)
-  }
-
   const renderSurah = ({ item }: { item: SurahItem }) => (
-    <View style={styles.card}>
-      <TouchableOpacity style={styles.cardMain} onPress={() => handleSelect(item)} activeOpacity={0.75}>
-        <View style={styles.cardBadge}>
-          <Text style={styles.cardBadgeText}>{item.id}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.cardName}>{item.name_simple}</Text>
-          <Text style={styles.cardSub}>
-            {item.translated_name?.name} · {item.verses_count} ayat
-          </Text>
-        </View>
-        <Text style={styles.cardArabic}>{item.name_arabic}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.continuousBtn}
-        onPress={() => handleSelectContinuous(item)}
-        activeOpacity={0.75}
-      >
-        <Text style={styles.continuousBtnText}>📖 Mode Membaca</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableOpacity style={styles.card} onPress={() => handleSelect(item)} activeOpacity={0.75}>
+      <View style={styles.cardBadge}>
+        <Text style={styles.cardBadgeText}>{item.id}</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.cardName}>{item.name_simple}</Text>
+        <Text style={styles.cardSub}>
+          {item.translated_name?.name} · {item.verses_count} ayat
+        </Text>
+      </View>
+      <Text style={styles.cardArabic}>{item.name_arabic}</Text>
+    </TouchableOpacity>
   )
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F4F4FF' }}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>📖 Uji Hafalan</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <RiIcon name="book-open-line" size={20} color="#fff" />
+          <Text style={styles.headerTitle}>Uji Hafalan</Text>
+        </View>
         <Text style={styles.headerSub}>Pilih surah yang ingin kamu hafal</Text>
         <TextInput
           style={styles.searchBar}
@@ -135,8 +125,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: Platform.OS === 'ios' ? 56 : 32,
     paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
   },
   headerTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '800', marginBottom: 4 },
   headerSub: { color: '#D4D0FF', fontSize: 13, marginBottom: 16 },
@@ -153,31 +141,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 14,
     marginBottom: 10,
-    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
-  },
-  cardMain: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-  },
-  continuousBtn: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(99,102,241,0.12)',
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    backgroundColor: 'rgba(99,102,241,0.04)',
-    alignItems: 'center',
-  },
-  continuousBtnText: {
-    color: '#6366F1',
-    fontSize: 12,
-    fontWeight: '600',
   },
   cardBadge: {
     width: 36,

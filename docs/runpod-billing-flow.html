@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RunPod Serverless — Billing & Flow</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    min-height: 100vh;
+    padding: 48px 24px;
+  }
+
+  .container { max-width: 1000px; margin: 0 auto; }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #4f46e5, #0284c7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 48px;
+  }
+
+  /* ── Billing Table ── */
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+  }
+
+  .billing-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 48px;
+    font-size: 14px;
+  }
+
+  .billing-table thead tr {
+    background: #f1f5f9;
+  }
+
+  .billing-table th {
+    padding: 14px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #94a3b8;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .billing-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+  }
+
+  .billing-table tbody tr:hover { background: #f8fafc; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .badge-warm { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+  .badge-cold { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; }
+  .badge-avg  { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #0284c7;
+  }
+
+  .highlight-cell { color: #1e293b; font-weight: 600; }
+
+  .gpu-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 32px;
+    padding: 12px 20px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+  }
+
+  .gpu-bar span { color: #1e293b; font-weight: 500; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; }
+
+  /* ── Flow Diagram ── */
+  .flow-section { margin-bottom: 48px; }
+
+  .flow-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+  }
+
+  .flow-node {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .flow-node-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+
+  .flow-node-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 6px;
+  }
+
+  .flow-node-desc {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .flow-connector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+    color: #cbd5e1;
+    font-size: 20px;
+  }
+
+  .flow-connector-label {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-left: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── Path Split ── */
+  .path-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .path-card {
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid;
+  }
+
+  .path-warm {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+
+  .path-cold {
+    background: #f5f3ff;
+    border-color: #c4b5fd;
+  }
+
+  .path-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .path-warm .path-title { color: #4ade80; }
+  .path-cold .path-title { color: #a5b4fc; }
+
+  .path-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .step-num {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .path-warm .step-num { background: #16a34a; color: #ffffff; }
+  .path-cold .step-num { background: #6d28d9; color: #ffffff; }
+
+  .step-text { font-size: 13px; color: #475569; line-height: 1.4; }
+  .step-time { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #94a3b8; }
+
+  /* ── Cost Breakdown ── */
+  .cost-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+  }
+
+  .cost-row:last-child { border-bottom: none; }
+  .cost-label { color: #64748b; }
+  .cost-value { font-family: 'JetBrains Mono', monospace; color: #0284c7; font-weight: 500; }
+  .cost-value-green { font-family: 'JetBrains Mono', monospace; color: #16a34a; font-weight: 600; }
+
+  .footer-note {
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid #e2e8f0;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>RunPod Serverless — Billing & Request Flow</h1>
+  <p class="subtitle">Whisper Large-v3 Turbo · GPU 24 GB · $0.00019/detik</p>
+
+  <!-- GPU Info Bar -->
+  <div class="gpu-bar">
+    <span>GPU</span> <span>24 GB VRAM</span>
+    <div class="dot"></div>
+    <span>Rate</span> <span>$0.00019 / detik</span>
+    <div class="dot"></div>
+    <span>Idle</span> <span>$0.00 / detik</span>
+    <div class="dot"></div>
+    <span>Model</span> <span>naazimsnh02/whisper-large-v3-turbo-ar-quran</span>
+    <div class="dot"></div>
+    <span>Min Workers</span> <span>0</span>
+  </div>
+
+  <!-- Billing Table -->
+  <p class="section-title">Estimasi Biaya Per Request</p>
+  <table class="billing-table">
+    <thead>
+      <tr>
+        <th>Kondisi</th>
+        <th>Durasi Eksekusi</th>
+        <th>Biaya / Request</th>
+        <th>$1 Cukup Untuk</th>
+        <th>Keterangan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-warm">● Warm</span></td>
+        <td class="mono">3 – 5 detik</td>
+        <td class="mono highlight-cell">~$0.0010</td>
+        <td class="highlight-cell">~1.000 request</td>
+        <td style="color:#94a3b8;font-size:13px">Worker sudah aktif, langsung inferensi</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-cold">● Cold Start</span></td>
+        <td class="mono">15 – 25 detik</td>
+        <td class="mono highlight-cell">~$0.0048</td>
+        <td class="highlight-cell">~208 request</td>
+        <td style="color:#94a3b8;font-size:13px">Boot container + load model ke VRAM</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-avg">◐ Rata-rata</span></td>
+        <td class="mono">8 – 12 detik</td>
+        <td class="mono highlight-cell">~$0.0023</td>
+        <td class="highlight-cell">~435 request</td>
+        <td style="color:#94a3b8;font-size:13px">Campuran warm & cold di usage normal</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Flow Diagram -->
+  <p class="section-title">Alur Request Tilawah</p>
+  <div class="flow-section">
+    <div class="flow-wrap">
+
+      <div class="flow-node">
+        <div class="flow-node-label">Step 1 · Mobile App</div>
+        <div class="flow-node-title">User rekam audio tilawah</div>
+        <div class="flow-node-desc">Audio direkam via <code style="color:#0284c7">expo-av</code>, di-convert ke base64, dikirim ke backend Node.js</div>
+      </div>
+
+      <div class="flow-connector">↓ <span class="flow-connector-label">HTTPS POST /tilawah/evaluate</span></div>
+
+      <div class="flow-node">
+        <div class="flow-node-label">Step 2 · Backend Node.js (VPS)</div>
+        <div class="flow-node-title">Submit job ke RunPod</div>
+        <div class="flow-node-desc">Backend memanggil <code style="color:#0284c7">runpodTranscribe(audioBase64)</code> → POST ke <code style="color:#0284c7">api.runpod.ai/v2/{endpointId}/run</code></div>
+      </div>
+
+      <div class="flow-connector">↓ <span class="flow-connector-label">jobId diterima, mulai polling</span></div>
+
+      <!-- Path Split -->
+      <div class="path-split">
+        <div class="path-card path-warm">
+          <div class="path-title">⚡ Warm Worker</div>
+          <div class="path-step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-text">Worker sudah standby di GPU</div>
+              <div class="step-time">0 detik boot</div>
+            </div>
+          </div>
+          <div class="path-step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-text">Whisper inferensi audio</div>
+              <div class="step-time">~3–5 detik</div>
+            </div>
+          </div>
+          <div class="path-step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-text">Return hasil transkripsi</div>
+              <div class="step-time">Total ~4–6 detik</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="path-card path-cold">
+          <div class="path-title">❄️ Cold Start</div>
+          <div class="path-step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-text">Pull image dari Docker Hub</div>
+              <div class="step-time">~5–10 detik</div>
+            </div>
+          </div>
+          <div class="path-step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-text">Load model ke VRAM GPU</div>
+              <div class="step-time">~5–10 detik</div>
+            </div>
+          </div>
+          <div class="path-step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-text">Whisper inferensi audio</div>
+              <div class="step-time">Total ~20–30 detik</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-connector">↓ <span class="flow-connector-label">polling /status/{jobId} setiap 500ms</span></div>
+
+      <div class="flow-node">
+        <div class="flow-node-label">Step 3 · Tajweed Analysis (VPS Sidecar)</div>
+        <div class="flow-node-title">Analisis hasil transkripsi</div>
+        <div class="flow-node-desc">Transkripsi dikirim ke <code style="color:#0284c7">localhost:8001/analyze</code> → Python tajweed engine membandingkan dengan ayat referensi</div>
+      </div>
+
+      <div class="flow-connector">↓ <span class="flow-connector-label">skor + feedback tajweed</span></div>
+
+      <div class="flow-node">
+        <div class="flow-node-label">Step 4 · Response ke Mobile</div>
+        <div class="flow-node-title">Hasil evaluasi dikirim balik</div>
+        <div class="flow-node-desc">Skor akurasi, kata yang salah, dan feedback tajweed ditampilkan di layar hasil tilawah</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Cost Summary -->
+  <p class="section-title">Ringkasan Biaya</p>
+  <div class="cost-card">
+    <div class="cost-row">
+      <span class="cost-label">GPU Rate</span>
+      <span class="cost-value">$0.00019 / detik</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label">Biaya idle (tidak ada request)</span>
+      <span class="cost-value-green">$0.00</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label">Estimasi 100 request/hari (mixed)</span>
+      <span class="cost-value">~$0.23 / hari</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label">Estimasi 1.000 request/bulan</span>
+      <span class="cost-value">~$2.30 / bulan</span>
+    </div>
+    <div class="cost-row">
+      <span class="cost-label">Saldo RunPod saat ini</span>
+      <span class="cost-value-green">$66.70 (~28 bulan usage normal)</span>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    Endpoint ID: <code style="color:#0284c7">9jgo93sf7d4n3t</code> ·
+    Docker: <code style="color:#0284c7">inkbest/quran-kids-whisper:latest</code> ·
+    Scale to zero saat idle
+  </div>
+
+</div>
+</body>
+</html>
