@@ -33,6 +33,9 @@ def get_pipe():
             processor.tokenizer.set_prefix_tokens(language="arabic", task="transcribe")
             prefix = processor.tokenizer.prefix_tokens[1:]
             model.generation_config.forced_decoder_ids = [(i + 1, tok) for i, tok in enumerate(prefix)]
+            # Pastikan no_timestamps_token_id ada agar return_timestamps="word" tidak error
+            if not hasattr(model.generation_config, 'no_timestamps_token_id') or model.generation_config.no_timestamps_token_id is None:
+                model.generation_config.no_timestamps_token_id = processor.tokenizer.convert_tokens_to_ids("<|notimestamps|>")
             _pipe = hf_pipeline(
                 "automatic-speech-recognition",
                 model=model,
