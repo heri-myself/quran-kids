@@ -98,7 +98,7 @@ def handler(job):
             ts = chunk.get("timestamp")
             if ts and ts[0] is not None and ts[1] is not None:
                 word_timestamps.append({
-                    "word": chunk["text"].strip(),
+                    "word": chunk.get("text", "").strip(),
                     "start": round(float(ts[0]), 3),
                     "end": round(float(ts[1]), 3),
                 })
