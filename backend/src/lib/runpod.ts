@@ -7,9 +7,21 @@ const BASE_URL = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}`
 const POLL_INTERVAL_MS = 1_000
 const TIMEOUT_MS = 180_000  // 3 menit — cukup untuk cold start RunPod
 
+interface WordTimestamp {
+  word: string
+  start: number
+  end: number
+}
+
 interface RunPodOutput {
   transcription?: string
+  word_timestamps?: WordTimestamp[]
   error?: string
+}
+
+export interface TranscribeResult {
+  transcription: string
+  word_timestamps: WordTimestamp[]
 }
 
 async function submitJob(audioBase64: string): Promise<string> {
@@ -52,10 +64,13 @@ async function pollJob(jobId: string): Promise<RunPodOutput> {
   throw new Error(`RunPod job timeout after ${TIMEOUT_MS}ms`)
 }
 
-export async function runpodTranscribe(audioBase64: string): Promise<string> {
+export async function runpodTranscribe(audioBase64: string): Promise<TranscribeResult> {
   const jobId = await submitJob(audioBase64)
   const output = await pollJob(jobId)
   if (output.error) throw new Error(`Worker error: ${output.error}`)
   if (!output.transcription) throw new Error('Worker returned empty transcription')
-  return output.transcription
+  return {
+    transcription: output.transcription,
+    word_timestamps: output.word_timestamps ?? [],
+  }
 }
