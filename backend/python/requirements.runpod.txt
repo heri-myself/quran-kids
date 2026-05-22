@@ -1,6 +1,4 @@
 runpod==1.6.2
-# torch dan torchaudio diinstall via Dockerfile dengan --index-url cu121
-
 transformers==4.41.0
 accelerate>=0.27.0
 numpy==1.26.4

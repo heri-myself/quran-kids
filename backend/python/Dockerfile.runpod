@@ -1,16 +1,15 @@
-FROM runpod/base:0.4.0-cuda12.1.0
+FROM runpod/pytorch:2.2.0-py3.10-cuda12.1.1-devel-ubuntu22.04
 
 # System deps
-RUN apt-get update && apt-get install -y ffmpeg git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 
 # ARG di sini agar semua layer berikutnya di-rebuild fresh setiap kali HF_TOKEN berubah
 ARG HF_TOKEN
 ENV HF_HUB_TOKEN=${HF_TOKEN}
 
-# Python deps
+# Python deps (torch sudah ada di base image, skip re-install)
 COPY requirements.runpod.txt /requirements.runpod.txt
-RUN python3 -m pip install --no-cache-dir torch==2.3.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu121 && \
-    python3 -m pip install --no-cache-dir -r /requirements.runpod.txt
+RUN python3 -m pip install --no-cache-dir -r /requirements.runpod.txt
 
 # Pre-download model (baked-in — HF_HUB_TOKEN dibaca otomatis oleh transformers)
 RUN python3 -c "\
