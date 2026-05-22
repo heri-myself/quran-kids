@@ -1,6 +1,6 @@
 import { getStoredToken } from './api'
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.18.104:3001'
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api-kids.qbest.id'
 
 export interface WordResult {
   word: string
@@ -40,12 +40,19 @@ export interface SaveSessionResponse {
   pointsEarned: number
 }
 
-const EVAL_TIMEOUT_MS = 90_000
+const EVAL_TIMEOUT_MS = 200_000
 
 function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
-  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer))
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer))
+    .catch((err) => {
+      if (err?.name === 'AbortError') {
+        throw new Error('Proses terlalu lama, coba lagi sebentar lagi.')
+      }
+      throw err
+    })
 }
 
 export async function evaluateVerse(

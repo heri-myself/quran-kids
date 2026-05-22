@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store'
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.18.104:3001'
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api-kids.qbest.id'
 const TOKEN_KEY = 'qk_access_token'
 const REFRESH_KEY = 'qk_refresh_token'
 
