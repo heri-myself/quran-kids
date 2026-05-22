@@ -5,7 +5,9 @@
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease",
+        "withoutCredentials": false
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api-kids.qbest.id"
