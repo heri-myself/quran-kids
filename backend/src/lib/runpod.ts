@@ -4,8 +4,8 @@ const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY!
 const RUNPOD_ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID!
 const BASE_URL = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}`
 
-const POLL_INTERVAL_MS = 500
-const TIMEOUT_MS = 60_000  // 60 detik timeout total
+const POLL_INTERVAL_MS = 1_000
+const TIMEOUT_MS = 180_000  // 3 menit — cukup untuk cold start RunPod
 
 interface RunPodOutput {
   transcription?: string
