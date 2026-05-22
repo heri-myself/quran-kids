@@ -31,8 +31,8 @@ def get_pipe():
                 "torch_cuda": torch.version.cuda,
             }
             print(f"[WORKER] GPU detected: {_gpu_info}")
-        device = "cpu"  # DIAGNOSTIC: paksa CPU untuk isolasi CUDA kernel error
-        dtype = torch.float32
+        device = "cuda" if cuda_available else "cpu"
+        dtype = torch.float16 if device == "cuda" else torch.float32
         print(f"[WORKER] Running on: {device} (dtype={dtype})")
         try:
             model = AutoModelForSpeechSeq2Seq.from_pretrained(
