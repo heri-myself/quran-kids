@@ -27,7 +27,8 @@
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "package": "com.anonymous.mobile",
-      "enableSplitAPKs": true
+      "enableSplitAPKs": true,
+      "abiFilters": ["arm64-v8a"]
     },
     "scheme": "quran-kids",
     "web": {
