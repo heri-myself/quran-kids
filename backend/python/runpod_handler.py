@@ -14,19 +14,26 @@ import numpy as np
 MODEL_ID = os.environ.get("MODEL_ID", "naazimsnh02/whisper-large-v3-turbo-ar-quran")
 
 _pipe = None
+_gpu_info = {}
 
 
 def get_pipe():
-    global _pipe
+    global _pipe, _gpu_info
     if _pipe is None:
         print(f"[WORKER] Loading model {MODEL_ID} ...")
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        if device == "cuda":
-            print(f"[WORKER] GPU: {torch.cuda.get_device_name(0)}")
-            cap = torch.cuda.get_device_capability(0)
-            print(f"[WORKER] Compute capability: sm_{cap[0]}{cap[1]}")
-            print(f"[WORKER] PyTorch CUDA version: {torch.version.cuda}")
-        dtype = torch.float16 if device == "cuda" else torch.float32
+        # GPU diagnostics — paksa CPU untuk isolasi masalah CUDA
+        cuda_available = torch.cuda.is_available()
+        _gpu_info = {}
+        if cuda_available:
+            _gpu_info = {
+                "name": torch.cuda.get_device_name(0),
+                "capability": f"sm_{torch.cuda.get_device_capability(0)[0]}{torch.cuda.get_device_capability(0)[1]}",
+                "torch_cuda": torch.version.cuda,
+            }
+            print(f"[WORKER] GPU detected: {_gpu_info}")
+        device = "cpu"  # DIAGNOSTIC: paksa CPU untuk isolasi CUDA kernel error
+        dtype = torch.float32
+        print(f"[WORKER] Running on: {device} (dtype={dtype})")
         try:
             model = AutoModelForSpeechSeq2Seq.from_pretrained(
                 MODEL_ID,
@@ -124,7 +131,7 @@ def handler(job):
 
         print(f"[WORKER] Transcribed: {transcription}")
         print(f"[WORKER] Word timestamps ({len(word_timestamps)}): {word_timestamps[:3]}...")
-        return {"transcription": transcription, "word_timestamps": word_timestamps}
+        return {"transcription": transcription, "word_timestamps": word_timestamps, "gpu_info": _gpu_info}
     except Exception as e:
         traceback.print_exc()
         return {"error": str(e)}
