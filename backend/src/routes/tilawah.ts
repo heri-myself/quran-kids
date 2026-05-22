@@ -47,7 +47,7 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
     // Step 2: Analisis tajwid via Python sidecar lokal (tajweed_engine.py)
     let pythonResult: any
     try {
-      const res = await fetch('http://localhost:8001/analyze', {
+      const res = await fetch('http://quran-kids-sidecar:8001/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,7 +98,7 @@ const tilawahRoutes: FastifyPluginAsync = async (app) => {
 
     let pythonResult: any
     try {
-      const res = await fetch('http://localhost:8001/analyze-simple', {
+      const res = await fetch('http://quran-kids-sidecar:8001/analyze-simple', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
