@@ -241,11 +241,18 @@ def evaluate_simple(req: EvaluateRequest):
     )
 
 
+class WordTimestamp(BaseModel):
+    word: str
+    start: float
+    end: float
+
+
 class AnalyzeRequest(BaseModel):
     transcription: str
     expected_text: str
     verse_number: int
     chapter_id: int
+    word_timestamps: list[WordTimestamp] = []
 
 
 @app.post("/analyze", response_model=EvaluateResponse)
@@ -257,7 +264,8 @@ def analyze(req: AnalyzeRequest):
     print(f"[ANALYZE][TRANSCRIBED]  {req.transcription}")
 
     raw_word_results, word_accuracy = compare_texts(req.expected_text, req.transcription)
-    detect_mad_errors(raw_word_results, [])
+    ts_dicts = [{"word": t.word, "start": t.start, "end": t.end} for t in req.word_timestamps]
+    detect_mad_errors(raw_word_results, ts_dicts)
     tajweed_score, tajweed_feedback = analyze_tajweed(raw_word_results)
 
     for w in raw_word_results:
