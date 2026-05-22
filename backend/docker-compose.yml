@@ -30,7 +30,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=n8n_default"
-      - "traefik.http.routers.quran-kids.rule=Host(`api-quran.qbest.id`)"
+      - "traefik.http.routers.quran-kids.rule=Host(`api-kids.qbest.id`)"
       - "traefik.http.routers.quran-kids.entrypoints=websecure"
       - "traefik.http.routers.quran-kids.tls=true"
       - "traefik.http.routers.quran-kids.tls.certresolver=mytlschallenge"
