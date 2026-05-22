@@ -40,19 +40,38 @@ export interface SaveSessionResponse {
   pointsEarned: number
 }
 
-const EVAL_TIMEOUT_MS = 70_000
+const POLL_INTERVAL_MS = 3_000
+const POLL_TIMEOUT_MS  = 120_000  // 2 menit total, tapi koneksi per-request hanya <5s
 
-function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-  return fetch(url, { ...options, signal: controller.signal })
-    .finally(() => clearTimeout(timer))
-    .catch((err) => {
-      if (err?.name === 'AbortError') {
-        throw new Error('Proses terlalu lama, coba lagi sebentar lagi.')
-      }
-      throw err
-    })
+async function submitJob(path: string, payload: object): Promise<string> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as any).error ?? `Submit gagal (${res.status})`)
+  }
+  const data = await res.json()
+  return data.jobId as string
+}
+
+async function pollJob(jobId: string): Promise<EvaluateResponse> {
+  const deadline = Date.now() + POLL_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS))
+    const res = await fetch(`${API_URL}/tilawah/job/${jobId}`)
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error((err as any).error ?? `Evaluasi gagal (${res.status})`)
+    }
+    const data = await res.json()
+    if (data.status === 'completed') return data.result as EvaluateResponse
+    if (data.status === 'failed') throw new Error(data.error ?? 'Evaluasi gagal')
+    // 'pending' — lanjut poll
+  }
+  throw new Error('Proses terlalu lama, coba lagi sebentar lagi.')
 }
 
 export async function evaluateVerse(
@@ -61,22 +80,9 @@ export async function evaluateVerse(
   expectedText: string,
   audioBase64: string
 ): Promise<EvaluateResponse> {
-  const res = await fetchWithTimeout(
-    `${API_URL}/tilawah/evaluate`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chapterId, verseNumber, expectedText, audioBase64 }),
-    },
-    EVAL_TIMEOUT_MS
-  )
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error((err as any).error ?? (err as any).message ?? `Evaluasi gagal (${res.status})`)
-  }
-  return res.json()
+  const jobId = await submitJob('/tilawah/evaluate', { chapterId, verseNumber, expectedText, audioBase64 })
+  return pollJob(jobId)
 }
-
 
 export async function evaluateVerseSimple(
   chapterId: number,
@@ -84,20 +90,8 @@ export async function evaluateVerseSimple(
   expectedText: string,
   audioBase64: string
 ): Promise<EvaluateResponse> {
-  const res = await fetchWithTimeout(
-    `${API_URL}/tilawah/evaluate-simple`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chapterId, verseNumber, expectedText, audioBase64 }),
-    },
-    EVAL_TIMEOUT_MS
-  )
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error((err as any).error ?? (err as any).message ?? `Evaluasi gagal (${res.status})`)
-  }
-  return res.json()
+  const jobId = await submitJob('/tilawah/evaluate-simple', { chapterId, verseNumber, expectedText, audioBase64 })
+  return pollJob(jobId)
 }
 
 export async function saveSession(
