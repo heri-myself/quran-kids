@@ -88,11 +88,21 @@ def handler(job):
     try:
         audio_array = audio_bytes_to_array(audio_bytes)
         pipe = get_pipe()
-        result = pipe(
-            {"raw": audio_array, "sampling_rate": 16000},
-            return_timestamps="word",
-            generate_kwargs={"num_beams": 1, "max_new_tokens": 128},
-        )
+        # Coba word-level timestamps, fallback ke sentence-level jika gagal
+        try:
+            result = pipe(
+                {"raw": audio_array, "sampling_rate": 16000},
+                return_timestamps="word",
+                generate_kwargs={"num_beams": 1, "max_new_tokens": 128},
+            )
+        except Exception as ts_err:
+            print(f"[WORKER] Word timestamps gagal ({ts_err}), fallback ke sentence-level")
+            result = pipe(
+                {"raw": audio_array, "sampling_rate": 16000},
+                return_timestamps=True,
+                generate_kwargs={"num_beams": 1, "max_new_tokens": 128},
+            )
+
         transcription = result["text"].strip()
 
         # Extract word timestamps: [{"word": "...", "start": 0.0, "end": 0.5}, ...]
