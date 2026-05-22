@@ -115,4 +115,7 @@ def handler(job):
 
 
 if __name__ == "__main__":
+    print("[WORKER] Pre-loading model sebelum terima job...")
+    get_pipe()
+    print("[WORKER] Model siap, mulai server.")
     runpod.serverless.start({"handler": handler})
