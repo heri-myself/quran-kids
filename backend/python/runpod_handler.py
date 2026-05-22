@@ -87,11 +87,25 @@ def handler(job):
         pipe = get_pipe()
         result = pipe(
             {"raw": audio_array, "sampling_rate": 16000},
+            return_timestamps="word",
             generate_kwargs={"num_beams": 1, "max_new_tokens": 128},
         )
         transcription = result["text"].strip()
+
+        # Extract word timestamps: [{"word": "...", "start": 0.0, "end": 0.5}, ...]
+        word_timestamps = []
+        for chunk in result.get("chunks", []):
+            ts = chunk.get("timestamp")
+            if ts and ts[0] is not None and ts[1] is not None:
+                word_timestamps.append({
+                    "word": chunk["text"].strip(),
+                    "start": round(float(ts[0]), 3),
+                    "end": round(float(ts[1]), 3),
+                })
+
         print(f"[WORKER] Transcribed: {transcription}")
-        return {"transcription": transcription}
+        print(f"[WORKER] Word timestamps ({len(word_timestamps)}): {word_timestamps[:3]}...")
+        return {"transcription": transcription, "word_timestamps": word_timestamps}
     except Exception as e:
         traceback.print_exc()
         return {"error": str(e)}
